@@ -16,6 +16,16 @@ class ApiRoutesTest extends TestCase
         self::assertStringContainsString('application/json', $response->getHeaderLine('Content-Type'));
     }
 
+    public function testBootstrapCanRunWithoutCmsOrPlanModules(): void
+    {
+        $app = App::create(modules: []);
+        $health = $app->handle($this->createRequest('GET', '/api/health'));
+        $posts = $app->handle($this->createRequest('GET', '/api/posts'));
+
+        self::assertSame(200, $health->getStatusCode());
+        self::assertSame(404, $posts->getStatusCode());
+    }
+
     public function testHealthCheckReturnsSuccessJsonResponse(): void
     {
         $app = $this->getApp();

@@ -66,7 +66,7 @@ final readonly class PageController
     }
 
     #[Route(methods:['PUT'],pattern:'admin/pages/{id}',placeholders:['id'=>'numeric'])]
-    #[OA\Put(path:'/api/admin/pages/{id}',tags:['Admin Pages'],security:[['cookieAuth'=>[]]],parameters:[new OA\Parameter(name:'id',in:'path',required:true,schema:new OA\Schema(type:'integer'))],responses:[new OA\Response(response:200,description:'Página atualizada'),new OA\Response(response:422,description:'Validação')])]
+    #[OA\Put(path:'/api/admin/pages/{id}',tags:['Admin Pages'],security:[['cookieAuth'=>[]]],parameters:[new OA\Parameter(name:'id',in:'path',required:true,schema:new OA\Schema(type:'integer'))],requestBody:new OA\RequestBody(required:true,content:new OA\JsonContent(type:'object',required:['title','content'],properties:[new OA\Property(property:'title',type:'string',maxLength:200),new OA\Property(property:'slug',type:'string'),new OA\Property(property:'content',type:'string')])),responses:[new OA\Response(response:200,description:'Página atualizada'),new OA\Response(response:404,description:'Não encontrada'),new OA\Response(response:422,description:'Validação')])]
     public function update(ServerRequestInterface $request,ResponseInterface $response,array $args): ResponseInterface
     {
         if ($failure=$this->adminFailure($request,$response)) { return $failure; }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Domain\Page;
 
 use DateTimeImmutable;
+use InvalidArgumentException;
 
 final readonly class Page
 {
@@ -17,6 +18,15 @@ final readonly class Page
         public DateTimeImmutable $createdAt,
         public DateTimeImmutable $updatedAt,
     ) {
+        if ($id < 0 || trim($title) === '' || mb_strlen($title) > 200
+            || $content === '' || mb_strlen($content) > 60000
+            || preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $slug) !== 1 || mb_strlen($slug) > 200
+            || !in_array($status, ['DRAFT', 'PUBLISHED'], true)
+            || ($status === 'PUBLISHED' && $publishedAt === null)
+            || ($status === 'DRAFT' && $publishedAt !== null)
+            || $updatedAt < $createdAt) {
+            throw new InvalidArgumentException('Página contém estado inválido.');
+        }
     }
 
     /** @return array<string, mixed> */

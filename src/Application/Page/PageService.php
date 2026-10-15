@@ -9,9 +9,8 @@ use DomainException;
 
 final readonly class PageService
 {
-    private const RESERVED_SLUGS = ['admin', 'api', 'login', 'logout', 'register', 'docs', 'blog', 'posts', 'pages', 'assets', 'health', 'about', 'features', 'architecture', 'guide', 'forgot-password', 'reset-password'];
-
-    public function __construct(private PageRepository $pages)
+    /** @param list<string> $reservedSlugs */
+    public function __construct(private PageRepository $pages, private array $reservedSlugs = [])
     {
     }
 
@@ -109,7 +108,7 @@ final readonly class PageService
         if ($slug === '' || mb_strlen($slug) > 200 || preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $slug) !== 1) {
             throw new DomainException('Slug inválido.');
         }
-        if (in_array($slug, self::RESERVED_SLUGS, true)) {
+        if (in_array($slug, $this->reservedSlugs, true)) {
             throw new DomainException('Esse slug é reservado pela aplicação.');
         }
         return [$title, $slug, $content];

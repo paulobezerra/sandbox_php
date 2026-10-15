@@ -75,7 +75,7 @@ As dependências seguem `Infrastructure → Application → Domain`; o Bootstrap
 
 - Cadastro público sempre cria `USER`. Crie ou promova administradores apenas por procedimento controlado.
 - Auth usa sessão no servidor, cookie HttpOnly, CSRF nas mutações e limitação de tentativas; toda autorização também é feita no backend.
-- Posts e Pages armazenam Markdown e escapam HTML bruto na renderização.
+- Posts e Pages armazenam Markdown e escapam HTML bruto na renderização. As views usam `v-html` somente com HTML produzido pelo `MarkdownRenderer`, que rejeita HTML bruto e links inseguros; preview e publicação compartilham esse renderer. Os templates Vue ficam em módulos ES sem build e são compilados no navegador, por isso a CSP mantém `unsafe-eval`; não forneça templates Vue nem HTML renderizável por usuários.
 - Migrations antigas são históricas. Não as edite para corrigir schema já aplicado; crie uma migration nova. O rollback das migrations CMS/Auth recusa remover tabelas que contenham dados.
 - Nunca coloque credenciais reais, tokens ou dumps no repositório.
 

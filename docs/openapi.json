@@ -77,9 +77,36 @@
                     "Auth"
                 ],
                 "operationId": "18468d1b085a6893ecda31943aa8ace7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "minLength": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
-                        "description": "Sessão iniciada"
+                        "description": "Sessão iniciada e token CSRF renovado"
+                    },
+                    "400": {
+                        "description": "Payload inválido"
                     },
                     "401": {
                         "description": "Credenciais inválidas"
@@ -450,9 +477,38 @@
                         }
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "content"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "maxLength": 200
+                                    },
+                                    "slug": {
+                                        "type": "string"
+                                    },
+                                    "content": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Página atualizada"
+                    },
+                    "404": {
+                        "description": "Não encontrada"
                     },
                     "422": {
                         "description": "Validação"
@@ -729,9 +785,44 @@
                         }
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "content"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "maxLength": 200
+                                    },
+                                    "slug": {
+                                        "type": "string"
+                                    },
+                                    "content": {
+                                        "type": "string"
+                                    },
+                                    "excerpt": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Post atualizado"
+                    },
+                    "404": {
+                        "description": "Não encontrado"
                     },
                     "422": {
                         "description": "Validação"

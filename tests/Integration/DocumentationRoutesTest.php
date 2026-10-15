@@ -31,6 +31,29 @@ class DocumentationRoutesTest extends TestCase
         $document = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
         self::assertArrayHasKey('/api/health', $document['paths']);
         self::assertArrayNotHasKey('/api/plans', $document['paths']);
+        self::assertSame(Config::fromEnvironment()->sessionCookie, $document['components']['securitySchemes']['cookieAuth']['name']);
+    }
+
+    public function testOpenApiCookieNameFollowsConfiguredSessionCookie(): void
+    {
+        $environment = Config::fromEnvironment();
+        $config = Config::fromArray([
+            'APP_ENV' => $environment->appEnv,
+            'APP_DEBUG' => 'false',
+            'OPENAPI_ENABLED' => 'true',
+            'APP_URL' => $environment->appUrl,
+            'SESSION_COOKIE' => 'project_auth_cookie',
+            'DB_HOST' => $environment->databaseHost,
+            'DB_PORT' => (string) $environment->databasePort,
+            'DB_DATABASE' => $environment->databaseName,
+            'DB_USERNAME' => $environment->databaseUser,
+            'DB_PASSWORD' => $environment->databasePassword,
+            'DB_CHARSET' => $environment->databaseCharset,
+        ]);
+        $response = App::create(config: $config)->handle($this->createRequest('GET', '/docs/openapi.json'));
+        $document = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
+
+        self::assertSame('project_auth_cookie', $document['components']['securitySchemes']['cookieAuth']['name']);
     }
 
     public function testDocumentationIsHiddenInProductionByDefault(): void

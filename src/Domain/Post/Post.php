@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Domain\Post;
 
 use DateTimeImmutable;
+use InvalidArgumentException;
 
 final readonly class Post
 {
@@ -19,6 +20,16 @@ final readonly class Post
         public DateTimeImmutable $createdAt,
         public DateTimeImmutable $updatedAt,
     ) {
+        if ($id < 0 || $authorId < 1 || trim($title) === '' || mb_strlen($title) > 200
+            || $content === '' || mb_strlen($content) > 60000
+            || preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $slug) !== 1 || mb_strlen($slug) > 200
+            || !in_array($status, ['DRAFT', 'PUBLISHED'], true)
+            || ($excerpt !== null && mb_strlen($excerpt) > 1000)
+            || ($status === 'PUBLISHED' && $publishedAt === null)
+            || ($status === 'DRAFT' && $publishedAt !== null)
+            || $updatedAt < $createdAt) {
+            throw new InvalidArgumentException('Post contém estado inválido.');
+        }
     }
 
     /** @return array<string, mixed> */

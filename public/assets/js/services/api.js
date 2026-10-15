@@ -5,18 +5,43 @@ async function request(path, options = {}) {
     const headers = new Headers(options.headers || {});
     if (options.body !== undefined) headers.set('Content-Type', 'application/json');
     if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-        if (!csrfToken) {
-            const csrfResponse = await fetch('/api/auth/csrf', { credentials: 'same-origin' });
-            const csrfData = await csrfResponse.json();
-            csrfToken = csrfData.csrfToken;
-        }
+        if (!csrfToken) await refreshCsrf();
         headers.set('X-CSRF-Token', csrfToken);
     }
-    const response = await fetch(path, { ...options, method, headers, credentials: 'same-origin' });
-    const data = response.status === 204 ? null : await response.json();
+    let response;
+    try {
+        response = await fetch(path, { ...options, method, headers, credentials: 'same-origin' });
+    } catch {
+        throw new Error('Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.');
+    }
+    if (response.status === 419 && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+        csrfToken = null;
+        await refreshCsrf();
+        headers.set('X-CSRF-Token', csrfToken);
+        try {
+            response = await fetch(path, { ...options, method, headers, credentials: 'same-origin' });
+        } catch {
+            throw new Error('Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.');
+        }
+    }
+    const data = response.status === 204 ? null : await response.json().catch(() => null);
     if (!response.ok) throw new Error(data?.error?.message || `Falha HTTP ${response.status}`);
     if (data?.csrfToken) csrfToken = data.csrfToken;
     return data;
+}
+
+async function refreshCsrf() {
+    let response;
+    try {
+        response = await fetch('/api/auth/csrf', { credentials: 'same-origin' });
+    } catch {
+        throw new Error('Não foi possível obter a proteção da sessão. Verifique sua conexão.');
+    }
+    const data = await response.json().catch(() => null);
+    if (!response.ok || typeof data?.csrfToken !== 'string' || data.csrfToken.length === 0) {
+        throw new Error(data?.error?.message || `Falha ao preparar a sessão (HTTP ${response.status}).`);
+    }
+    csrfToken = data.csrfToken;
 }
 
 export const api = {

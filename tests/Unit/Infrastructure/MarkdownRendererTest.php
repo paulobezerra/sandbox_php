@@ -15,4 +15,13 @@ final class MarkdownRendererTest extends TestCase
         self::assertStringContainsString('&lt;script&gt;', $html);
         self::assertStringNotContainsString('href="javascript:', $html);
     }
+
+    public function testEventHandlersAndDataUrlsRemainInert(): void
+    {
+        $html = (new MarkdownRenderer())->render("<img src=x onerror=alert(1)>\n\n[link](data:text/html;base64,PHNjcmlwdD4=)");
+
+        self::assertStringNotContainsString('<img', $html);
+        self::assertStringContainsString('&lt;img src=x onerror=alert(1)&gt;', $html);
+        self::assertStringNotContainsString('href="data:', $html);
+    }
 }

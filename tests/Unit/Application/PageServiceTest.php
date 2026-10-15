@@ -13,7 +13,7 @@ final class PageServiceTest extends TestCase
     public function testApplicationReservedSlugCannotBeCreatedAsPage(): void
     {
         $repository = $this->createMock(PageRepository::class);
-        $service = new PageService($repository);
+        $service = new PageService($repository, \App\Bootstrap\ProjectModules::reservedPageSlugs());
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('reservado');
         $service->create(['title' => 'Admin', 'slug' => 'admin', 'content' => 'Conteúdo']);
@@ -22,7 +22,7 @@ final class PageServiceTest extends TestCase
     public function testInstitutionalSiteRoutesCannotBeReplacedByPages(): void
     {
         $repository = $this->createMock(PageRepository::class);
-        $service = new PageService($repository);
+        $service = new PageService($repository, \App\Bootstrap\ProjectModules::reservedPageSlugs());
 
         foreach (['features', 'architecture', 'guide', 'login', 'register', 'forgot-password', 'reset-password'] as $slug) {
             try {
@@ -40,6 +40,6 @@ final class PageServiceTest extends TestCase
         $repository->expects(self::never())->method('create');
         $this->expectException(DomainException::class);
         $this->expectExceptionMessage('Slug inválido.');
-        (new PageService($repository))->create(['title' => 'Minha Página', 'slug' => 'Slug Inválido!', 'content' => 'Conteúdo']);
+        (new PageService($repository, \App\Bootstrap\ProjectModules::reservedPageSlugs()))->create(['title' => 'Minha Página', 'slug' => 'Slug Inválido!', 'content' => 'Conteúdo']);
     }
 }

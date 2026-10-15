@@ -23,6 +23,15 @@ class OpenApiRoutesTest extends TestCase
         $documentedRoutes = [];
         foreach ($document['paths'] as $path => $operations) {
             foreach (array_keys($operations) as $method) {
+                self::assertNotEmpty($operations[$method]['responses'] ?? [], "$method $path must document responses.");
+                if (str_starts_with($path, '/api/admin/')) {
+                    self::assertContains(['cookieAuth' => []], $operations[$method]['security'] ?? [], "$method $path must document cookie authentication.");
+                }
+                if (in_array(strtolower($method), ['post', 'put', 'patch'], true)
+                    && !str_ends_with($path, '/publish') && !str_ends_with($path, '/unpublish')
+                    && $path !== '/api/auth/logout') {
+                    self::assertNotEmpty($operations[$method]['requestBody'] ?? [], "$method $path must document its request body.");
+                }
                 $documentedRoutes[] = strtoupper($method) . ' ' . $path;
             }
         }

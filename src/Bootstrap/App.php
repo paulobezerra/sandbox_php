@@ -8,19 +8,8 @@ use App\Infrastructure\Http\Controller\AppController;
 use App\Infrastructure\Http\Controller\DocumentationController;
 use App\Infrastructure\Http\Error\HttpErrorHandler;
 use App\Infrastructure\Http\Middleware\SecurityHeadersMiddleware;
-use App\Infrastructure\Http\Middleware\SessionMiddleware;
 use App\Infrastructure\Http\Middleware\CsrfMiddleware;
-use App\Application\Auth\AuthService;
-use App\Domain\User\UserRepository;
-use App\Infrastructure\Database\Repository\MysqlUserRepository;
-use App\Domain\Post\PostRepository;
-use App\Domain\Page\PageRepository;
-use App\Infrastructure\Database\Repository\MysqlPostRepository;
-use App\Infrastructure\Database\Repository\MysqlPageRepository;
 use App\Infrastructure\View\ViewRenderer;
-use App\Infrastructure\View\MarkdownRenderer;
-use App\Application\Post\PostService;
-use App\Application\Page\PageService;
 use DI\ContainerBuilder;
 use Jgut\Slim\Routing\AppFactory as RoutingAppFactory;
 use Jgut\Slim\Routing\Configuration as RoutingConfiguration;
@@ -32,7 +21,7 @@ class App
     public static function create(
         ?PDO $pdo = null,
         ?Config $config = null,
-        bool $includeLegacyPlans = false
+        ?array $modules = null
     ): SlimApp {
         $config ??= Config::fromEnvironment();
         $db = $pdo ?? ConnectionFactory::create($config);
@@ -43,21 +32,21 @@ class App
         $definitions = [
             PDO::class => $db,
             Config::class => $config,
-            UserRepository::class => \DI\autowire(MysqlUserRepository::class),
-            PostRepository::class => \DI\autowire(MysqlPostRepository::class),
-            PageRepository::class => \DI\autowire(MysqlPageRepository::class),
-            AuthService::class => \DI\autowire(),
-            PostService::class => \DI\autowire(),
-            PageService::class => \DI\autowire(),
-            MarkdownRenderer::class => \DI\autowire(),
         ];
-        if ($includeLegacyPlans) {
-            $definitions += LegacyPlanModule::definitions($db);
+        $controllerFiles = [
+            dirname(__DIR__) . '/Infrastructure/Http/Controller/HealthController.php',
+        ];
+        $modules ??= ProjectModules::enabled();
+        foreach ($modules as $module) {
+            if (!$module instanceof BootstrapModule) {
+                throw new \InvalidArgumentException('Módulos devem implementar BootstrapModule.');
+            }
+            $definitions += $module->definitions($db);
+            $controllerFiles = [...$controllerFiles, ...$module->controllerFiles()];
         }
         $containerBuilder->addDefinitions($definitions);
         $container = $containerBuilder->build();
 
-        $controllerFiles = Routes::controllerFiles($includeLegacyPlans);
         RoutingAppFactory::setRouteCollectorConfiguration(new RoutingConfiguration([
             'sources' => $controllerFiles,
         ]));
@@ -77,10 +66,12 @@ class App
 
         $app->add(new CsrfMiddleware());
         $app->add(new SecurityHeadersMiddleware());
-        $app->add(new SessionMiddleware($config, $container->get(UserRepository::class)));
+        foreach ($modules as $module) {
+            $module->addMiddlewares($app, $container, $config);
+        }
 
         // 3. Register routes
-        Routes::register($app, $appController, new DocumentationController(), $config->openApiEnabled);
+        Routes::register($app, $appController, new DocumentationController($config), $config->openApiEnabled, $controllerFiles);
 
         return $app;
     }

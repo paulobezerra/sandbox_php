@@ -42,7 +42,7 @@ final readonly class AuthController
     }
 
     #[Route(methods: ['POST'], pattern: 'login')]
-    #[OA\Post(path: '/api/auth/login', tags: ['Auth'], responses: [new OA\Response(response: 200, description: 'Sessão iniciada'), new OA\Response(response: 401, description: 'Credenciais inválidas'), new OA\Response(response: 429, description: 'Limite excedido')])]
+    #[OA\Post(path: '/api/auth/login', tags: ['Auth'], requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object', required: ['email', 'password'], properties: [new OA\Property(property: 'email', type: 'string', format: 'email'), new OA\Property(property: 'password', type: 'string', minLength: 1)])), responses: [new OA\Response(response: 200, description: 'Sessão iniciada e token CSRF renovado'), new OA\Response(response: 400, description: 'Payload inválido'), new OA\Response(response: 401, description: 'Credenciais inválidas'), new OA\Response(response: 429, description: 'Limite excedido')])]
     public function login(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         try {

@@ -12,35 +12,20 @@ use Symfony\Component\Cache\Psr16Cache;
 
 class Routes
 {
-    /** @return list<string> */
-    public static function controllerFiles(bool $includeLegacyPlans = false): array
-    {
-        $files = glob(dirname(__DIR__) . '/Infrastructure/Http/Controller/*.php') ?: [];
-
-        if (!$includeLegacyPlans) {
-            $files = array_values(array_filter(
-                $files,
-                static fn(string $file): bool => basename($file) !== 'PlanController.php'
-            ));
-        }
-
-        return $files;
-    }
-
     public static function register(
         SlimApp $app,
         AppController $appController,
         DocumentationController $documentationController,
-        bool $openApiEnabled
+        bool $openApiEnabled,
+        array $controllerFiles
     ): void {
         $routeCollector = $app->getRouteCollector();
         if (!$routeCollector instanceof RouteCollector) {
             throw new \RuntimeException('O coletor de rotas com atributos não foi configurado.');
         }
-        $controllerFiles = glob(dirname(__DIR__) . '/Infrastructure/Http/Controller/*.php') ?: [];
         $routeSourceFingerprint = hash(
             'sha256',
-            implode('', array_map(static fn(string $file): string => hash_file('sha256', $file), $controllerFiles))
+            implode('', array_map(static fn(string $file): string => $file . ':' . hash_file('sha256', $file), $controllerFiles))
         );
         $routeCollector->setCache(new Psr16Cache(new FilesystemAdapter(
             'sandbox_php_routes',
