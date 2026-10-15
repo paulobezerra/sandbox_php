@@ -1,0 +1,3 @@
+# Quality gate
+
+Durante a implementação, execute os testes específicos do componente alterado. Para PHP, `composer format` aplica PHP-CS-Fixer/PSR-12; `composer lint` verifica estilo e sintaxe sem alterar arquivos. Separe a rodada de formatação de alterações funcionais. No fechamento do escopo, execute `composer quality` quando configurado: `composer lint`, PHPUnit, cobertura de linhas alvo ≥80%, PHPStan nível 6 e checagens de contrato/OpenAPI. Para SPA, execute também `./tools/test-all.sh` com o app ativo. Falha em qualquer etapa bloqueia a conclusão; não ajuste exclusões de cobertura apenas para alcançar a meta. Até esses scripts existirem, registre os comandos disponíveis e a lacuna. Não instale dependências automaticamente para uma auditoria.

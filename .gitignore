@@ -1,0 +1,10 @@
+/vendor/
+/.phpunit.cache/
+/public/assets/vendor/swagger-ui/
+/docs/swagger-ui.html
+/.env
+/.idea/
+/.ide-libs/
+/composer.phar
+/node_modules/
+*.log

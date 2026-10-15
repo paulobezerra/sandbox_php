@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Skeleton PHP reutilizável com Slim 4, Vue 3, autenticação e mini CMS, sem etapa de build JavaScript.">
+    <title>Sandbox PHP — base para aplicações</title>
+
+    <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body>
+
+<div id="app">
+    <aside class="sidebar">
+        <div class="brand">Sandbox PHP</div>
+
+        <nav>
+            <router-link to="/">Início</router-link>
+            <router-link to="/features">Recursos</router-link>
+            <router-link to="/architecture">Arquitetura</router-link>
+            <router-link to="/guide">Guia</router-link>
+            <router-link to="/blog">Blog</router-link>
+            <router-link to="/login">Entrar</router-link>
+            <router-link to="/admin/content">Administração</router-link>
+        </nav>
+    </aside>
+
+    <main class="content">
+        <router-view></router-view>
+        <footer class="site-footer"><span>Sandbox PHP · PHP 8.4 + Slim 4 + Vue 3</span><a href="/docs">OpenAPI e Swagger UI</a></footer>
+    </main>
+</div>
+
+
+<script src="/assets/vendor/vue.global.prod.js"></script>
+<script src="/assets/vendor/vue-router.global.prod.js"></script>
+
+<script type="module" src="/assets/js/app.js"></script>
+</body>
+</html>

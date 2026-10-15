@@ -1,0 +1,1063 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Sandbox PHP API",
+        "description": "API HTTP do skeleton. A autenticação usa sessão PHP em cookie HttpOnly, SameSite=Lax e Secure conforme APP_URL. Operações mutáveis em /api/auth e /api/admin, além de qualquer mutação durante uma sessão autenticada, exigem X-CSRF-Token obtido em GET /api/auth/csrf ou /api/auth/me. Endpoints anônimos de extensão devem permanecer sem estado de sessão. Códigos de recuperação são gerados após reautenticação e exibidos uma única vez.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/"
+        }
+    ],
+    "paths": {
+        "/api/auth/csrf": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "operationId": "ab524af6c7c90298c1e3a82793bb6598",
+                "responses": {
+                    "200": {
+                        "description": "Token CSRF para a sessão"
+                    }
+                }
+            }
+        },
+        "/api/auth/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "operationId": "65caa1792e73f25ec9c158f684725ca2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "minLength": 12
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Usuário criado"
+                    },
+                    "400": {
+                        "description": "Payload inválido"
+                    },
+                    "422": {
+                        "description": "Dados inválidos"
+                    }
+                }
+            }
+        },
+        "/api/auth/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "operationId": "18468d1b085a6893ecda31943aa8ace7",
+                "responses": {
+                    "200": {
+                        "description": "Sessão iniciada"
+                    },
+                    "401": {
+                        "description": "Credenciais inválidas"
+                    },
+                    "429": {
+                        "description": "Limite excedido"
+                    }
+                }
+            }
+        },
+        "/api/auth/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "operationId": "a8949cd76ed14d60327f211285aae94f",
+                "responses": {
+                    "200": {
+                        "description": "Sessão encerrada"
+                    }
+                }
+            }
+        },
+        "/api/auth/me": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "operationId": "5748656ff08958c5e000086a9ad9557d",
+                "responses": {
+                    "200": {
+                        "description": "Usuário atual ou sessão anônima"
+                    }
+                }
+            }
+        },
+        "/api/auth/recovery-codes": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "operationId": "e8d2b82767cd0c34bd888db90a7b1914",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "currentPassword"
+                                ],
+                                "properties": {
+                                    "currentPassword": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Códigos exibidos uma única vez"
+                    },
+                    "401": {
+                        "description": "Senha atual inválida"
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/reset-password": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "operationId": "43cdc259393cfc16debf6d258851a756",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "code",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "maxLength": 32,
+                                        "minLength": 32
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "minLength": 12
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Senha redefinida"
+                    },
+                    "400": {
+                        "description": "Código inválido ou já utilizado"
+                    },
+                    "429": {
+                        "description": "Limite excedido"
+                    }
+                }
+            }
+        },
+        "/api/health": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "operationId": "82478c12b0fc88b67983b9631bb9aeb4",
+                "responses": {
+                    "200": {
+                        "description": "Estado da aplicação e conexão com o banco",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "ok"
+                                        },
+                                        "database": {
+                                            "type": "string",
+                                            "example": "connected"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/markdown-preview": {
+            "post": {
+                "tags": [
+                    "Admin Content"
+                ],
+                "operationId": "874fb26185fd985cbefd33ce85ac3581",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "content"
+                                ],
+                                "properties": {
+                                    "content": {
+                                        "type": "string",
+                                        "maxLength": 60000
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Markdown renderizado com HTML bruto escapado"
+                    },
+                    "403": {
+                        "description": "Apenas ADMIN"
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/pages": {
+            "get": {
+                "tags": [
+                    "Pages"
+                ],
+                "operationId": "33fc3d54e321beca3d1dc99c1576dd0e",
+                "responses": {
+                    "200": {
+                        "description": "Páginas publicadas paginadas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PageCollection"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/pages/{slug}": {
+            "get": {
+                "tags": [
+                    "Pages"
+                ],
+                "operationId": "93309994c83b0100020b9eee59d032c8",
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Página publicada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PageResult"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Não encontrada"
+                    }
+                }
+            }
+        },
+        "/api/admin/pages": {
+            "get": {
+                "tags": [
+                    "Admin Pages"
+                ],
+                "operationId": "8af72f515ac462a41cffc47af9bf301a",
+                "responses": {
+                    "200": {
+                        "description": "Páginas administrativas paginadas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PageCollection"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apenas ADMIN"
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin Pages"
+                ],
+                "operationId": "56b41732c017dbf6478d4377c79d2cd6",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "content"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "maxLength": 200
+                                    },
+                                    "slug": {
+                                        "type": "string"
+                                    },
+                                    "content": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Rascunho criado"
+                    },
+                    "422": {
+                        "description": "Validação"
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/pages/{id}": {
+            "get": {
+                "tags": [
+                    "Admin Pages"
+                ],
+                "operationId": "59c390279d432c280efd13f62f392bfb",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Página",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PageResult"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Admin Pages"
+                ],
+                "operationId": "f8eea8d56849b0ad6d5adda6126e1eb9",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Página atualizada"
+                    },
+                    "422": {
+                        "description": "Validação"
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin Pages"
+                ],
+                "operationId": "31afb63134733d08a4b4ad765b61156a",
+                "responses": {
+                    "204": {
+                        "description": "Página excluída"
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/pages/{id}/publish": {
+            "post": {
+                "tags": [
+                    "Admin Pages"
+                ],
+                "operationId": "af65ccc632b0bd830dd3d6fe94b72a3c",
+                "responses": {
+                    "200": {
+                        "description": "Página publicada"
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/pages/{id}/unpublish": {
+            "post": {
+                "tags": [
+                    "Admin Pages"
+                ],
+                "operationId": "42ee68a1cd52d9bb0796a2815de234b9",
+                "responses": {
+                    "200": {
+                        "description": "Página despublicada"
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/posts": {
+            "get": {
+                "tags": [
+                    "Posts"
+                ],
+                "operationId": "5e80b67394496952e0f736a9a5a54747",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "perPage",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Posts publicados paginados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PostCollection"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/posts/{slug}": {
+            "get": {
+                "tags": [
+                    "Posts"
+                ],
+                "operationId": "2800b5d719aa4349fd30704048ad20a6",
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post publicado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PostResult"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Não encontrado"
+                    }
+                }
+            }
+        },
+        "/api/admin/posts": {
+            "get": {
+                "tags": [
+                    "Admin Posts"
+                ],
+                "operationId": "8ace9cefb7e9ba7e3bd88b8d7771c175",
+                "responses": {
+                    "200": {
+                        "description": "Posts administrativos paginados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PostCollection"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apenas ADMIN"
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin Posts"
+                ],
+                "operationId": "b9b0db07228be7065800f7b9b20b0f16",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "content"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "maxLength": 200
+                                    },
+                                    "slug": {
+                                        "type": "string"
+                                    },
+                                    "content": {
+                                        "type": "string"
+                                    },
+                                    "excerpt": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Rascunho criado"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apenas ADMIN"
+                    },
+                    "422": {
+                        "description": "Validação"
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/posts/{id}": {
+            "get": {
+                "tags": [
+                    "Admin Posts"
+                ],
+                "operationId": "9c566e7056e7d8257bfc41a65100a3c2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PostResult"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Admin Posts"
+                ],
+                "operationId": "9833f5242f98cf3a665acac6c0179b60",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post atualizado"
+                    },
+                    "422": {
+                        "description": "Validação"
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin Posts"
+                ],
+                "operationId": "149dcf13a9f447290f487f0c92677fc5",
+                "responses": {
+                    "204": {
+                        "description": "Post excluído"
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/posts/{id}/publish": {
+            "post": {
+                "tags": [
+                    "Admin Posts"
+                ],
+                "operationId": "80772fe0998791f3432796562819174f",
+                "responses": {
+                    "200": {
+                        "description": "Post publicado"
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/posts/{id}/unpublish": {
+            "post": {
+                "tags": [
+                    "Admin Posts"
+                ],
+                "operationId": "24b8e7d16490d18106d9cc5d2493425f",
+                "responses": {
+                    "200": {
+                        "description": "Post despublicado"
+                    }
+                },
+                "security": [
+                    {
+                        "cookieAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Error": {
+                "required": [
+                    "error"
+                ],
+                "properties": {
+                    "error": {
+                        "required": [
+                            "status",
+                            "message"
+                        ],
+                        "properties": {
+                            "status": {
+                                "type": "integer"
+                            },
+                            "message": {
+                                "type": "string"
+                            },
+                            "details": {
+                                "type": "object",
+                                "additionalProperties": true
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "Post": {
+                "required": [
+                    "id",
+                    "title",
+                    "slug",
+                    "content",
+                    "status",
+                    "publishedAt",
+                    "createdAt"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "content": {
+                        "description": "Markdown source",
+                        "type": "string"
+                    },
+                    "excerpt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "DRAFT",
+                            "PUBLISHED"
+                        ]
+                    },
+                    "authorId": {
+                        "type": "integer"
+                    },
+                    "publishedAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "html": {
+                        "description": "HTML de Markdown escapado, presente na API pública",
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Page": {
+                "required": [
+                    "id",
+                    "title",
+                    "slug",
+                    "content",
+                    "status",
+                    "createdAt",
+                    "updatedAt"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "content": {
+                        "description": "Markdown source",
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "DRAFT",
+                            "PUBLISHED"
+                        ]
+                    },
+                    "publishedAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "html": {
+                        "description": "HTML de Markdown escapado, presente na API pública",
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Pagination": {
+                "required": [
+                    "total",
+                    "page",
+                    "perPage"
+                ],
+                "properties": {
+                    "total": {
+                        "type": "integer"
+                    },
+                    "page": {
+                        "type": "integer"
+                    },
+                    "perPage": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "PostCollection": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Pagination"
+                    },
+                    {
+                        "properties": {
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Post"
+                                }
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
+            "PageCollection": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Pagination"
+                    },
+                    {
+                        "properties": {
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Page"
+                                }
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
+            "PostResult": {
+                "required": [
+                    "post"
+                ],
+                "properties": {
+                    "post": {
+                        "$ref": "#/components/schemas/Post"
+                    }
+                },
+                "type": "object"
+            },
+            "PageResult": {
+                "required": [
+                    "page"
+                ],
+                "properties": {
+                    "page": {
+                        "$ref": "#/components/schemas/Page"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "cookieAuth": {
+                "type": "apiKey",
+                "description": "Sessão PHP; operações mutáveis exigem X-CSRF-Token obtido em /api/auth/csrf ou /api/auth/me.",
+                "name": "sandbox_session",
+                "in": "cookie"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Auth",
+            "description": "Auth"
+        },
+        {
+            "name": "Health",
+            "description": "Health"
+        },
+        {
+            "name": "Admin Content",
+            "description": "Admin Content"
+        },
+        {
+            "name": "Pages",
+            "description": "Pages"
+        },
+        {
+            "name": "Admin Pages",
+            "description": "Admin Pages"
+        },
+        {
+            "name": "Posts",
+            "description": "Posts"
+        },
+        {
+            "name": "Admin Posts",
+            "description": "Admin Posts"
+        }
+    ]
+}
