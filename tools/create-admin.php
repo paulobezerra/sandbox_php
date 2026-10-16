@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 use App\Bootstrap\Config;
@@ -43,11 +44,16 @@ function promptPassword(string $prompt): string
 {
     fwrite(STDERR, $prompt);
     $isTty = function_exists('posix_isatty') && posix_isatty(STDIN);
-    if ($isTty) system('stty -echo');
+    if ($isTty) {
+        system('stty -echo');
+    }
     try {
         $value = fgets(STDIN);
     } finally {
-        if ($isTty) { system('stty echo'); fwrite(STDERR, "\n"); }
+        if ($isTty) {
+            system('stty echo');
+            fwrite(STDERR, "\n");
+        }
     }
     return trim($value === false ? '' : $value);
 }

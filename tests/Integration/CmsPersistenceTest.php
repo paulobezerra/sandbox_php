@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Tests\Integration;
@@ -30,7 +31,7 @@ final class CmsPersistenceTest extends TestCase
             self::assertNull($posts->findPublishedBySlug($post->slug));
             self::assertSame('PUBLISHED', $postService->publish($post->id)->status);
             self::assertSame($post->id, $posts->findPublishedBySlug($post->slug)?->id);
-            self::assertContains($post->id, array_map(static fn($item): int => $item->id, $postService->listPublished(1, 100)['items']));
+            self::assertContains($post->id, array_map(static fn ($item): int => $item->id, $postService->listPublished(1, 100)['items']));
             self::assertSame('DRAFT', $postService->unpublish($post->id)->status);
             self::assertNull($posts->findPublishedBySlug($post->slug));
 
@@ -40,12 +41,16 @@ final class CmsPersistenceTest extends TestCase
             self::assertNull($pages->findPublishedBySlug($page->slug));
             self::assertSame('PUBLISHED', $pageService->publish($page->id)->status);
             self::assertSame($page->id, $pages->findPublishedBySlug($page->slug)?->id);
-            self::assertContains($page->id, array_map(static fn($item): int => $item->id, $pageService->listPublished(1, 100)['items']));
+            self::assertContains($page->id, array_map(static fn ($item): int => $item->id, $pageService->listPublished(1, 100)['items']));
             self::assertSame('DRAFT', $pageService->unpublish($page->id)->status);
             self::assertNull($pages->findPublishedBySlug($page->slug));
         } finally {
-            if ($postId !== null) { $posts->delete($postId); }
-            if ($pageId !== null) { $pages->delete($pageId); }
+            if ($postId !== null) {
+                $posts->delete($postId);
+            }
+            if ($pageId !== null) {
+                $pages->delete($pageId);
+            }
             $pdo->prepare('DELETE FROM users WHERE id = ?')->execute([$user->id]);
         }
     }

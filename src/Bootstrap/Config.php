@@ -1,12 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Bootstrap;
 
+use App\Infrastructure\Http\ClientIpResolver;
 use InvalidArgumentException;
 
 final readonly class Config
 {
+    /** @param list<string> $trustedProxies */
     private function __construct(
         public string $appEnv,
         public bool $appDebug,
@@ -19,6 +22,7 @@ final readonly class Config
         public string $databaseCharset,
         public string $appUrl,
         public string $sessionCookie,
+        public array $trustedProxies,
     ) {
     }
 
@@ -35,7 +39,7 @@ final readonly class Config
             'DB_USERNAME',
             'DB_PASSWORD',
             'DB_CHARSET',
-            'APP_URL', 'SESSION_COOKIE',
+            'APP_URL', 'SESSION_COOKIE', 'TRUSTED_PROXIES',
         ] as $name) {
             $value = getenv($name);
             if ($value !== false) {
@@ -95,12 +99,23 @@ final readonly class Config
             || preg_match('/[\r\n]/', $appUrl) === 1) {
             throw new InvalidArgumentException('APP_URL deve ser uma URL HTTP ou HTTPS válida.');
         }
-        if ($appEnv === 'production' && ($urlParts['scheme'] ?? '') !== 'https') {
+        if ($appEnv === 'production' && $urlParts['scheme'] !== 'https') {
             throw new InvalidArgumentException('APP_URL deve usar HTTPS em produção.');
         }
         $sessionCookie = $values['SESSION_COOKIE'] ?? 'sandbox_session';
         if (preg_match('/^[A-Za-z0-9_-]{1,64}$/', $sessionCookie) !== 1) {
             throw new InvalidArgumentException('SESSION_COOKIE contém caracteres inválidos.');
+        }
+        $trustedProxies = [];
+        $trustedProxyValue = trim($values['TRUSTED_PROXIES'] ?? '');
+        if ($trustedProxyValue !== '') {
+            foreach (explode(',', $trustedProxyValue) as $trustedProxy) {
+                $trustedProxy = trim($trustedProxy);
+                if ($trustedProxy === '' || !ClientIpResolver::isValidNetwork($trustedProxy)) {
+                    throw new InvalidArgumentException('TRUSTED_PROXIES deve conter IPs ou redes CIDR válidos separados por vírgula.');
+                }
+                $trustedProxies[] = $trustedProxy;
+            }
         }
 
         return new self(
@@ -114,7 +129,8 @@ final readonly class Config
             $values['DB_PASSWORD'] ?? '',
             $databaseCharset,
             $appUrl,
-            $sessionCookie
+            $sessionCookie,
+            $trustedProxies
         );
     }
 }

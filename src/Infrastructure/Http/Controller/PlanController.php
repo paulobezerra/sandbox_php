@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller;
@@ -277,7 +278,7 @@ class PlanController
             $errors['name'] = 'O nome deve ter entre 2 e 100 caracteres.';
         }
 
-        if (!isset($data['price']) || $data['price'] === '' || $data['price'] === null) {
+        if (!isset($data['price']) || $data['price'] === '') {
             $errors['price'] = 'O preço é obrigatório.';
         } elseif (!is_numeric($data['price']) || (float) $data['price'] < 0) {
             $errors['price'] = 'O preço deve ser um valor numérico positivo.';

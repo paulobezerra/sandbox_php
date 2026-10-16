@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Tests\Integration;
@@ -22,8 +23,10 @@ final class CsrfMiddlewareTest extends TestCase
         $_SESSION['user_id'] = 44;
         foreach (['POST', 'PUT', 'PATCH', 'DELETE', 'PROPFIND'] as $method) {
             $called = (object) ['value' => false];
-            $handler = new class($called) implements RequestHandlerInterface {
-                public function __construct(private object $called) {}
+            $handler = new class ($called) implements RequestHandlerInterface {
+                public function __construct(private object $called)
+                {
+                }
                 public function handle(ServerRequestInterface $request): ResponseInterface
                 {
                     $this->called->value = true;
@@ -36,15 +39,51 @@ final class CsrfMiddlewareTest extends TestCase
         }
     }
 
-    public function testAnonymousExtensionMutationDoesNotAssumeCookieAuthentication(): void
+    public function testAnonymousExtensionMutationRequiresCsrfByDefault(): void
     {
         unset($_SESSION['user_id']);
         $result = (new CsrfMiddleware())->process(
             $this->createRequest('POST', '/api/extensions/public-hook'),
-            new class implements RequestHandlerInterface {
-                public function handle(ServerRequestInterface $request): ResponseInterface { return new Response(204); }
+            new class () implements RequestHandlerInterface {
+                public function handle(ServerRequestInterface $request): ResponseInterface
+                {
+                    return new Response(204);
+                }
             }
         );
+        self::assertSame(419, $result->getStatusCode());
+    }
+
+    public function testExplicitAnonymousMutationExemptionIsExactAndDoesNotApplyToAuthenticatedSessions(): void
+    {
+        unset($_SESSION['user_id']);
+        $handler = new class () implements RequestHandlerInterface {
+            public function handle(ServerRequestInterface $request): ResponseInterface
+            {
+                return new Response(204);
+            }
+        };
+        $middleware = new CsrfMiddleware(['POST /api/extensions/public-hook']);
+
+        self::assertSame(204, $middleware->process($this->createRequest('POST', '/api/extensions/public-hook'), $handler)->getStatusCode());
+        self::assertSame(419, $middleware->process($this->createRequest('POST', '/api/extensions/other-hook'), $handler)->getStatusCode());
+
+        $_SESSION['user_id'] = 44;
+        self::assertSame(419, $middleware->process($this->createRequest('POST', '/api/extensions/public-hook'), $handler)->getStatusCode());
+    }
+
+    public function testSafeMethodsDoNotRequireCsrf(): void
+    {
+        $result = (new CsrfMiddleware())->process(
+            $this->createRequest('GET', '/api/extensions/read'),
+            new class () implements RequestHandlerInterface {
+                public function handle(ServerRequestInterface $request): ResponseInterface
+                {
+                    return new Response(204);
+                }
+            }
+        );
+
         self::assertSame(204, $result->getStatusCode());
     }
 }

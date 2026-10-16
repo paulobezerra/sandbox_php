@@ -35,15 +35,18 @@ Após entrar na conta, gere códigos em `/account/recovery-codes` confirmando a 
 ## Verificações
 
 ```sh
+docker compose exec -T app composer format
+docker compose exec -T app composer lint
 docker compose exec -T app composer test
+docker compose exec -T app composer migrate:status
 ./tools/test-all.sh
 ```
 
-O primeiro comando executa PHPUnit no container. O segundo também abre as rotas centrais com Chrome/Chromium headless no host. Para rodar apenas o navegador, use `./tools/test-frontend.sh`; defina `CHROME_BIN` se o executável não estiver no PATH. `composer migrate:status` lista o estado das migrations. `composer openapi:generate` regenera `docs/openapi.json` a partir dos atributos PHP.
+`composer format` aplica PSR-12 aos arquivos PHP próprios; `composer lint` verifica estilo e sintaxe sem escrever. `composer test` executa PHPUnit no container. `./tools/test-all.sh` também abre as rotas centrais com Chrome/Chromium headless no host. Para rodar apenas o navegador, use `./tools/test-frontend.sh`; defina `CHROME_BIN` se o executável não estiver no PATH. `composer migrate:status` lista o estado das migrations. `composer openapi:generate` regenera `docs/openapi.json` a partir dos atributos PHP.
 
 ## Produção em Docker
 
-O arquivo `compose.prod.yaml` usa uma imagem otimizada sem Xdebug, sem bind mount e com documentação OpenAPI desligada. Use um `.env` de produção fora do controle de versão, com credenciais únicas e `APP_URL` apontando para o domínio HTTPS público. A aplicação define o cookie `Secure` a partir dessa URL pública; o proxy não precisa encaminhar cabeçalhos de protocolo confiáveis. O Compose publica HTTP; termine TLS em um proxy reverso ou balanceador.
+O arquivo `compose.prod.yaml` usa uma imagem otimizada sem Xdebug, sem bind mount e com documentação OpenAPI desligada. Use um `.env` de produção fora do controle de versão, com credenciais únicas e `APP_URL` apontando para o domínio HTTPS público. A aplicação define o cookie `Secure` a partir dessa URL pública. Se houver proxy reverso, configure `TRUSTED_PROXIES` com os IPs ou redes CIDR exatos dos proxies e configure-os para sobrescrever ou acrescentar corretamente `X-Forwarded-For`; sem essa configuração, o rate limit usa o endereço do peer TCP. Nunca confie em cabeçalhos encaminhados de proxies não listados. O Compose publica HTTP; termine TLS em um proxy reverso ou balanceador.
 
 ```sh
 cp .env.example .env
@@ -74,7 +77,7 @@ As dependências seguem `Infrastructure → Application → Domain`; o Bootstrap
 ## Segurança e manutenção
 
 - Cadastro público sempre cria `USER`. Crie ou promova administradores apenas por procedimento controlado.
-- Auth usa sessão no servidor, cookie HttpOnly, CSRF nas mutações e limitação de tentativas; toda autorização também é feita no backend.
+- Auth usa sessão no servidor, cookie HttpOnly, CSRF em toda mutação (com exceções anônimas exatas declaradas na composição) e limitação de tentativas; toda autorização também é feita no backend.
 - Posts e Pages armazenam Markdown e escapam HTML bruto na renderização. As views usam `v-html` somente com HTML produzido pelo `MarkdownRenderer`, que rejeita HTML bruto e links inseguros; preview e publicação compartilham esse renderer. Os templates Vue ficam em módulos ES sem build e são compilados no navegador, por isso a CSP mantém `unsafe-eval`; não forneça templates Vue nem HTML renderizável por usuários.
 - Migrations antigas são históricas. Não as edite para corrigir schema já aplicado; crie uma migration nova. O rollback das migrations CMS/Auth recusa remover tabelas que contenham dados.
 - Nunca coloque credenciais reais, tokens ou dumps no repositório.

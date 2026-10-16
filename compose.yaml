@@ -19,6 +19,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       APP_URL: ${APP_URL:-http://localhost:8080}
       SESSION_COOKIE: ${SESSION_COOKIE:-sandbox_session}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USERNAME: ${SMTP_USERNAME:-}

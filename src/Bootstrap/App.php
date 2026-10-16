@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Bootstrap;
@@ -10,6 +11,7 @@ use App\Infrastructure\Http\Error\HttpErrorHandler;
 use App\Infrastructure\Http\Middleware\SecurityHeadersMiddleware;
 use App\Infrastructure\Http\Middleware\CsrfMiddleware;
 use App\Infrastructure\View\ViewRenderer;
+use DI\Container;
 use DI\ContainerBuilder;
 use Jgut\Slim\Routing\AppFactory as RoutingAppFactory;
 use Jgut\Slim\Routing\Configuration as RoutingConfiguration;
@@ -18,10 +20,16 @@ use Slim\App as SlimApp;
 
 class App
 {
+    /**
+     * @param list<mixed>|null $modules
+     * @param list<string> $anonymousMutationCsrfExemptions
+     * @return SlimApp<Container>
+     */
     public static function create(
         ?PDO $pdo = null,
         ?Config $config = null,
-        ?array $modules = null
+        ?array $modules = null,
+        array $anonymousMutationCsrfExemptions = []
     ): SlimApp {
         $config ??= Config::fromEnvironment();
         $db = $pdo ?? ConnectionFactory::create($config);
@@ -52,9 +60,10 @@ class App
         ]));
         $app = RoutingAppFactory::create(container: $container);
 
-        // 2. Middlewares
-        $app->addRoutingMiddleware();
+        // Route resolution runs before CSRF so unknown API paths keep their 404 contract.
         $app->addBodyParsingMiddleware();
+        $app->add(new CsrfMiddleware($anonymousMutationCsrfExemptions));
+        $app->addRoutingMiddleware();
 
         $displayErrorDetails = $config->appEnv === 'development' || $config->appDebug;
         $logErrors = true;
@@ -64,7 +73,6 @@ class App
         $errorHandler = new HttpErrorHandler($app->getResponseFactory());
         $errorMiddleware->setDefaultErrorHandler($errorHandler);
 
-        $app->add(new CsrfMiddleware());
         $app->add(new SecurityHeadersMiddleware());
         foreach ($modules as $module) {
             $module->addMiddlewares($app, $container, $config);

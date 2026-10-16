@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Tests\Unit\Bootstrap;
@@ -79,5 +80,30 @@ class ConfigTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('APP_URL deve usar HTTPS em produção.');
         Config::fromArray(['DB_DATABASE' => 'app', 'DB_USERNAME' => 'app-user', 'APP_ENV' => 'production']);
+    }
+
+    public function testTrustedProxyNetworksAreParsedAndValidated(): void
+    {
+        $config = Config::fromArray([
+            'DB_DATABASE' => 'app',
+            'DB_USERNAME' => 'app-user',
+            'APP_ENV' => 'testing',
+            'TRUSTED_PROXIES' => '10.0.0.0/8, 2001:db8::1',
+        ]);
+
+        self::assertSame(['10.0.0.0/8', '2001:db8::1'], $config->trustedProxies);
+    }
+
+    public function testRejectsInvalidTrustedProxyNetwork(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('TRUSTED_PROXIES deve conter IPs ou redes CIDR válidos separados por vírgula.');
+
+        Config::fromArray([
+            'DB_DATABASE' => 'app',
+            'DB_USERNAME' => 'app-user',
+            'APP_ENV' => 'testing',
+            'TRUSTED_PROXIES' => '10.0.0.0/99',
+        ]);
     }
 }

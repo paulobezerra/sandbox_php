@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Infrastructure\Http;
@@ -9,12 +10,15 @@ use OpenApi\Attributes as OA;
     openapi: '3.1.0',
     info: new OA\Info(
         version: '1.0.0',
-        description: 'API HTTP do skeleton. A autenticação usa sessão PHP em cookie HttpOnly, SameSite=Lax e Secure conforme APP_URL. Operações mutáveis em /api/auth e /api/admin, além de qualquer mutação durante uma sessão autenticada, exigem X-CSRF-Token obtido em GET /api/auth/csrf ou /api/auth/me. Endpoints anônimos de extensão devem permanecer sem estado de sessão. Códigos de recuperação são gerados após reautenticação e exibidos uma única vez.',
+        description: 'API HTTP do skeleton. A autenticação usa sessão PHP em cookie HttpOnly, SameSite=Lax e Secure conforme APP_URL. Toda operação mutável exige X-CSRF-Token obtido em GET /api/auth/csrf ou /api/auth/me, salvo exceção anônima exata declarada na composição da aplicação; sessões autenticadas nunca podem usar essas exceções. Códigos de recuperação são gerados após reautenticação e exibidos uma única vez.',
         title: 'Sandbox PHP API'
     ),
     servers: [new OA\Server(url: '/')],
     components: new OA\Components(securitySchemes: [new OA\SecurityScheme(
-        securityScheme: 'cookieAuth', type: 'apiKey', in: 'cookie', name: 'sandbox_session',
+        securityScheme: 'cookieAuth',
+        type: 'apiKey',
+        in: 'cookie',
+        name: 'sandbox_session',
         description: 'Sessão PHP; operações mutáveis exigem X-CSRF-Token obtido em /api/auth/csrf ou /api/auth/me.'
     )], schemas: [
         new OA\Schema(

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Tests\Integration;
@@ -78,7 +79,9 @@ final class RecoveryCodesPersistenceTest extends TestCase
 
     public function testConcurrentUseOfTheSameRecoveryCodeSucceedsExactlyOnce(): void
     {
-        if (!function_exists('proc_open')) self::markTestSkipped('proc_open indisponível para o teste concorrente.');
+        if (!function_exists('proc_open')) {
+            self::markTestSkipped('proc_open indisponível para o teste concorrente.');
+        }
         $pdo = ConnectionFactory::create(Config::fromEnvironment());
         $repository = new MysqlUserRepository($pdo);
         $email = 'recovery-' . bin2hex(random_bytes(8)) . '@example.test';
@@ -86,7 +89,9 @@ final class RecoveryCodesPersistenceTest extends TestCase
         $codeHash = hash('sha256', bin2hex(random_bytes(16)));
         $repository->replaceRecoveryCodes($user->id, [$codeHash]);
         $readyPath = tempnam(sys_get_temp_dir(), 'recovery-ready-');
-        if ($readyPath === false) self::fail('Não foi possível criar arquivo temporário de sincronização.');
+        if ($readyPath === false) {
+            self::fail('Não foi possível criar arquivo temporário de sincronização.');
+        }
         unlink($readyPath);
         $goPath = $readyPath . '.go';
         $program = <<<'PHP'
@@ -104,7 +109,9 @@ PHP;
             for ($i = 0; $i < 2; $i++) {
                 $pipes = [];
                 $process = proc_open([PHP_BINARY, '-r', $program, $readyPath, $goPath, $codeHash, 'new password long enough ' . $i], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
-                if (!is_resource($process)) self::fail('Não foi possível iniciar consumidor concorrente.');
+                if (!is_resource($process)) {
+                    self::fail('Não foi possível iniciar consumidor concorrente.');
+                }
                 fclose($pipes[0]);
                 $processes[] = [$process, $pipes];
             }
@@ -112,7 +119,9 @@ PHP;
             do {
                 clearstatcache(true, $readyPath);
                 $readyCount = is_file($readyPath) ? substr_count((string) file_get_contents($readyPath), "ready\n") : 0;
-                if ($readyCount === 2) break;
+                if ($readyCount === 2) {
+                    break;
+                }
                 usleep(10000);
             } while (microtime(true) < $deadline);
             self::assertSame(2, $readyCount, 'Os consumidores não chegaram ao ponto de sincronização.');
@@ -128,8 +137,12 @@ PHP;
             sort($results);
             self::assertSame([(string) $user->id, 'null'], $results);
         } finally {
-            if (is_file($readyPath)) unlink($readyPath);
-            if (is_file($goPath)) unlink($goPath);
+            if (is_file($readyPath)) {
+                unlink($readyPath);
+            }
+            if (is_file($goPath)) {
+                unlink($goPath);
+            }
             $pdo->prepare('DELETE FROM users WHERE id = ?')->execute([$user->id]);
         }
     }

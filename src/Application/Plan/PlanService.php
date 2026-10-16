@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Application\Plan;
@@ -20,7 +21,7 @@ class PlanService
     public function listPlans(): array
     {
         $plans = $this->repository->findAll();
-        return array_map(static fn(Plan $plan): array => $plan->toArray(), $plans);
+        return array_map(static fn (Plan $plan): array => $plan->toArray(), $plans);
     }
 
     public function getPlan(int $id): Plan

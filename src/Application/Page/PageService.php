@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Application\Page;
@@ -80,7 +81,10 @@ final readonly class PageService
         return ['items' => $public ? $this->pages->listPublished($perPage, $offset) : $this->pages->listAdmin($perPage, $offset), 'total' => $public ? $this->pages->countPublished() : $this->pages->countAdmin(), 'page' => $page, 'perPage' => $perPage];
     }
 
-    /** @param array<string,mixed> $data @return array{string,string,string} */
+    /**
+     * @param array<string,mixed> $data
+     * @return array{string,string,string}
+     */
     private function validate(array $data): array
     {
         if (array_key_exists('title', $data) && !is_string($data['title'])) {

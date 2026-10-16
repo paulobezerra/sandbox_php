@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Application\Plan;
@@ -16,7 +17,7 @@ readonly class PlanData
     }
 
     /**
-     * @param array{name: string, price: float|int|string, description?: ?string} $data
+     * @param array<string, mixed> $data
      */
     public static function fromArray(array $data): self
     {
@@ -24,7 +25,7 @@ readonly class PlanData
             throw new InvalidArgumentException('O preço do plano deve ser numérico.');
         }
 
-        if (!isset($data['name'])) {
+        if (!isset($data['name']) || !is_string($data['name'])) {
             throw new InvalidArgumentException('O nome do plano é obrigatório.');
         }
 

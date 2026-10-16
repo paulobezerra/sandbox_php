@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller;
@@ -13,10 +14,16 @@ trait ContentControllerSupport
     private function adminFailure(ServerRequestInterface $request, ResponseInterface $response): ?ResponseInterface
     {
         $id = $_SESSION['user_id'] ?? null;
-        if (!is_int($id)) { return JsonResponse::error($response, 'Autenticação necessária.', 401); }
+        if (!is_int($id)) {
+            return JsonResponse::error($response, 'Autenticação necessária.', 401);
+        }
         $user = $this->users->findById($id);
-        if ($user === null) { return JsonResponse::error($response, 'Autenticação necessária.', 401); }
-        if ($user->role !== 'ADMIN') { return JsonResponse::error($response, 'Acesso restrito a administradores.', 403); }
+        if ($user === null) {
+            return JsonResponse::error($response, 'Autenticação necessária.', 401);
+        }
+        if ($user->role !== 'ADMIN') {
+            return JsonResponse::error($response, 'Acesso restrito a administradores.', 403);
+        }
         return null;
     }
 

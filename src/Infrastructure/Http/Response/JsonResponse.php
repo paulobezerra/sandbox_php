@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Response;
@@ -10,7 +11,7 @@ class JsonResponse
     /**
      * Retorna uma resposta JSON de sucesso.
      *
-     * @param array<string, mixed>|object $data
+     * @param array<array-key, mixed>|object $data
      */
     public static function success(
         ResponseInterface $response,

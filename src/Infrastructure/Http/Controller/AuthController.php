@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Controller;
@@ -7,6 +8,7 @@ use App\Application\Auth\{AuthException, AuthService};
 use App\Domain\User\UserRepository;
 use App\Infrastructure\Http\Response\JsonResponse;
 use App\Infrastructure\Http\JsonObject;
+use App\Infrastructure\Http\ClientIpResolver;
 use Jgut\Slim\Routing\Mapping\Attribute\{Group, Route};
 use OpenApi\Attributes as OA;
 use PDOException;
@@ -15,7 +17,12 @@ use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 #[Group(pattern: 'api/auth')]
 final readonly class AuthController
 {
-    public function __construct(private AuthService $auth, private UserRepository $users) {}
+    public function __construct(
+        private AuthService $auth,
+        private UserRepository $users,
+        private ClientIpResolver $clientIpResolver
+    ) {
+    }
 
     #[Route(methods: ['GET'], pattern: 'csrf')]
     #[OA\Get(path: '/api/auth/csrf', tags: ['Auth'], responses: [new OA\Response(response: 200, description: 'Token CSRF para a sessão')])]
@@ -36,7 +43,9 @@ final readonly class AuthController
         } catch (AuthException $error) {
             return $this->authError($response, $error);
         } catch (PDOException $error) {
-            if ((string) $error->getCode() === '23000') return JsonResponse::error($response, 'E-mail já cadastrado.', 409);
+            if ((string) $error->getCode() === '23000') {
+                return JsonResponse::error($response, 'E-mail já cadastrado.', 409);
+            }
             throw $error;
         }
     }
@@ -86,7 +95,9 @@ final readonly class AuthController
     public function recoveryCodes(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $id = $_SESSION['user_id'] ?? null;
-        if (!is_int($id)) return JsonResponse::error($response, 'Autenticação necessária.', 401);
+        if (!is_int($id)) {
+            return JsonResponse::error($response, 'Autenticação necessária.', 401);
+        }
         try {
             $data = $this->data($request);
             return JsonResponse::success($response, ['codes' => $this->auth->regenerateRecoveryCodes($id, $this->string($data, 'currentPassword'), $this->clientKey($request))]);
@@ -117,14 +128,19 @@ final readonly class AuthController
     /** @param array<string, mixed> $data */
     private function string(array $data, string $key): string
     {
-        if (!isset($data[$key]) || !is_string($data[$key])) throw new AuthException('invalid_field');
+        if (!isset($data[$key]) || !is_string($data[$key])) {
+            throw new AuthException('invalid_field');
+        }
         return $data[$key];
     }
 
     private function clientKey(ServerRequestInterface $request): string
     {
         $address = $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown';
-        return is_string($address) ? $address : 'unknown';
+        return $this->clientIpResolver->resolve(
+            is_string($address) ? $address : 'unknown',
+            $request->getHeaderLine('X-Forwarded-For')
+        );
     }
 
     private function authError(ResponseInterface $response, AuthException $error): ResponseInterface

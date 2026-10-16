@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Tests;
@@ -37,12 +38,13 @@ abstract class TestCase extends BaseTestCase
         string $method,
         string $path,
         array $data = [],
-        array $headers = []
+        array $headers = [],
+        array $serverParams = []
     ): ServerRequestInterface {
         $request = $this->createRequest($method, $path, array_merge([
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
-        ], $headers));
+        ], $headers), $serverParams);
 
         if (!empty($data)) {
             $stream = (new StreamFactory())->createStream(json_encode($data, JSON_THROW_ON_ERROR));

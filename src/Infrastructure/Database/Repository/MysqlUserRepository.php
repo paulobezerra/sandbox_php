@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Infrastructure\Database\Repository;
@@ -9,7 +10,9 @@ use PDO;
 
 final readonly class MysqlUserRepository implements UserRepository
 {
-    public function __construct(private PDO $pdo) {}
+    public function __construct(private PDO $pdo)
+    {
+    }
 
     public function findByEmail(string $email): ?User
     {
@@ -45,10 +48,14 @@ final readonly class MysqlUserRepository implements UserRepository
         try {
             $this->pdo->prepare('DELETE FROM password_recovery_codes WHERE user_id = ?')->execute([$userId]);
             $insert = $this->pdo->prepare('INSERT INTO password_recovery_codes(user_id, code_hash) VALUES(?, ?)');
-            foreach ($codeHashes as $hash) $insert->execute([$userId, $hash]);
+            foreach ($codeHashes as $hash) {
+                $insert->execute([$userId, $hash]);
+            }
             $this->pdo->commit();
         } catch (\Throwable $error) {
-            if ($this->pdo->inTransaction()) $this->pdo->rollBack();
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
             throw $error;
         }
     }
@@ -70,7 +77,9 @@ final readonly class MysqlUserRepository implements UserRepository
             $this->pdo->commit();
             return $userId;
         } catch (\Throwable $error) {
-            if ($this->pdo->inTransaction()) $this->pdo->rollBack();
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
             throw $error;
         }
     }
@@ -97,11 +106,17 @@ final readonly class MysqlUserRepository implements UserRepository
         $this->pdo->prepare('DELETE FROM auth_attempts WHERE attempt_key = ?')->execute([$key]);
     }
 
+    /** @param array<string, mixed>|null $row */
     private function map(?array $row): ?User
     {
         return $row ? new User(
-            (int) $row['id'], $row['name'], $row['email'], $row['password_hash'], $row['role'],
-            new DateTimeImmutable($row['created_at']), (int) ($row['session_version'] ?? 0)
+            (int) $row['id'],
+            $row['name'],
+            $row['email'],
+            $row['password_hash'],
+            $row['role'],
+            new DateTimeImmutable($row['created_at']),
+            (int) ($row['session_version'] ?? 0)
         ) : null;
     }
 }

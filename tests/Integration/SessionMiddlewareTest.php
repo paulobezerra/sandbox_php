@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Tests\Integration;
@@ -24,12 +25,16 @@ final class SessionMiddlewareTest extends TestCase
 
     public function testSecureCookieUsesConfiguredPublicHttpsUrlAndIgnoresForwardedHeaders(): void
     {
-        if (session_status() === PHP_SESSION_ACTIVE) session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
         $repository = $this->createMock(UserRepository::class);
         $middleware = new SessionMiddleware($this->config('https://example.test'), $repository);
         $observed = (object) ['secure' => null];
-        $handler = new class($observed) implements RequestHandlerInterface {
-            public function __construct(private object $observed) {}
+        $handler = new class ($observed) implements RequestHandlerInterface {
+            public function __construct(private object $observed)
+            {
+            }
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
                 $this->observed->secure = session_get_cookie_params()['secure'];
@@ -43,12 +48,16 @@ final class SessionMiddlewareTest extends TestCase
 
     public function testUntrustedForwardedHttpsDoesNotEnableSecureCookieForLocalHttp(): void
     {
-        if (session_status() === PHP_SESSION_ACTIVE) session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
         $repository = $this->createMock(UserRepository::class);
         $middleware = new SessionMiddleware($this->config('http://localhost:8080'), $repository);
         $observed = (object) ['secure' => null];
-        $handler = new class($observed) implements RequestHandlerInterface {
-            public function __construct(private object $observed) {}
+        $handler = new class ($observed) implements RequestHandlerInterface {
+            public function __construct(private object $observed)
+            {
+            }
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
                 $this->observed->secure = session_get_cookie_params()['secure'];
@@ -65,13 +74,17 @@ final class SessionMiddlewareTest extends TestCase
         $repository = $this->createMock(UserRepository::class);
         $repository->expects(self::once())->method('sessionVersionFor')->with(81)->willReturn(3);
         $middleware = new SessionMiddleware($this->config('http://localhost:8080'), $repository);
-        if (session_status() === PHP_SESSION_ACTIVE) session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
         session_id('version-check-' . bin2hex(random_bytes(8)));
         session_start();
         $_SESSION = ['user_id' => 81, 'auth_version' => 2, 'csrf' => 'old-token'];
         $observed = (object) ['session' => null];
-        $handler = new class($observed) implements RequestHandlerInterface {
-            public function __construct(private object $observed) {}
+        $handler = new class ($observed) implements RequestHandlerInterface {
+            public function __construct(private object $observed)
+            {
+            }
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
                 $this->observed->session = $_SESSION;

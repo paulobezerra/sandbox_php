@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\Auth;
@@ -14,7 +15,7 @@ final class AuthServiceTest extends TestCase
         $repository = $this->createMock(UserRepository::class);
         $repository->expects(self::once())->method('findByEmail')->with('alice@example.com')->willReturn(null);
         $repository->expects(self::once())->method('create')->with('Alice', 'alice@example.com', self::callback(
-            static fn(string $hash): bool => password_verify('correct horse battery staple', $hash)
+            static fn (string $hash): bool => password_verify('correct horse battery staple', $hash)
         ))->willReturn($this->user(3, 'correct horse battery staple'));
         $repository->method('recordAttempt')->willReturn(1);
         $user = (new AuthService($repository))->register(' Alice ', 'ALICE@Example.com ', 'correct horse battery staple');
@@ -27,9 +28,9 @@ final class AuthServiceTest extends TestCase
         $repository = $this->createMock(UserRepository::class);
         $repository->method('findById')->with(9)->willReturn($this->user(9, 'old password long enough'));
         $repository->expects(self::once())->method('replaceRecoveryCodes')->with(9, self::callback(
-            static fn(array $hashes): bool => count($hashes) === 10
+            static fn (array $hashes): bool => count($hashes) === 10
                 && count(array_unique($hashes)) === 10
-                && array_reduce($hashes, static fn(bool $valid, string $hash): bool => $valid && preg_match('/^[a-f0-9]{64}$/', $hash) === 1, true)
+                && array_reduce($hashes, static fn (bool $valid, string $hash): bool => $valid && preg_match('/^[a-f0-9]{64}$/', $hash) === 1, true)
         ));
         $repository->method('recordAttempt')->willReturn(1);
         $codes = (new AuthService($repository))->regenerateRecoveryCodes(9, 'old password long enough', '127.0.0.1');
@@ -58,7 +59,7 @@ final class AuthServiceTest extends TestCase
         $repository->expects(self::exactly(2))->method('recordAttempt')->willReturnOnConsecutiveCalls(1, 1);
         $repository->expects(self::once())->method('consumeRecoveryCodeAndReplacePassword')->with(
             hash('sha256', str_repeat('a', 32)),
-            self::callback(static fn(string $hash): bool => password_verify('a new sufficiently long password', $hash)),
+            self::callback(static fn (string $hash): bool => password_verify('a new sufficiently long password', $hash)),
             self::isType('string')
         )->willReturn(12);
         $repository->expects(self::once())->method('clearAttempts');

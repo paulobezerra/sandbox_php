@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "Sandbox PHP API",
-        "description": "API HTTP do skeleton. A autenticação usa sessão PHP em cookie HttpOnly, SameSite=Lax e Secure conforme APP_URL. Operações mutáveis em /api/auth e /api/admin, além de qualquer mutação durante uma sessão autenticada, exigem X-CSRF-Token obtido em GET /api/auth/csrf ou /api/auth/me. Endpoints anônimos de extensão devem permanecer sem estado de sessão. Códigos de recuperação são gerados após reautenticação e exibidos uma única vez.",
+        "description": "API HTTP do skeleton. A autenticação usa sessão PHP em cookie HttpOnly, SameSite=Lax e Secure conforme APP_URL. Toda operação mutável exige X-CSRF-Token obtido em GET /api/auth/csrf ou /api/auth/me, salvo exceção anônima exata declarada na composição da aplicação; sessões autenticadas nunca podem usar essas exceções. Códigos de recuperação são gerados após reautenticação e exibidos uma única vez.",
         "version": "1.0.0"
     },
     "servers": [

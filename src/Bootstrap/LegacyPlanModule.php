@@ -1,10 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Bootstrap;
 
 use App\Domain\Plan\PlanRepository;
 use App\Infrastructure\Database\Repository\MysqlPlanRepository;
+use DI\Container;
 use PDO;
 use Psr\Container\ContainerInterface;
 use Slim\App as SlimApp;
@@ -27,6 +29,7 @@ final class LegacyPlanModule implements BootstrapModule
         return [dirname(__DIR__) . '/Infrastructure/Http/Controller/PlanController.php'];
     }
 
+    /** @param SlimApp<Container> $app */
     public function addMiddlewares(SlimApp $app, ContainerInterface $container, Config $config): void
     {
     }

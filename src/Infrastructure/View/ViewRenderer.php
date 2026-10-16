@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Infrastructure\View;
@@ -31,7 +32,7 @@ class ViewRenderer
             throw new RuntimeException(sprintf('Template "%s" não encontrado em "%s"', $template, $filePath));
         }
 
-        $escape = static fn(mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $escape = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         $e = $escape;
 
         extract($data, EXTR_SKIP);

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Tests\Integration;
@@ -21,7 +22,9 @@ final class AuthRecoveryRoutesTest extends TestCase
             $_SESSION = [];
             session_destroy();
         }
-        if ($this->config !== null) unset($_COOKIE[$this->config->sessionCookie]);
+        if ($this->config !== null) {
+            unset($_COOKIE[$this->config->sessionCookie]);
+        }
         parent::tearDown();
     }
 
@@ -54,8 +57,12 @@ final class AuthRecoveryRoutesTest extends TestCase
             self::assertCount(10, $codes);
             $storedHashes = $pdo->query('SELECT code_hash FROM password_recovery_codes WHERE user_id = ' . $user->id)->fetchAll(\PDO::FETCH_COLUMN);
             self::assertCount(10, $storedHashes);
-            foreach ($codes as $code) self::assertContains(hash('sha256', $code), $storedHashes);
-            foreach ($firstCodes as $code) self::assertNotContains(hash('sha256', $code), $storedHashes);
+            foreach ($codes as $code) {
+                self::assertContains(hash('sha256', $code), $storedHashes);
+            }
+            foreach ($firstCodes as $code) {
+                self::assertNotContains(hash('sha256', $code), $storedHashes);
+            }
 
             $invalidAuth = $this->send($app, $sessionA, 'POST', '/api/auth/register', [
                 'name' => ['Alice'], 'email' => 'invalid@example.test', 'password' => 'a password long enough',
@@ -82,7 +89,9 @@ final class AuthRecoveryRoutesTest extends TestCase
 
             $currentA = $this->send($app, $sessionA, 'GET', '/api/auth/me');
             $freshSessionA = session_id();
-            if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_write_close();
+            }
             $currentB = $this->send($app, $sessionB, 'GET', '/api/auth/me');
             self::assertNull($this->json($currentA)['user']);
             self::assertNull($this->json($currentB)['user']);
@@ -101,7 +110,9 @@ final class AuthRecoveryRoutesTest extends TestCase
 
     private function createSession(int $userId, int $version, string $csrf): string
     {
-        if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
         session_name($this->config->sessionCookie);
         session_id(bin2hex(random_bytes(16)));
         session_start();
@@ -114,20 +125,26 @@ final class AuthRecoveryRoutesTest extends TestCase
     /** @param array<string, mixed>|null $data */
     private function send(SlimApp $app, string $sessionId, string $method, string $path, ?array $data = null, ?string $csrf = null): ResponseInterface
     {
-        if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
         $_COOKIE[$this->config->sessionCookie] = $sessionId;
         session_name($this->config->sessionCookie);
         session_id($sessionId);
         $request = $data === null
             ? $this->createRequest($method, $path)
             : $this->createJsonRequest($method, $path, $data);
-        if ($csrf !== null) $request = $request->withHeader('X-CSRF-Token', $csrf);
+        if ($csrf !== null) {
+            $request = $request->withHeader('X-CSRF-Token', $csrf);
+        }
         return $app->handle($request);
     }
 
     private function sendRaw(SlimApp $app, string $sessionId, string $method, string $path, string $body, string $csrf): ResponseInterface
     {
-        if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
         $_COOKIE[$this->config->sessionCookie] = $sessionId;
         session_name($this->config->sessionCookie);
         session_id($sessionId);

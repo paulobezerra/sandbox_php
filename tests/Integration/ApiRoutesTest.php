@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Tests\Integration;
@@ -54,6 +55,14 @@ class ApiRoutesTest extends TestCase
         $this->assertIsArray($body);
         $this->assertArrayHasKey('error', $body);
         $this->assertSame(404, $body['error']['status']);
+    }
+
+    public function testNonExistentApiMutationStillReturns404BeforeCsrfValidation(): void
+    {
+        $response = $this->getApp()->handle($this->createRequest('POST', '/api/rota-inexistente'));
+
+        self::assertSame(404, $response->getStatusCode());
+        self::assertStringContainsString('application/json', $response->getHeaderLine('Content-Type'));
     }
 
     public function testApiRootDoesNotFallThroughToSpa(): void

@@ -2,7 +2,11 @@
 
 ## Missão
 
-Este repositório evolui de um exemplo PHP/Slim/Vue com CRUD de planos para um **skeleton reutilizável** com mini CMS (User/Auth, Posts e Pages). Leia `.specs/README.md` e a spec da funcionalidade antes de implementar. Para o skeleton, use `.specs/features/001-skeleton/spec.md`; a auditoria e as correções estão em `review-001.md` na mesma pasta. A spec define o alvo; o código existente é a base real. **Não executar uma spec inteira de uma só vez sem escopo explícito.**
+Este repositório evolui de um exemplo PHP/Slim/Vue com CRUD de planos para um **skeleton reutilizável** com mini CMS (User/Auth, Posts e Pages). Para funcionalidades novas, siga `.specs/guidelines/workflow.md`: Feature → Spec → Plan → Code → Review. Antes de finalizar a Spec, apresentar alternativas técnicas e aguardar a escolha do usuário. Leia `.specs/README.md` e a spec da funcionalidade antes de implementar. Para o skeleton, use `.specs/features/001-skeleton/spec.md` e suas reviews históricas. A spec define o alvo; o código existente é a base real. **Não executar uma spec inteira de uma só vez sem escopo explícito.**
+
+**Premissa máxima do SDD Lite:** cada comando começa em um chat novo, com contexto de conversa zerado. Depois de executar Feature, Spec, Plan, Code ou Review, não execute outro comando, outra etapa ou outro ID de Code na mesma conversa, mesmo se o usuário insistir. Oriente-o a abrir outro chat e informe que esta sessão está comprometida para a próxima execução. Respostas necessárias para concluir o comando atual, como a escolha técnica da Spec, fazem parte da mesma execução. Consulte `.specs/guidelines/workflow.md` para a regra completa.
+
+Antes de um passo SDD Lite após Feature, exija validação explícita do usuário para a entrega anterior, registrada no artefato com nome informado pelo usuário e data obtida do SO. Se faltar, avise e só continue após declaração explícita de validação. Entre tarefas de Code, siga a ordem do plan/review e comprove no código e nos testes os pré-requisitos; isso não exige aprovação adicional do usuário. A validação técnica do agente e a validação do usuário têm finalidades distintas.
 
 ## Prioridades, em ordem
 
@@ -45,15 +49,15 @@ tests/{Unit,Integration,Architecture}/
 
 Não criar pastas vazias. Controller faz parsing HTTP → chama service → transforma resultado em HTTP. Service orquestra regras/contratos. Entidade protege invariantes. Repository executa persistência. User padrão é customizável pelo projeto; preferir perfis de negócio relacionados, mas permitir adaptar User/Auth quando requerido.
 
-## Fluxo obrigatório para cada execução
+## Fluxo obrigatório para cada execução de Code
 
-1. Ler a spec em `.specs/features/<id>/spec.md`, a review ativa quando houver, e inspecionar os arquivos relevantes ao escopo solicitado.
-2. Executar integralmente o escopo pedido: fase (F2), item (SK-03) ou tarefa específica.
-3. Planejar internamente e executar sem pedir confirmações intermediárias.
+1. Ler a spec em `.specs/features/<id>/spec.md`, o plan e a review ativa quando houver, e inspecionar os arquivos relevantes ao escopo solicitado.
+2. Executar integralmente **uma** tarefa do plan ou review por sessão; para o skeleton histórico, respeitar o item ou fase explicitamente pedido.
+3. Planejar internamente e executar sem pedir confirmações intermediárias durante Code. A escolha entre soluções na etapa Spec é uma decisão do usuário antes da escrita final.
 4. Implementar código, migrations, testes e documentação necessários à conclusão.
 5. Executar testes específicos durante o trabalho. Para PHP, aplicar `composer format` após editar, verificar com `composer lint` (sem alterar arquivos) e executar `composer quality` completo antes de concluir, quando esses scripts estiverem configurados. Falhas dos gates impedem marcar a tarefa como concluída; registrar bloqueios reais.
 6. Não executar operações destrutivas sem autorização. Diante de bloqueios, avançar nos itens independentes.
-7. Atualizar apenas checkboxes comprovados na spec ou review correspondente, com referência entre correção e item auditado; preservar os estados históricos de `todolist.md`.
+7. Atualizar apenas checkboxes comprovados no plan, spec ou review correspondente, com referência entre correção e item auditado; preservar os estados históricos de `todolist.md`.
 8. Entregar resumo curto com resultado, testes e pendências. Só encerrar quando o escopo estiver concluído ou realmente bloqueado.
 
 ## Orientações para reduzir uso de contexto/créditos
@@ -89,6 +93,8 @@ Não criar pastas vazias. Controller faz parsing HTTP → chama service → tran
 
 ```bash
 composer install
+composer format
+composer lint
 composer test
 composer migrate
 composer migrate:status

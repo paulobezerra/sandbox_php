@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 use Phinx\Migration\AbstractMigration;
@@ -28,7 +29,9 @@ final class AddPasswordRecoveryCodes extends AbstractMigration
             && $this->fetchRow('SELECT 1 FROM password_recovery_codes LIMIT 1') !== false) {
             throw new RuntimeException('A reversão foi interrompida: códigos de recuperação existem.');
         }
-        if ($this->hasTable('password_recovery_codes')) $this->table('password_recovery_codes')->drop()->save();
+        if ($this->hasTable('password_recovery_codes')) {
+            $this->table('password_recovery_codes')->drop()->save();
+        }
         if ($this->table('users')->hasColumn('session_version')) {
             $this->table('users')->removeColumn('session_version')->update();
         }

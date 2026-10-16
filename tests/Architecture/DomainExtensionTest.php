@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Tests\Architecture;
@@ -14,7 +15,7 @@ final class DomainExtensionTest extends TestCase
     public function testNewDomainUseCaseWorksWithRepositoryContractOnly(): void
     {
         $notice = new Notice('Manutenção', 'O sistema ficará indisponível às 22h.');
-        $repository = new class($notice) implements NoticeRepository {
+        $repository = new class ($notice) implements NoticeRepository {
             public function __construct(private readonly Notice $notice)
             {
             }
