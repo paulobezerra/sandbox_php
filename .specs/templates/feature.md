@@ -2,7 +2,9 @@
 
 **ID:** NNN-nome · **Estado:** proposta · **Data:** AAAA-MM-DD
 
-**Validação do usuário para Spec:** pendente. Após declaração explícita, registrar **Nome:** <nome informado pelo usuário> · **Data:** <AAAA-MM-DD obtida do SO no momento do registro>.
+**Branch:** `feature/NNN-nome` <ou `fix/NNN-nome` para conserto independente; registrar a branch local efetiva>.
+
+**Validação do usuário para Spec:** pendente. Após declaração explícita, registrar aqui a declaração, o nome informado pelo usuário e a data obtida do SO, sem alterar o restante da Feature.
 
 ## Necessidade de negócio
 

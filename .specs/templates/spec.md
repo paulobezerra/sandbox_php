@@ -2,7 +2,7 @@
 
 **ID:** NNN-nome · **Estado:** proposta · **Data:** AAAA-MM-DD
 
-**Validação do usuário para Plan:** pendente. Após declaração explícita, registrar **Nome:** <nome informado pelo usuário> · **Data:** <AAAA-MM-DD obtida do SO no momento do registro>. A escolha técnica abaixo não equivale a esta validação.
+**Validação do usuário para Plan:** pendente. Após declaração explícita, registrar aqui a declaração, o nome informado pelo usuário e a data obtida do SO, sem alterar requisitos ou decisões. A decisão técnica abaixo não equivale à validação.
 
 ## Problema, base e objetivo
 
@@ -14,29 +14,24 @@
 - **Fora do escopo:** <limites explícitos>
 - **Restrições:** <compatibilidade, stack, deploy, dependências e dados relevantes; consultar AGENTS.md>
 
-## Solução escolhida
+## Solução técnica
 
-**Escolha do usuário:** <opção e data da decisão; não preencher antes da escolha>.
+**Decisão técnica:** <escolha do usuário e data, quando houver alternativas relevantes; ou solução única evidente, data e justificativa baseada no código. Não atribuir escolha ao usuário sem declaração.>
 
-<Resumo da matriz apresentada ao usuário, com critérios não aplicáveis identificados. Adicione coluna para terceira opção se houver. Não transformar recomendação em aprovação.>
+<Resuma em texto apenas as opções reais: a solução única evidente ou a escolhida e suas alternativas relevantes, em blocos separados. Para cada uma, registre o impacto estimado no código (baixo, moderado ou alto), os componentes afetados e os pontos de aderência ou ressalva que importaram à decisão. Identifique critérios não aplicáveis. Evite comparação extensa sem tradeoff real.>
 
-| Critério | <opção A> | <opção B> |
-|---|---|---|
-| Segurança e integridade | <tradeoff> | <tradeoff> |
-| Performance | <tradeoff> | <tradeoff> |
-| Compatibilidade e migração | <tradeoff> | <tradeoff> |
-| Simplicidade | <tradeoff> | <tradeoff> |
-| Manutenção e padrões | <tradeoff> | <tradeoff> |
-| Operação | <tradeoff> | <tradeoff> |
+**Motivo da decisão:** <evidência verificada, benefício decisivo e custo aceito; para solução única, explicar por que não havia alternativa relevante>.
 
-**Motivo da escolha:** <benefício decisivo e custo aceito>.
+## Questões em aberto para validação
+
+<Liste decisões de produto ou divergências com a Feature que o usuário ainda precisa avaliar. Para cada uma, cite o contrato anterior, as opções reais, o impacto e a proposta atual. Se nenhuma restar, escreva “Nenhuma” para tornar a checagem visível antes da validação. Não trate a escolha técnica já feita como validação da Spec.>
 
 ## Requisitos
 
-- [ ] SNNN-01 — <resultado observável; consumidores afetados: API, SPA, OpenAPI, banco, operação>
-- [ ] SNNN-02 — <outro resultado; dependência de SNNN-01 se houver>
+- **SNNN-01** — <resultado observável; consumidores afetados: API, SPA, OpenAPI, banco, operação>
+- **SNNN-02** — <outro resultado; dependência de SNNN-01 se houver>
 
-<O plan transformará estes requisitos em tarefas entregáveis. Não marcar sem evidência.>
+<O plan transformará estes requisitos em tarefas entregáveis. Code e Review registram progresso fora desta Spec.>
 
 ## Contratos, dados e segurança
 
@@ -44,14 +39,12 @@
 
 ## Critérios de aceite e verificação
 
-- [ ] **Sucesso:** dado <estado inicial>, quando <ação>, então <resultado observável>. Teste: <nível e cenário>.
-- [ ] **Falha/limite:** dado <entrada inválida, acesso indevido ou falha parcial pertinente>, quando <ação>, então <resposta/estado preservado>. Teste: <nível e cenário>.
-- [ ] **Integração/compatibilidade:** <dados existentes, API/SPA/OpenAPI ou instalação limpa afetados>. Teste: <cenário e ambiente>.
+- **Sucesso:** dado <estado inicial>, quando <ação>, então <resultado observável>. Teste: <nível e cenário>.
+- **Falha/limite:** dado <entrada inválida, acesso indevido ou falha parcial pertinente>, quando <ação>, então <resposta/estado preservado>. Teste: <nível e cenário>.
+- **Integração/compatibilidade:** <dados existentes, API/SPA/OpenAPI ou instalação limpa afetados>. Teste: <cenário e ambiente>.
 
 **Gate aplicável:** <comandos de ../guidelines/quality.md e verificação adicional motivada pelo risco; consultar ../guidelines/implementation.md e registrar execução/limites na review>.
 
 ## Decisões e histórico
 
 - AAAA-MM-DD — <decisão, motivo, contrato anterior substituído, efeitos e referência à review/spec anterior; não reescrever histórico>.
-
-**Questões indispensáveis abertas:** <decisões que impedem aceite; remover seção se nenhuma>.
