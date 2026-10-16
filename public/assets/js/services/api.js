@@ -27,6 +27,8 @@ async function request(path, options = {}) {
     const data = response.status === 204 ? null : await response.json().catch(() => null);
     if (!response.ok) throw new Error(data?.error?.message || `Falha HTTP ${response.status}`);
     if (data?.csrfToken) csrfToken = data.csrfToken;
+    if (path === '/api/auth/login' && data?.user) window.dispatchEvent(new CustomEvent('auth-changed', {detail: data.user}));
+    if (path === '/api/auth/logout') window.dispatchEvent(new CustomEvent('auth-changed', {detail: null}));
     return data;
 }
 

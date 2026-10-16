@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Integration;
 
 use App\Bootstrap\Config;
-use App\Domain\User\UserRepository;
 use App\Infrastructure\Http\Middleware\SessionMiddleware;
 use App\Tests\TestCase;
 use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
@@ -28,8 +27,7 @@ final class SessionMiddlewareTest extends TestCase
         if (session_status() === PHP_SESSION_ACTIVE) {
             session_destroy();
         }
-        $repository = $this->createMock(UserRepository::class);
-        $middleware = new SessionMiddleware($this->config('https://example.test'), $repository);
+        $middleware = new SessionMiddleware($this->config('https://example.test'));
         $observed = (object) ['secure' => null];
         $handler = new class ($observed) implements RequestHandlerInterface {
             public function __construct(private object $observed)
@@ -51,8 +49,7 @@ final class SessionMiddlewareTest extends TestCase
         if (session_status() === PHP_SESSION_ACTIVE) {
             session_destroy();
         }
-        $repository = $this->createMock(UserRepository::class);
-        $middleware = new SessionMiddleware($this->config('http://localhost:8080'), $repository);
+        $middleware = new SessionMiddleware($this->config('http://localhost:8080'));
         $observed = (object) ['secure' => null];
         $handler = new class ($observed) implements RequestHandlerInterface {
             public function __construct(private object $observed)
@@ -69,17 +66,14 @@ final class SessionMiddlewareTest extends TestCase
         self::assertFalse($observed->secure);
     }
 
-    public function testCredentialVersionMismatchInvalidatesExistingSession(): void
+    public function testSessionIdentityDoesNotDependOnCredentialVersionStorage(): void
     {
-        $repository = $this->createMock(UserRepository::class);
-        $repository->expects(self::once())->method('sessionVersionFor')->with(81)->willReturn(3);
-        $middleware = new SessionMiddleware($this->config('http://localhost:8080'), $repository);
         if (session_status() === PHP_SESSION_ACTIVE) {
             session_destroy();
         }
         session_id('version-check-' . bin2hex(random_bytes(8)));
         session_start();
-        $_SESSION = ['user_id' => 81, 'auth_version' => 2, 'csrf' => 'old-token'];
+        $_SESSION = ['user_id' => 81, 'csrf' => 'old-token'];
         $observed = (object) ['session' => null];
         $handler = new class ($observed) implements RequestHandlerInterface {
             public function __construct(private object $observed)
@@ -91,8 +85,8 @@ final class SessionMiddlewareTest extends TestCase
                 return new Response();
             }
         };
-        $middleware->process($this->createRequest('GET', '/admin'), $handler);
-        self::assertSame([], $observed->session);
+        (new SessionMiddleware($this->config('http://localhost:8080')))->process($this->createRequest('GET', '/'), $handler);
+        self::assertSame(['user_id' => 81, 'csrf' => 'old-token'], $observed->session);
     }
 
     private function config(string $appUrl): Config

@@ -5,11 +5,19 @@ declare(strict_types=1);
 namespace App\Bootstrap;
 
 use App\Infrastructure\Database\ConnectionFactory;
+use App\Application\Auth\AuthService;
+use App\Application\Post\PostService;
 use App\Infrastructure\Http\Controller\AppController;
 use App\Infrastructure\Http\Controller\DocumentationController;
 use App\Infrastructure\Http\Error\HttpErrorHandler;
 use App\Infrastructure\Http\Middleware\SecurityHeadersMiddleware;
 use App\Infrastructure\Http\Middleware\CsrfMiddleware;
+use App\Infrastructure\Http\Middleware\SessionMiddleware;
+use App\Domain\Post\PostRepository;
+use App\Domain\User\UserRepository;
+use App\Infrastructure\Database\Repository\MysqlPostRepository;
+use App\Infrastructure\Database\Repository\MysqlUserRepository;
+use App\Infrastructure\View\MarkdownRenderer;
 use App\Infrastructure\View\ViewRenderer;
 use DI\Container;
 use DI\ContainerBuilder;
@@ -21,14 +29,12 @@ use Slim\App as SlimApp;
 class App
 {
     /**
-     * @param list<mixed>|null $modules
      * @param list<string> $anonymousMutationCsrfExemptions
      * @return SlimApp<Container>
      */
     public static function create(
         ?PDO $pdo = null,
         ?Config $config = null,
-        ?array $modules = null,
         array $anonymousMutationCsrfExemptions = []
     ): SlimApp {
         $config ??= Config::fromEnvironment();
@@ -40,18 +46,15 @@ class App
         $definitions = [
             PDO::class => $db,
             Config::class => $config,
+            UserRepository::class => \DI\autowire(MysqlUserRepository::class),
+            PostRepository::class => \DI\autowire(MysqlPostRepository::class),
+            AuthService::class => \DI\autowire(),
+            PostService::class => \DI\autowire(),
+            MarkdownRenderer::class => \DI\autowire(),
         ];
-        $controllerFiles = [
-            dirname(__DIR__) . '/Infrastructure/Http/Controller/HealthController.php',
-        ];
-        $modules ??= ProjectModules::enabled();
-        foreach ($modules as $module) {
-            if (!$module instanceof BootstrapModule) {
-                throw new \InvalidArgumentException('Módulos devem implementar BootstrapModule.');
-            }
-            $definitions += $module->definitions($db);
-            $controllerFiles = [...$controllerFiles, ...$module->controllerFiles()];
-        }
+        $controllerFiles = array_map(static fn (string $name): string => dirname(__DIR__) . '/Infrastructure/Http/Controller/' . $name, [
+            'AuthController.php', 'MarkdownPreviewController.php', 'PostController.php',
+        ]);
         $containerBuilder->addDefinitions($definitions);
         $container = $containerBuilder->build();
 
@@ -74,12 +77,10 @@ class App
         $errorMiddleware->setDefaultErrorHandler($errorHandler);
 
         $app->add(new SecurityHeadersMiddleware());
-        foreach ($modules as $module) {
-            $module->addMiddlewares($app, $container, $config);
-        }
+        $app->add(new SessionMiddleware($config));
 
         // 3. Register routes
-        Routes::register($app, $appController, new DocumentationController($config), $config->openApiEnabled, $controllerFiles);
+        Routes::register($app, $appController, new DocumentationController($config), $config->openApiEnabled);
 
         return $app;
     }

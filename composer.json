@@ -12,7 +12,6 @@
     "juliangut/slim-routing": "^3.2",
     "php-di/php-di": "^7.0",
     "swagger-api/swagger-ui": "^5.33",
-    "symfony/cache": "^7.4",
     "league/commonmark": "^2.7"
   },
   "autoload": {
@@ -40,7 +39,7 @@
     "test": "vendor/bin/phpunit",
     "test:coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-clover=/tmp/sandbox-php-coverage.xml",
     "coverage:check": "php tools/check-coverage.php /tmp/sandbox-php-coverage.xml 80",
-    "openapi:generate": "vendor/bin/openapi src/Infrastructure/Http -e src/Infrastructure/Http/Controller/PlanController.php -o docs/openapi.json",
+    "openapi:generate": "vendor/bin/openapi src/Infrastructure/Http -o docs/openapi.json",
     "openapi:check": "vendor/bin/phpunit --filter OpenApiRoutesTest",
     "quality": [
       "@lint",

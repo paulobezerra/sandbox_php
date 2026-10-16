@@ -1,6 +1,10 @@
 # FEATURE — Simplificação do skeleton e do blog
 
-**ID:** 002-simplificacao-skeleton · **Estado:** proposta · **Data:** 2026-10-16
+**ID:** 002-simplificacao-skeleton · **Estado:** validada · **Data:** 2026-10-16
+
+**Branch:** `feature/002-simplificacao-skeleton`.
+
+**Validação do usuário para Spec:** validada. **Nome:** Paulo Bezerra · **Data:** 2026-10-16.
 
 ## Necessidade de negócio
 
@@ -14,9 +18,9 @@ O produto oferece apenas registro de usuário, login, blog e CRUD de Posts, com 
 
 ## Limites e contexto
 
-- **Inclui:** retirar os fluxos de Plan, Pages e recuperação de senha por códigos, além de suas referências, testes e migrations; concentrar na Home a documentação do sandbox_php exibida no site e retirar as páginas de apresentação separadas e o teste/atalho de health da Home; aplicar o menu conforme o estado de autenticação; investigar o aplicativo padrão e os procedimentos necessários para instalá-lo e operá-lo, identificando outras funcionalidades sem uso real; retirar os artefatos exclusivos dessas funcionalidades; avaliar mecanismos pontuais de baixo valor que aumentem a complexidade; revisar os limites de autenticação que usam o IP compartilhado como motivo de bloqueio; manter cobertura para os comportamentos que continuarem disponíveis.
-- **Fora do escopo:** ampliar o CMS além de Posts ou acrescentar novas funcionalidades de autenticação.
-- **Restrições de produto:** preservar cadastro, login, logout, sessão, autorização administrativa, proteção das operações mutáveis, publicação e leitura de Posts, bem como os procedimentos necessários para instalar e operar esses recursos. O registro continua acessível a partir do fluxo de Login, sem acrescentar um quarto item ao menu público. O link Admin não concede permissão; a autorização continua no backend. O uso em um único lugar, por si só, não justifica remoção: é preciso demonstrar ausência de valor relevante e que a simplificação não prejudica segurança, integridade dos dados ou operação. Existe apenas esta instalação de desenvolvimento; compatibilidade de atualização e preservação de registros de Plan ou Pages não são requisitos de produto. As migrations antigas que criam entidades removidas devem ser eliminadas ou ajustadas quando também criarem entidades mantidas; não devem restar tabelas dessas funcionalidades em uma instalação nova. Esta feature substitui, para o produto futuro, as partes correspondentes da spec histórica `001-skeleton`, sem reescrever seu registro.
+- **Inclui:** retirar os fluxos de Plan, Pages e recuperação de senha por códigos, com as interfaces, API e artefatos exclusivos deles; concentrar na Home a apresentação e a documentação hoje exibidas nas páginas do site e retirar as páginas institucionais separadas e o teste/atalho de health da Home; aplicar o menu conforme o estado de autenticação; inventariar outras funcionalidades do aplicativo padrão sem uso nos fluxos mantidos e avaliar sua retirada; avaliar mecanismos pontuais cuja complexidade não traga benefício proporcional; revisar os limites de autenticação que usam o IP compartilhado como motivo de bloqueio; manter cobertura para os comportamentos que continuarem disponíveis.
+- **Fora do escopo:** ampliar o CMS além de Posts, acrescentar novas funcionalidades de autenticação ou remover documentação operacional necessária fora do site.
+- **Restrições de produto:** preservar cadastro, login, logout, sessão, autorização administrativa, proteção das operações mutáveis, publicação e leitura de Posts, bem como os procedimentos necessários para instalar e operar esses recursos. O registro continua acessível a partir do fluxo de Login, sem acrescentar um quarto item ao menu público. O link Admin não concede permissão; a autorização continua no backend. A retirada do atalho de health da Home não determina, por si, a retirada da verificação operacional da API. Uma funcionalidade ou mecanismo só pode sair quando o inventário mostrar que sua remoção não prejudica segurança, integridade dos dados ou operação; o uso em um único lugar não basta para justificar remoção. Existe apenas esta instalação de desenvolvimento; compatibilidade de atualização e preservação de registros de Plan ou Pages não são requisitos de produto, mas qualquer exclusão de dados existentes exige análise e autorização próprias. Uma instalação nova não deve criar tabelas exclusivas das funcionalidades retiradas; a estratégia para as migrations pertence à Spec. Esta feature substitui, para o produto futuro, as partes correspondentes da spec histórica `001-skeleton`, sem reescrever seu registro.
 
 ## Sinais de sucesso
 

@@ -17,21 +17,32 @@ final readonly class MysqlPostRepository implements PostRepository
     {
         return $this->one('SELECT * FROM posts WHERE id = ?', [$id]);
     }
+    public function findByAuthor(int $id, int $authorId): ?Post
+    {
+        return $this->one('SELECT * FROM posts WHERE id = ? AND author_id = ?', [$id, $authorId]);
+    }
     public function findPublishedBySlug(string $slug): ?Post
     {
         return $this->one("SELECT * FROM posts WHERE slug = ? AND status = 'PUBLISHED' AND published_at <= NOW()", [$slug]);
-    }
-    public function listAdmin(int $limit, int $offset): array
-    {
-        return $this->many('SELECT * FROM posts ORDER BY created_at DESC,id DESC LIMIT ? OFFSET ?', $limit, $offset);
     }
     public function listPublished(int $limit, int $offset): array
     {
         return $this->many("SELECT * FROM posts WHERE status='PUBLISHED' AND published_at <= NOW() ORDER BY published_at DESC,id DESC LIMIT ? OFFSET ?", $limit, $offset);
     }
-    public function countAdmin(): int
+    public function listByAuthor(int $authorId, int $limit, int $offset): array
     {
-        return (int)$this->pdo->query('SELECT COUNT(*) FROM posts')->fetchColumn();
+        $statement = $this->pdo->prepare('SELECT * FROM posts WHERE author_id = ? ORDER BY created_at DESC,id DESC LIMIT ? OFFSET ?');
+        $statement->bindValue(1, $authorId, PDO::PARAM_INT);
+        $statement->bindValue(2, $limit, PDO::PARAM_INT);
+        $statement->bindValue(3, $offset, PDO::PARAM_INT);
+        $statement->execute();
+        return array_map($this->map(...), $statement->fetchAll(PDO::FETCH_ASSOC));
+    }
+    public function countByAuthor(int $authorId): int
+    {
+        $statement = $this->pdo->prepare('SELECT COUNT(*) FROM posts WHERE author_id = ?');
+        $statement->execute([$authorId]);
+        return (int) $statement->fetchColumn();
     }
     public function countPublished(): int
     {

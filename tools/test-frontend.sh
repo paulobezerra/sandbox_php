@@ -58,27 +58,63 @@ check_page() {
     printf 'OK: %s (%s)\n' "$label" "$path"
 }
 
-check_page / 'Uma base clara para tirar aplicações PHP do zero.' 'home institucional'
-check_page /features 'Uma base funcional para aplicações PHP' 'recursos'
-check_page /architecture 'Dependências seguem uma direção simples' 'arquitetura'
-check_page /guide 'Comece a desenvolver' 'guia de instalação'
+check_page / 'Uma base reutilizável para aplicações PHP' 'home documental'
+check_page / 'Instalação e primeiro uso' 'instalação e primeiro uso na Home'
+check_page / 'Cadastro, login e ciclo de Posts' 'uso de Posts na Home'
+check_page / 'SDD Lite' 'SDD Lite na Home'
+check_page /features 'Página não encontrada' 'rota institucional antiga de recursos removida'
+check_page /architecture 'Página não encontrada' 'rota institucional antiga de arquitetura removida'
+check_page /guide 'Página não encontrada' 'rota institucional antiga de guia removida'
+check_page /about 'Página não encontrada' 'rota institucional antiga Sobre removida'
+home_file="$work_dir/home.html"
+if ! "$chrome_bin" \
+    --headless=new \
+    --no-sandbox \
+    --disable-gpu \
+    --disable-dev-shm-usage \
+    --no-first-run \
+    --no-default-browser-check \
+    --user-data-dir="$work_dir/home-profile" \
+    --virtual-time-budget=4000 \
+    --dump-dom "$base_url/" >"$home_file" 2>"$work_dir/home-chrome.log"; then
+    echo 'FALHOU: a Home não abriu no Chromium para conferir suas âncoras.' >&2
+    cat "$work_dir/home-chrome.log" >&2
+    exit 1
+fi
+for anchor in capacidades stack arquitetura instalacao primeiro-uso rotas qualidade producao customizacao sdd-lite; do
+    if ! grep -Fq "id=\"$anchor\"" "$home_file" || ! grep -Fq "href=\"#$anchor\"" "$home_file"; then
+        echo "FALHOU: âncora ausente ou sem destino na Home: $anchor." >&2
+        exit 1
+    fi
+done
+if grep -Eq 'href="/(about|features|architecture|guide)([/?#"]|$)' "$home_file"; then
+    echo 'FALHOU: a Home ainda aponta para uma página institucional removida.' >&2
+    exit 1
+fi
+printf 'OK: âncoras da Home e links internos\n'
 check_page /blog 'Blog' 'blog público'
-check_page /admin/content 'type="email"' 'administração redireciona ao login compartilhado'
+check_page /uma-pagina-antiga 'Página não encontrada' 'rota dinâmica de Pages removida'
+check_page /my-posts 'Meus Posts' 'editor de posts autenticado'
+check_page /admin/content 'Página não encontrada' 'rota administrativa removida'
 check_page /login 'Entrar' 'login'
 check_page /login 'type="email"' 'campo de e-mail no login'
 check_page /register 'Criar conta' 'cadastro'
 check_page /register 'type="email"' 'campo de e-mail no cadastro'
-check_page /forgot-password 'Recuperar senha' 'recuperação de senha'
-check_page /reset-password 'Redefinir senha' 'redefinição de senha'
-check_page /account/recovery-codes 'type="email"' 'códigos de recuperação exige login e retorna ao formulário compartilhado'
 
 cat > "$fixture_html" <<EOF
 <!doctype html>
 <html lang="pt-BR">
 <body>
+<div id="app"><aside class="sidebar"><nav>
+<router-link to="/">Início</router-link><router-link to="/blog">Blog</router-link>
+<router-link v-if="!user" to="/login">Entrar</router-link>
+<router-link v-if="user" to="/my-posts">Meus Posts</router-link>
+<button v-if="user" class="nav-button" type="button" @click="logout">Sair</button>
+</nav></aside><main><router-view></router-view></main></div>
 <div id="test-app"><div id="xss-check" v-html="html"></div></div>
 <pre id="test-status">running</pre>
 <script src="/assets/vendor/vue.global.prod.js"></script>
+<script src="/assets/vendor/vue-router.global.prod.js"></script>
 <script type="module" src="/assets/$fixture_id.js"></script>
 </body>
 </html>
@@ -95,6 +131,7 @@ const app = Vue.createApp({
             let mutationCalls = 0;
             let failCsrfNetwork = false;
             window.fetch = async (url, options = {}) => {
+                if (url === '/api/auth/me') return new Response(JSON.stringify({user: {id: 7, name: 'Autor', email: 'author@example.test'}, csrfToken: 'menu-token'}), {status: 200});
                 if (url === '/api/auth/csrf') {
                     if (failCsrfNetwork) throw new TypeError('offline');
                     csrfCalls += 1;
@@ -119,6 +156,13 @@ const app = Vue.createApp({
             let networkError = '';
             try { await api.post('/api/network-test'); } catch (error) { networkError = error.message; }
             if (!networkError.includes('proteção da sessão')) throw new Error('CSRF network failure was not reported');
+
+            await import('/assets/js/app.js');
+            await new Promise(resolve => setTimeout(resolve, 0));
+            if (!document.querySelector('#app').textContent.includes('Meus Posts') || document.querySelector('#app').textContent.includes('Entrar')) throw new Error('restored session did not update the navigation');
+            window.dispatchEvent(new CustomEvent('auth-changed', {detail: null}));
+            await Vue.nextTick();
+            if (!document.querySelector('#app').textContent.includes('Entrar') || document.querySelector('#app').textContent.includes('Meus Posts')) throw new Error('logout did not update the navigation');
             status.textContent = 'PASS: CSRF retry once and escaped Markdown is inert';
         } catch (error) {
             status.textContent = `FAIL: ${error.message}`;
@@ -127,4 +171,4 @@ const app = Vue.createApp({
 });
 app.mount('#test-app');
 EOF
-check_page "/assets/$fixture_id.html" 'PASS: CSRF retry once and escaped Markdown is inert' 'retry CSRF e HTML escapado em v-html'
+check_page "/assets/$fixture_id.html" 'PASS: CSRF retry once and escaped Markdown is inert' 'retry CSRF, HTML escapado e navegação por sessão'

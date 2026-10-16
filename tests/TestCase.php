@@ -15,7 +15,7 @@ abstract class TestCase extends BaseTestCase
 {
     protected function getApp(): App
     {
-        return \App\Bootstrap\App::create(modules: [new \App\Bootstrap\CmsModule(), new \App\Bootstrap\LegacyPlanModule()]);
+        return \App\Bootstrap\App::create();
     }
 
     protected function createRequest(
