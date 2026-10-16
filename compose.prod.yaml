@@ -17,7 +17,6 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       APP_URL: ${APP_URL:?Defina APP_URL com a URL HTTPS pública}
       SESSION_COOKIE: ${SESSION_COOKIE:-skeleton_session}
-      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
     depends_on:
       mysql:
         condition: service_healthy

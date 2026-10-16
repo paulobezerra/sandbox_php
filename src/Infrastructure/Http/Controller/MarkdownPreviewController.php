@@ -12,7 +12,7 @@ use Jgut\Slim\Routing\Mapping\Attribute\Route;
 use OpenApi\Attributes as OA;
 use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 
-#[Group(pattern: 'api/admin')]
+#[Group(pattern: 'api/me')]
 final readonly class MarkdownPreviewController
 {
     public function __construct(private UserRepository $users, private MarkdownRenderer $markdown)
@@ -20,16 +20,12 @@ final readonly class MarkdownPreviewController
     }
 
     #[Route(methods: ['POST'], pattern: 'markdown-preview')]
-    #[OA\Post(path: '/api/admin/markdown-preview', tags: ['Admin Content'], security: [['cookieAuth' => []]], requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object', required: ['content'], properties: [new OA\Property(property: 'content', type: 'string', maxLength: 60000)])), responses: [new OA\Response(response: 200, description: 'Markdown renderizado com HTML bruto escapado'), new OA\Response(response: 403, description: 'Apenas ADMIN')])]
+    #[OA\Post(path: '/api/me/markdown-preview', tags: ['Posts'], security: [['cookieAuth' => []]], requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object', required: ['content'], properties: [new OA\Property(property: 'content', type: 'string', maxLength: 60000)])), responses: [new OA\Response(response: 200, description: 'Markdown renderizado com HTML bruto escapado'), new OA\Response(response: 401, description: 'Não autenticado')])]
     public function render(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $id = $_SESSION['user_id'] ?? null;
-        $user = is_int($id) ? $this->users->findById($id) : null;
-        if ($user === null) {
+        if (!is_int($id) || $this->users->findById($id) === null) {
             return JsonResponse::error($response, 'Autenticação necessária.', 401);
-        }
-        if ($user->role !== 'ADMIN') {
-            return JsonResponse::error($response, 'Acesso restrito a administradores.', 403);
         }
         $body = $request->getParsedBody();
         $content = is_array($body) && is_string($body['content'] ?? null) ? $body['content'] : null;

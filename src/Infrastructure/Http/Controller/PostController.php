@@ -10,8 +10,7 @@ use App\Domain\User\UserRepository;
 use App\Infrastructure\Http\Response\JsonResponse;
 use App\Infrastructure\View\MarkdownRenderer;
 use DomainException;
-use Jgut\Slim\Routing\Mapping\Attribute\Group;
-use Jgut\Slim\Routing\Mapping\Attribute\Route;
+use Jgut\Slim\Routing\Mapping\Attribute\{Group, Route};
 use OpenApi\Attributes as OA;
 use PDOException;
 use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
@@ -20,6 +19,7 @@ use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 final readonly class PostController
 {
     use ContentControllerSupport;
+
     public function __construct(private PostService $posts, private UserRepository $users, private MarkdownRenderer $markdown)
     {
     }
@@ -51,86 +51,87 @@ final readonly class PostController
         }
     }
 
-    #[Route(methods: ['GET'], pattern: 'admin/posts')]
-    #[OA\Get(path: '/api/admin/posts', tags: ['Admin Posts'], security: [['cookieAuth' => []]], responses: [new OA\Response(response: 200, description: 'Posts administrativos paginados', content: new OA\JsonContent(ref: '#/components/schemas/PostCollection')), new OA\Response(response: 401, description: 'Não autenticado'), new OA\Response(response: 403, description: 'Apenas ADMIN')])]
-    public function adminList(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    #[Route(methods: ['GET'], pattern: 'me/posts')]
+    #[OA\Get(path: '/api/me/posts', tags: ['Posts'], security: [['cookieAuth' => []]], responses: [new OA\Response(response: 200, description: 'Posts do usuário autenticado', content: new OA\JsonContent(ref: '#/components/schemas/PostCollection')), new OA\Response(response: 401, description: 'Não autenticado')])]
+    public function myList(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if ($failure = $this->adminFailure($request, $response)) {
-            return $failure;
+        if (($authorId = $this->authenticatedAuthorId()) === null) {
+            return JsonResponse::error($response, 'Autenticação necessária.', 401);
         }
         try {
-            $page = $this->posts->listAdmin(...$this->pageQuery($request));
+            $page = $this->posts->listMine($authorId, ...$this->pageQuery($request));
             return JsonResponse::success($response, ['items' => array_map(fn ($post) => $post->toArray(), $page['items']), 'total' => $page['total'], 'page' => $page['page'], 'perPage' => $page['perPage']]);
         } catch (DomainException $e) {
             return JsonResponse::error($response, $e->getMessage(), 422);
         }
     }
 
-    #[Route(methods: ['POST'], pattern: 'admin/posts')]
-    #[OA\Post(path: '/api/admin/posts', tags: ['Admin Posts'], security: [['cookieAuth' => []]], requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object', required: ['title','content'], properties: [new OA\Property(property: 'title', type: 'string', maxLength: 200), new OA\Property(property: 'slug', type: 'string'), new OA\Property(property: 'content', type: 'string'), new OA\Property(property: 'excerpt', type: 'string', nullable: true)])), responses: [new OA\Response(response: 201, description: 'Rascunho criado'), new OA\Response(response: 401, description: 'Não autenticado'), new OA\Response(response: 403, description: 'Apenas ADMIN'), new OA\Response(response: 422, description: 'Validação')])]
+    #[Route(methods: ['POST'], pattern: 'me/posts')]
+    #[OA\Post(path: '/api/me/posts', tags: ['Posts'], security: [['cookieAuth' => []]], requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object', required: ['title','content'], properties: [new OA\Property(property: 'title', type: 'string', maxLength: 200), new OA\Property(property: 'slug', type: 'string'), new OA\Property(property: 'content', type: 'string'), new OA\Property(property: 'excerpt', type: 'string', nullable: true)])), responses: [new OA\Response(response: 201, description: 'Rascunho criado'), new OA\Response(response: 401, description: 'Não autenticado'), new OA\Response(response: 422, description: 'Validação')])]
     public function create(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        if ($failure = $this->adminFailure($request, $response)) {
-            return $failure;
+        if (($authorId = $this->authenticatedAuthorId()) === null) {
+            return JsonResponse::error($response, 'Autenticação necessária.', 401);
         }
         try {
-            $id = $_SESSION['user_id'];
-            return JsonResponse::success($response, ['post' => $this->posts->create($this->body($request), $id)->toArray()], 201);
+            return JsonResponse::success($response, ['post' => $this->posts->create($this->body($request), $authorId)->toArray()], 201);
         } catch (DomainException $e) {
             return JsonResponse::error($response, $e->getMessage(), 422);
         } catch (PDOException $e) {
-            if ((string)$e->getCode() === '23000') {
+            if ((string) $e->getCode() === '23000') {
                 return JsonResponse::error($response, 'Esse slug já está em uso.', 409);
-            } throw $e;
+            }
+            throw $e;
         }
     }
 
     /** @param array<string, string> $args */
-    #[Route(methods: ['GET'], pattern: 'admin/posts/{id}', placeholders: ['id' => 'numeric'])]
-    #[OA\Get(path: '/api/admin/posts/{id}', tags: ['Admin Posts'], security: [['cookieAuth' => []]], parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))], responses: [new OA\Response(response: 200, description: 'Post', content: new OA\JsonContent(ref: '#/components/schemas/PostResult')), new OA\Response(response: 404, description: 'Não encontrado')])]
+    #[Route(methods: ['GET'], pattern: 'me/posts/{id}', placeholders: ['id' => 'numeric'])]
+    #[OA\Get(path: '/api/me/posts/{id}', tags: ['Posts'], security: [['cookieAuth' => []]], parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))], responses: [new OA\Response(response: 200, description: 'Post do usuário'), new OA\Response(response: 401, description: 'Não autenticado'), new OA\Response(response: 404, description: 'Não encontrado')])]
     public function show(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if ($failure = $this->adminFailure($request, $response)) {
-            return $failure;
+        if (($authorId = $this->authenticatedAuthorId()) === null) {
+            return JsonResponse::error($response, 'Autenticação necessária.', 401);
         }
         try {
-            return JsonResponse::success($response, ['post' => $this->posts->find((int)$args['id'])->toArray()]);
+            return JsonResponse::success($response, ['post' => $this->posts->findMine((int) $args['id'], $authorId)->toArray()]);
         } catch (ContentNotFound $e) {
             return JsonResponse::error($response, $e->getMessage(), 404);
         }
     }
 
     /** @param array<string, string> $args */
-    #[Route(methods: ['PUT'], pattern: 'admin/posts/{id}', placeholders: ['id' => 'numeric'])]
-    #[OA\Put(path: '/api/admin/posts/{id}', tags: ['Admin Posts'], security: [['cookieAuth' => []]], parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))], requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object', required: ['title', 'content'], properties: [new OA\Property(property: 'title', type: 'string', maxLength: 200), new OA\Property(property: 'slug', type: 'string'), new OA\Property(property: 'content', type: 'string'), new OA\Property(property: 'excerpt', type: 'string', nullable: true)])), responses: [new OA\Response(response: 200, description: 'Post atualizado'), new OA\Response(response: 404, description: 'Não encontrado'), new OA\Response(response: 422, description: 'Validação')])]
+    #[Route(methods: ['PUT'], pattern: 'me/posts/{id}', placeholders: ['id' => 'numeric'])]
+    #[OA\Put(path: '/api/me/posts/{id}', tags: ['Posts'], security: [['cookieAuth' => []]], parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))], requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object', required: ['title','content'], properties: [new OA\Property(property: 'title', type: 'string', maxLength: 200), new OA\Property(property: 'slug', type: 'string'), new OA\Property(property: 'content', type: 'string'), new OA\Property(property: 'excerpt', type: 'string', nullable: true)])), responses: [new OA\Response(response: 200, description: 'Post atualizado'), new OA\Response(response: 401, description: 'Não autenticado'), new OA\Response(response: 404, description: 'Não encontrado'), new OA\Response(response: 422, description: 'Validação')])]
     public function update(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if ($failure = $this->adminFailure($request, $response)) {
-            return $failure;
+        if (($authorId = $this->authenticatedAuthorId()) === null) {
+            return JsonResponse::error($response, 'Autenticação necessária.', 401);
         }
         try {
-            return JsonResponse::success($response, ['post' => $this->posts->update((int)$args['id'], $this->body($request))->toArray()]);
+            return JsonResponse::success($response, ['post' => $this->posts->updateMine((int) $args['id'], $authorId, $this->body($request))->toArray()]);
         } catch (ContentNotFound $e) {
             return JsonResponse::error($response, $e->getMessage(), 404);
         } catch (DomainException $e) {
             return JsonResponse::error($response, $e->getMessage(), 422);
         } catch (PDOException $e) {
-            if ((string)$e->getCode() === '23000') {
+            if ((string) $e->getCode() === '23000') {
                 return JsonResponse::error($response, 'Esse slug já está em uso.', 409);
-            } throw $e;
+            }
+            throw $e;
         }
     }
 
     /** @param array<string, string> $args */
-    #[Route(methods: ['DELETE'], pattern: 'admin/posts/{id}', placeholders: ['id' => 'numeric'])]
-    #[OA\Delete(path: '/api/admin/posts/{id}', tags: ['Admin Posts'], security: [['cookieAuth' => []]], responses: [new OA\Response(response: 204, description: 'Post excluído')])]
+    #[Route(methods: ['DELETE'], pattern: 'me/posts/{id}', placeholders: ['id' => 'numeric'])]
+    #[OA\Delete(path: '/api/me/posts/{id}', tags: ['Posts'], security: [['cookieAuth' => []]], parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))], responses: [new OA\Response(response: 204, description: 'Post excluído'), new OA\Response(response: 401, description: 'Não autenticado'), new OA\Response(response: 404, description: 'Não encontrado')])]
     public function delete(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        if ($failure = $this->adminFailure($request, $response)) {
-            return $failure;
+        if (($authorId = $this->authenticatedAuthorId()) === null) {
+            return JsonResponse::error($response, 'Autenticação necessária.', 401);
         }
         try {
-            $this->posts->delete((int)$args['id']);
+            $this->posts->deleteMine((int) $args['id'], $authorId);
             return $response->withStatus(204);
         } catch (ContentNotFound $e) {
             return JsonResponse::error($response, $e->getMessage(), 404);
@@ -138,29 +139,40 @@ final readonly class PostController
     }
 
     /** @param array<string, string> $args */
-    #[Route(methods: ['POST'], pattern: 'admin/posts/{id}/publish', placeholders: ['id' => 'numeric'])]
-    #[OA\Post(path: '/api/admin/posts/{id}/publish', tags: ['Admin Posts'], security: [['cookieAuth' => []]], responses: [new OA\Response(response: 200, description: 'Post publicado')])]
+    #[Route(methods: ['POST'], pattern: 'me/posts/{id}/publish', placeholders: ['id' => 'numeric'])]
+    #[OA\Post(path: '/api/me/posts/{id}/publish', tags: ['Posts'], security: [['cookieAuth' => []]], responses: [new OA\Response(response: 200, description: 'Post publicado'), new OA\Response(response: 401, description: 'Não autenticado'), new OA\Response(response: 404, description: 'Não encontrado')])]
     public function publish(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        return $this->changeStatus($request, $response, (int)$args['id'], true);
+        return $this->changeStatus($response, (int) $args['id'], true);
     }
+
     /** @param array<string, string> $args */
-    #[Route(methods: ['POST'], pattern: 'admin/posts/{id}/unpublish', placeholders: ['id' => 'numeric'])]
-    #[OA\Post(path: '/api/admin/posts/{id}/unpublish', tags: ['Admin Posts'], security: [['cookieAuth' => []]], responses: [new OA\Response(response: 200, description: 'Post despublicado')])]
+    #[Route(methods: ['POST'], pattern: 'me/posts/{id}/unpublish', placeholders: ['id' => 'numeric'])]
+    #[OA\Post(path: '/api/me/posts/{id}/unpublish', tags: ['Posts'], security: [['cookieAuth' => []]], responses: [new OA\Response(response: 200, description: 'Post despublicado'), new OA\Response(response: 401, description: 'Não autenticado'), new OA\Response(response: 404, description: 'Não encontrado')])]
     public function unpublish(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        return $this->changeStatus($request, $response, (int)$args['id'], false);
+        return $this->changeStatus($response, (int) $args['id'], false);
     }
-    private function changeStatus(ServerRequestInterface $request, ResponseInterface $response, int $id, bool $publish): ResponseInterface
+
+    private function changeStatus(ResponseInterface $response, int $id, bool $publish): ResponseInterface
     {
-        if ($failure = $this->adminFailure($request, $response)) {
-            return $failure;
+        if (($authorId = $this->authenticatedAuthorId()) === null) {
+            return JsonResponse::error($response, 'Autenticação necessária.', 401);
         }
         try {
-            $post = $publish ? $this->posts->publish($id) : $this->posts->unpublish($id);
+            $post = $publish ? $this->posts->publishMine($id, $authorId) : $this->posts->unpublishMine($id, $authorId);
             return JsonResponse::success($response, ['post' => $post->toArray()]);
         } catch (ContentNotFound $e) {
             return JsonResponse::error($response, $e->getMessage(), 404);
         }
+    }
+
+    private function authenticatedAuthorId(): ?int
+    {
+        $id = $_SESSION['user_id'] ?? null;
+        if (!is_int($id) || $this->users->findById($id) === null) {
+            return null;
+        }
+        return $id;
     }
 }

@@ -15,11 +15,12 @@ final readonly class PostService
     }
 
     /** @return array{items:list<Post>,total:int,page:int,perPage:int} */
-    public function listAdmin(int $page, int $perPage): array
+    public function listMine(int $authorId, int $page, int $perPage): array
     {
         [$page, $perPage, $offset] = $this->pagination($page, $perPage);
-        return ['items' => $this->posts->listAdmin($perPage, $offset), 'total' => $this->posts->countAdmin(), 'page' => $page, 'perPage' => $perPage];
+        return ['items' => $this->posts->listByAuthor($authorId, $perPage, $offset), 'total' => $this->posts->countByAuthor($authorId), 'page' => $page, 'perPage' => $perPage];
     }
+
 
     /** @return array{items:list<Post>,total:int,page:int,perPage:int} */
     public function listPublished(int $page, int $perPage): array
@@ -28,9 +29,9 @@ final readonly class PostService
         return ['items' => $this->posts->listPublished($perPage, $offset), 'total' => $this->posts->countPublished(), 'page' => $page, 'perPage' => $perPage];
     }
 
-    public function find(int $id): Post
+    public function findMine(int $id, int $authorId): Post
     {
-        return $this->posts->find($id) ?? throw new ContentNotFound('Post não encontrado.');
+        return $this->posts->findByAuthor($id, $authorId) ?? throw new ContentNotFound('Post não encontrado.');
     }
     public function findPublished(string $slug): Post
     {
@@ -46,29 +47,29 @@ final readonly class PostService
     }
 
     /** @param array<string, mixed> $data */
-    public function update(int $id, array $data): Post
+    public function updateMine(int $id, int $authorId, array $data): Post
     {
-        $existing = $this->find($id);
+        $existing = $this->findMine($id, $authorId);
         [$title, $slug, $content, $excerpt] = $this->validate($data);
         return $this->posts->update(new Post($id, $title, $slug, $content, $excerpt, $existing->status, $existing->authorId, $existing->publishedAt, $existing->createdAt, new DateTimeImmutable()));
     }
 
-    public function publish(int $id): Post
+    public function publishMine(int $id, int $authorId): Post
     {
-        $post = $this->find($id);
+        $post = $this->findMine($id, $authorId);
         $now = new DateTimeImmutable();
         return $this->posts->update(new Post($post->id, $post->title, $post->slug, $post->content, $post->excerpt, 'PUBLISHED', $post->authorId, $post->publishedAt ?? $now, $post->createdAt, $now));
     }
 
-    public function unpublish(int $id): Post
+    public function unpublishMine(int $id, int $authorId): Post
     {
-        $post = $this->find($id);
+        $post = $this->findMine($id, $authorId);
         return $this->posts->update(new Post($post->id, $post->title, $post->slug, $post->content, $post->excerpt, 'DRAFT', $post->authorId, null, $post->createdAt, new DateTimeImmutable()));
     }
 
-    public function delete(int $id): void
+    public function deleteMine(int $id, int $authorId): void
     {
-        $this->find($id);
+        $this->findMine($id, $authorId);
         $this->posts->delete($id);
     }
 

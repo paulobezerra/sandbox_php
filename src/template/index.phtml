@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Skeleton PHP reutilizável com Slim 4, Vue 3, autenticação e mini CMS, sem etapa de build JavaScript.">
-    <title>Sandbox PHP — base para aplicações</title>
+    <meta name="description" content="Documentação do sandbox_php: uma base PHP com Slim 4, Vue 3 sem build, autenticação e blog de Posts.">
+    <title>Sandbox PHP — documentação e blog</title>
 
     <link rel="stylesheet" href="/assets/css/app.css">
 </head>
@@ -16,12 +16,10 @@
 
         <nav>
             <router-link to="/">Início</router-link>
-            <router-link to="/features">Recursos</router-link>
-            <router-link to="/architecture">Arquitetura</router-link>
-            <router-link to="/guide">Guia</router-link>
             <router-link to="/blog">Blog</router-link>
-            <router-link to="/login">Entrar</router-link>
-            <router-link to="/admin/content">Administração</router-link>
+            <router-link v-if="!user" to="/login">Entrar</router-link>
+            <router-link v-if="user" to="/my-posts">Meus Posts</router-link>
+            <button v-if="user" class="nav-button" type="button" @click="logout">Sair</button>
         </nav>
     </aside>
 

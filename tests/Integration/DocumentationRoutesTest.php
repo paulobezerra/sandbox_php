@@ -30,8 +30,12 @@ class DocumentationRoutesTest extends TestCase
         self::assertStringContainsString('application/json', $response->getHeaderLine('Content-Type'));
 
         $document = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
-        self::assertArrayHasKey('/api/health', $document['paths']);
+        self::assertArrayNotHasKey('/api/health', $document['paths']);
         self::assertArrayNotHasKey('/api/plans', $document['paths']);
+        self::assertArrayNotHasKey('/api/pages', $document['paths']);
+        self::assertArrayNotHasKey('/api/auth/recovery-codes', $document['paths']);
+        self::assertArrayNotHasKey('/api/auth/reset-password', $document['paths']);
+        self::assertArrayNotHasKey('429', $document['paths']['/api/auth/login']['post']['responses']);
         self::assertSame(Config::fromEnvironment()->sessionCookie, $document['components']['securitySchemes']['cookieAuth']['name']);
     }
 

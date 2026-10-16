@@ -25,7 +25,7 @@ class OpenApiRoutesTest extends TestCase
         foreach ($document['paths'] as $path => $operations) {
             foreach (array_keys($operations) as $method) {
                 self::assertNotEmpty($operations[$method]['responses'] ?? [], "$method $path must document responses.");
-                if (str_starts_with($path, '/api/admin/')) {
+                if (str_starts_with($path, '/api/admin/') || str_starts_with($path, '/api/me/')) {
                     self::assertContains(['cookieAuth' => []], $operations[$method]['security'] ?? [], "$method $path must document cookie authentication.");
                 }
                 if (in_array(strtolower($method), ['post', 'put', 'patch'], true)
@@ -58,5 +58,23 @@ class OpenApiRoutesTest extends TestCase
             'Registered API routes must not contain duplicate method/path pairs.'
         );
         self::assertSame($registeredRoutes, $documentedRoutes);
+        self::assertArrayNotHasKey('/api/health', $document['paths']);
+        self::assertArrayNotHasKey('/api/plans', $document['paths']);
+        self::assertArrayNotHasKey('/api/pages', $document['paths']);
+    }
+
+    public function testOpenApiSourceMetadataBuildsCurrentProductSchema(): void
+    {
+        $source = dirname(__DIR__, 2) . '/src/Infrastructure/Http';
+        $openApi = (new \OpenApi\Generator())->generate([$source]);
+        self::assertNotNull($openApi);
+        $document = json_decode($openApi->toJson(), true, flags: JSON_THROW_ON_ERROR);
+
+        self::assertSame('Sandbox PHP API', $document['info']['title']);
+        self::assertArrayHasKey('Post', $document['components']['schemas']);
+        self::assertArrayNotHasKey('Page', $document['components']['schemas']);
+        self::assertArrayNotHasKey('PageCollection', $document['components']['schemas']);
+        self::assertArrayNotHasKey('PageResult', $document['components']['schemas']);
+        self::assertArrayNotHasKey('/api/health', $document['paths']);
     }
 }

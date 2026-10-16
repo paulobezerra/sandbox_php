@@ -44,4 +44,21 @@ final class AuthRoutesTest extends TestCase
         $response = App::create($pdo, $config)->handle($this->createJsonRequest('POST', '/api/auth/register', ['name' => 'User','email' => 'user@example.test','password' => 'long-enough-password']));
         self::assertSame(419, $response->getStatusCode());
     }
+
+    public function testPasswordRecoveryEndpointsAreNotRegistered(): void
+    {
+        $pdo = new class () extends PDO {
+            public function __construct()
+            {
+            }
+        };
+        $config = Config::fromArray(['DB_DATABASE' => 'test', 'DB_USERNAME' => 'test', 'APP_ENV' => 'testing']);
+        $app = App::create($pdo, $config);
+
+        foreach (['/api/auth/recovery-codes', '/api/auth/reset-password'] as $path) {
+            $response = $app->handle($this->createRequest('POST', $path));
+            self::assertSame(404, $response->getStatusCode(), $path);
+            self::assertStringContainsString('application/json', $response->getHeaderLine('Content-Type'));
+        }
+    }
 }
