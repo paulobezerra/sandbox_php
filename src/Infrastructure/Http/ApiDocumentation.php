@@ -10,7 +10,7 @@ use OpenApi\Attributes as OA;
     openapi: '3.1.0',
     info: new OA\Info(
         version: '1.0.0',
-        description: 'API HTTP do skeleton. A autenticação usa sessão PHP em cookie HttpOnly, SameSite=Lax e Secure conforme APP_URL. Toda operação mutável exige X-CSRF-Token obtido em GET /api/auth/csrf ou /api/auth/me, salvo exceção anônima exata declarada na composição da aplicação; sessões autenticadas nunca podem usar essas exceções.',
+        description: 'Skeleton HTTP API. Authentication uses a PHP session with an HttpOnly, SameSite=Lax cookie that is Secure according to APP_URL. Every mutating operation requires an X-CSRF-Token obtained from GET /api/auth/csrf or /api/auth/me, except for an exact anonymous exception declared in the application composition; authenticated sessions can never use these exceptions.',
         title: 'Sandbox PHP API'
     ),
     servers: [new OA\Server(url: '/')],
@@ -19,7 +19,7 @@ use OpenApi\Attributes as OA;
         type: 'apiKey',
         in: 'cookie',
         name: 'sandbox_session',
-        description: 'Sessão PHP; operações mutáveis exigem X-CSRF-Token obtido em /api/auth/csrf ou /api/auth/me.'
+        description: 'PHP session; mutating operations require an X-CSRF-Token obtained from /api/auth/csrf or /api/auth/me.'
     )], schemas: [
         new OA\Schema(
             schema: 'Error',
@@ -47,7 +47,7 @@ use OpenApi\Attributes as OA;
             new OA\Property(property: 'slug', type: 'string'), new OA\Property(property: 'content', type: 'string', description: 'Markdown source'),
             new OA\Property(property: 'excerpt', type: 'string', nullable: true), new OA\Property(property: 'status', type: 'string', enum: ['DRAFT','PUBLISHED']),
             new OA\Property(property: 'authorId', type: 'integer'), new OA\Property(property: 'publishedAt', type: 'string', format: 'date-time', nullable: true),
-            new OA\Property(property: 'html', type: 'string', description: 'HTML de Markdown escapado, presente na API pública'),
+            new OA\Property(property: 'html', type: 'string', description: 'Escaped Markdown HTML, included in the public API'),
             new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'), new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
         ], type: 'object'),
         new OA\Schema(schema: 'Pagination', required: ['total','page','perPage'], properties: [

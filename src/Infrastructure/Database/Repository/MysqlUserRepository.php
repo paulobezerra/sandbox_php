@@ -31,7 +31,7 @@ final readonly class MysqlUserRepository implements UserRepository
     {
         $statement = $this->pdo->prepare('INSERT INTO users(name, email, password_hash) VALUES(:name, :email, :hash)');
         $statement->execute(['name' => $name, 'email' => $email, 'hash' => $passwordHash]);
-        return $this->findById((int) $this->pdo->lastInsertId()) ?? throw new \RuntimeException('Usuário não persistido.');
+        return $this->findById((int) $this->pdo->lastInsertId()) ?? throw new \RuntimeException('User was not persisted.');
     }
 
     /** @param array<string, mixed>|null $row */

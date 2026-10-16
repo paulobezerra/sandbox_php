@@ -1,27 +1,27 @@
-# Convenções de implementação verificadas
+# Verified implementation conventions
 
-Estas convenções resumem decisões comprovadas na [review-001](../features/001-skeleton/review-001.md) e [review-002](../features/001-skeleton/review-002.md). Use-as como ponto de partida para novas funcionalidades; a spec da funcionalidade define o contrato e justifica qualquer exceção. `AGENTS.md` continua sendo a regra do repositório, e [quality.md](quality.md) define os gates.
+These conventions summarize decisions proven in [review-001](../features/001-skeleton/review-001.md) and [review-002](../features/001-skeleton/review-002.md). Use them as a starting point for new features; the feature Spec defines the contract and justifies exceptions. `AGENTS.md` remains the repository rule, and [quality.md](quality.md) defines the gates.
 
-## Fronteiras e composição
+## Boundaries and composition
 
-- Entidades protegem invariantes também na hidratação do banco. Contratos de repository ficam em `Domain`; implementações PDO ficam em `Infrastructure`. `Application` coordena casos de uso e não carrega status HTTP; o adaptador HTTP faz parsing, chama o serviço e traduz erros. Isso foi verificado em R001-08/09/10.
-- Componha módulos com seus bindings e fontes de rotas explícitas no Bootstrap. Um novo domínio entra por novos arquivos e bindings rastreáveis; não requer alterar internals de conexão, controllers ou repositories alheios. A composição padrão e o módulo legado opcional foram exercitados em R001-06.
-- Exponha apenas métodos com attribute de rota. Mantenha API desconhecida em 404 JSON e fallback SPA para páginas. Se houver cache de rotas, sua chave precisa refletir os arquivos efetivamente registrados e seu conteúdo, inclusive em composições opcionais (R001-07).
-- Reserve na composição os slugs de rotas estáticas antes de aceitar URLs dinâmicas de Pages; teste colisões ao acrescentar página institucional ou rota raiz (R001-17).
+- Entities protect invariants during database hydration too. Repository contracts belong in Domain; PDO implementations belong in Infrastructure. Application coordinates use cases and carries no HTTP status; the HTTP adapter parses input, calls the service, and translates errors. Verified in R001-08/09/10.
+- Compose modules through explicit bindings and route sources in Bootstrap. A new domain is added through traceable files and bindings; it does not require changing unrelated connection internals, controllers, or repositories. Default composition and the optional legacy module were exercised in R001-06.
+- Expose only methods with route attributes. Keep unknown API routes as JSON 404 and use the SPA fallback for pages. If routes are cached, the cache key must reflect the files actually registered and their contents, including optional composition (R001-07).
+- Reserve static route slugs before accepting dynamic Page URLs; test collisions when adding an institutional page or root route (R001-17).
 
-## Contratos HTTP e segurança
+## HTTP contracts and security
 
-- Diferencie JSON malformado (400), corpo de tipo errado/campos inválidos (422) e ausência de campo. Não transforme input inválido em `[]`, string vazia ou slug diferente sem escolha explícita do contrato. Mapeie erros de aplicação para HTTP no adaptador, preservando respostas documentadas (R001-08/09).
-- Toda mutação roteada exige CSRF por padrão. Exceções anônimas são pares exatos método/caminho declarados na composição e não dispensam CSRF para sessão autenticada. Confira também a resposta de rota `/api/*` desconhecida (R001-05).
-- Autorização é verificada no backend em cada operação protegida; o router/frontend só melhora a navegação. Cadastro público não atribui ADMIN. Sessão é regenerada após login e revogada conforme a política de credenciais; testes com duas sessões mostram o efeito de troca de senha/códigos (R001-16).
-- Segredos de recuperação são gerados com aleatoriedade adequada, exibidos uma vez, guardados como hash e consumidos uma vez. Consumo e troca de senha formam uma transação: erro de escrita não perde o segredo, sucesso impede reuso. Teste concorrência e falha induzida no banco (R001-01/02).
-- Rate limit cobre todos os endpoints sensíveis e considera origem e conta sem revelar existência de conta. Use `REMOTE_ADDR` como base; aceite `X-Forwarded-For` apenas de proxies configurados e trate a cadeia corretamente. Para cookie `Secure`, use a URL pública HTTPS validada, não um cabeçalho encaminhado sem confiança. Verifique configuração local HTTP e proxy TLS isolado (R001-03/04).
-- Renderize Markdown com escape de HTML bruto e links inseguros bloqueados. `v-html` recebe somente saída do renderizador confiável. A CSP deve refletir o runtime Vue sem build; qualquer relaxamento, como `unsafe-eval`, precisa de motivo documentado e teste XSS (R001-13).
+- Distinguish malformed JSON (400), a body of the wrong type/invalid fields (422), and a missing field. Do not convert invalid input to `[]`, an empty string, or a different slug without an explicit contract choice. Map application errors to HTTP in the adapter while preserving documented responses (R001-08/09).
+- Every routed mutation requires CSRF by default. Anonymous exceptions are exact method/path pairs declared in composition and do not exempt authenticated sessions from CSRF. Also check the unknown `/api/*` response (R001-05).
+- Check authorization on the backend for every protected operation; the router/frontend only improves navigation. Public registration does not assign ADMIN. Regenerate sessions after login and revoke them according to credential policy; tests with two sessions demonstrate password/code changes (R001-16).
+- Recovery secrets use sufficient randomness, are shown once, stored as hashes, and consumed once. Consumption and password change form a transaction: a write failure must not lose the secret, and success must prevent reuse. Test concurrency and induced database failure (R001-01/02).
+- Rate limits cover all sensitive endpoints and consider origin and account without revealing whether an account exists. Use `REMOTE_ADDR` as the basis; accept `X-Forwarded-For` only from configured proxies and process the chain correctly. For `Secure` cookies, use the validated public HTTPS URL, not an untrusted forwarded header. Check local HTTP configuration and isolated TLS proxy behavior (R001-03/04).
+- Render Markdown with raw HTML escaped and unsafe links blocked. `v-html` receives only trusted `MarkdownRenderer` output. CSP must reflect the no-build Vue runtime; any relaxation such as `unsafe-eval` needs a reason and XSS test (R001-13).
 
-## Dados, frontend e contratos publicados
+## Data, frontend, and published contracts
 
-- Faça queries parametrizadas. Mudança de schema em instalação existente usa migration nova, aditiva quando possível, com teste de preservação de dados. Não edite migration já aplicada para mudar comportamento; confira instalação vazia e base existente quando a alteração tocar onboarding/distribuição (R001-01/15/18).
-- Mantenha módulos ES nativos e vendors locais, sem etapa de build. Separe chamada HTTP em `services/` e telas em `pages/`. O cliente Fetch deve informar falha de rede, renovar CSRF após 419 e repetir a mutação no máximo uma vez; valide o fluxo no navegador (R001-12).
-- Atualize OpenAPI junto com rota, corpo, resposta, autenticação e cookie configurado. Gere o artefato após mudanças de contrato e rode a checagem contra rotas reais. A documentação gerada não substitui teste HTTP do fluxo (R001-11/14).
+- Use parameterized queries. Schema changes for existing installations use a new additive migration when possible, with a data preservation test. Do not edit an applied migration to change behavior; check empty and existing installations when onboarding/distribution is affected (R001-01/15/18).
+- Keep native ES modules and local vendors; do not add a build step. Separate HTTP calls into `services/` and screens into `pages/`. The Fetch client should report network failure, refresh CSRF after 419, and retry a mutation at most once; verify this in a browser (R001-12).
+- Update OpenAPI when routes, bodies, responses, authentication, or cookies change. Generate the artifact after source changes and check it against routes. Generated documentation does not replace an HTTP flow test (R001-11/14).
 
-Estas práticas não exigem que toda spec implemente Auth, CMS ou todos os testes citados. Selecione os cenários que atravessam a fronteira alterada e registre no aceite por que cada um é necessário.
+These practices do not require every Spec to implement Auth, CMS, or every test described here. Select scenarios that cross the changed boundary and record in the acceptance criteria why each is needed.

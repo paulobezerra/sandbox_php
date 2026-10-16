@@ -1,5 +1,5 @@
 ---
-description: Compara soluções e registra a spec após a escolha do usuário.
+description: Compare solutions and record the spec after the user's choice.
 ---
 
-Leia e execute `.specs/commands/spec.md` na raiz do repositório. Contexto ou ID informado: $ARGUMENTS
+Read and execute `.specs/commands/spec.md` from the repository root. User context or ID: $ARGUMENTS

@@ -7,6 +7,7 @@ namespace App\Tests\Integration;
 use App\Application\Auth\AuthService;
 use App\Domain\User\{User, UserRepository};
 use App\Infrastructure\Http\Controller\AuthController;
+use App\Infrastructure\I18n\Localization;
 use App\Tests\TestCase;
 use DateTimeImmutable;
 use Slim\Psr7\Response;
@@ -32,7 +33,7 @@ final class AuthControllerTest extends TestCase
             new DateTimeImmutable()
         ));
 
-        $response = (new AuthController(new AuthService($repository), $repository))->register(
+        $response = $this->controller($repository)->register(
             $this->createJsonRequest('POST', '/api/auth/register', [
                 'name' => 'Alice',
                 'email' => 'alice@example.test',
@@ -53,7 +54,7 @@ final class AuthControllerTest extends TestCase
         $_SESSION = [];
         $repository = $this->createMock(UserRepository::class);
         $repository->expects(self::exactly(2))->method('findByEmail')->with('nobody@example.test')->willReturn(null);
-        $controller = new AuthController(new AuthService($repository), $repository);
+        $controller = $this->controller($repository);
 
         foreach ([1, 2] as $_attempt) {
             $response = $controller->login(
@@ -87,7 +88,7 @@ final class AuthControllerTest extends TestCase
             new DateTimeImmutable()
         ));
 
-        $response = (new AuthController(new AuthService($repository), $repository))->login(
+        $response = $this->controller($repository)->login(
             $this->createJsonRequest('POST', '/api/auth/login', [
                 'email' => 'alice@example.test',
                 'password' => 'current password long enough',
@@ -101,5 +102,33 @@ final class AuthControllerTest extends TestCase
         self::assertSame(51, $_SESSION['user_id']);
         self::assertNotSame('old-token', $_SESSION['csrf']);
         self::assertArrayNotHasKey('role', $body['user']);
+    }
+
+    public function testAuthErrorsUseNegotiatedCatalogueAndStableReason(): void
+    {
+        $_SESSION = [];
+        $repository = $this->createMock(UserRepository::class);
+        $repository->method('findByEmail')->willReturn(null);
+        $controller = $this->controller($repository);
+
+        foreach ([
+            ['en', 'The email or password is incorrect.'],
+            ['pt-BR', 'E-mail ou senha incorretos.'],
+        ] as [$locale, $message]) {
+            $request = $this->createJsonRequest('POST', '/api/auth/login', [
+                'email' => 'nobody@example.test',
+                'password' => 'incorrect password',
+            ], ['Accept-Language' => $locale]);
+            $response = $controller->login($request, new Response());
+            $body = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            self::assertSame(401, $response->getStatusCode());
+            self::assertSame($message, $body['error']['message']);
+            self::assertSame(401, $body['error']['status']);
+        }
+    }
+
+    private function controller(UserRepository $repository): AuthController
+    {
+        return new AuthController(new AuthService($repository), $repository, Localization::load(['en', 'pt-BR'], 'en'));
     }
 }

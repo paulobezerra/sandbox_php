@@ -1,25 +1,25 @@
 # Quality gate
 
-O gate verifica o escopo implementado; não substitui testes dos riscos específicos. Consulte os scripts atuais em `composer.json` e as instruções de execução em `AGENTS.md`/`README.md` antes de rodar comandos. O projeto pode exigir Docker Compose: confira `docker compose ps -a` e execute Composer dentro do serviço `app` ativo. Não presuma que MySQL, SMTP, Chrome ou o container estejam disponíveis.
+The gate checks the implemented scope; it does not replace tests for specific risks. Check current scripts in `composer.json` and execution instructions in `AGENTS.md`/`README.md` before running commands. The project may require Docker Compose: check `docker compose ps -a` and run Composer inside the active `app` service. Do not assume Docker, MySQL, SMTP, or Chrome is available.
 
-Na etapa [Code](workflow.md), registre teste vermelho e verde para comportamento novo/corrigido. Antes de refatorar, use testes de caracterização para capturar o contrato existente que precisa permanecer. O gate final confirma regressões, mas não substitui esse ciclo.
+In the [Code](workflow.md) step, record a red and green test for new or corrected behavior. Before refactoring, use characterization tests to capture the existing contract that must remain.
 
-## Durante a implementação
+## During implementation
 
-- Rode testes focados no comportamento alterado e em sua fronteira: invariantes no domínio, transação/concorrência no MySQL, contrato/autorização no HTTP e montagem/fluxo no navegador para SPA. Um percentual de cobertura não comprova sozinho que os cenários críticos passaram.
-- Para PHP, execute `composer format` após editar e revise seu diff; execute `composer lint` para estilo e sintaxe sem escrita. Mantenha formatação ampla em rodada separada das alterações funcionais. Não edite migrations já aplicadas para mudar schema; use migration aditiva e confira dados existentes em ambiente isolado quando esse for o risco.
-- Ao mudar API, atualize atributos, gere `docs/openapi.json` e confira rotas, métodos, corpos, respostas e autenticação. Ao mudar JS/CSS/rotas SPA, execute `./tools/test-all.sh` no host com `app` ativo: PHPUnit isolado não detecta erro de módulo ES ou falha na montagem do Vue.
+- Run focused tests for changed behavior and its boundary: domain invariants, MySQL transactions/concurrency, HTTP contract/authorization, and browser mounting/flows for SPA changes. Coverage alone does not prove critical scenarios passed.
+- For PHP, run `composer format` after edits and review the diff; run `composer lint` for style and syntax without writing. Keep broad formatting separate from functional changes. Do not edit applied migrations to change schema; use an additive migration and check empty and existing data when onboarding/distribution is affected.
+- When changing the API, update attributes, generate `docs/openapi.json`, and check routes, methods, bodies, responses, and authentication. When changing SPA JavaScript/CSS/routes, run `./tools/test-all.sh` on the host with `app` active: isolated PHPUnit cannot detect ES module or Vue mount failures.
 
-## Fechamento do escopo
+## Close the scope
 
-O `composer quality` atual executa, nesta ordem, `composer lint`, PHPUnit com Clover, cobertura de linhas total ≥80% em `src/`, PHPStan nível 6 e `composer openapi:check`. É um gate de **verificação**: `composer format` fica fora dele porque escreve arquivos. Não adicione exclusões artificiais, supressões ou testes que apenas espelham implementação para fazer o número passar; uma exclusão técnica real precisa de justificativa. Execute o gate completo depois das correções e dos testes focados. `composer validate --no-check-publish`, `git diff --check` e `migrate:status` são verificações complementares quando pertinentes; não substituem o gate.
+Current `composer quality` runs, in order, `composer lint`, PHPUnit with Clover coverage, a total `src/` line coverage minimum of 80%, PHPStan level 6, and `composer openapi:check`. It is a **verification** gate: `composer format` is excluded because it writes files. Do not add artificial exclusions, suppressions, or tests that only mirror implementation to reach the threshold; a real technical exclusion needs justification. Run the complete gate after focused checks and fixes. `composer validate --no-check-publish`, `git diff --check`, and `migrate:status` are complementary checks when relevant, not substitutes for the gate.
 
-| Mudança | Evidência adicional esperada |
+| Change | Additional expected evidence |
 |---|---|
-| Contrato HTTP/Auth | Casos positivos e negativos de payload, autenticação, autorização, CSRF, rate limit e sessão pertinentes; OpenAPI sincronizada. |
-| Persistência/migration | Teste de integração com dados existentes e falha/concorrência quando afetam integridade; status da migration sem reset de banco. |
-| SPA | Navegador headless com app ativo, incluindo fluxo afetado e erros relevantes; `./tools/test-all.sh`. |
-| Deploy/configuração | Validação da configuração e smoke representativo em ambiente isolado, por exemplo TLS atrás de proxy se o cookie `Secure` depender disso. |
-| Apenas docs/guidelines | Conferir links, exemplos, coerência com scripts atuais e diff; executar gate exigido pelo repositório, registrando se o ambiente impedir. |
+| HTTP/Auth contract | Relevant positive and negative payload, authentication, authorization, CSRF, rate limit, and session cases; synchronized OpenAPI. |
+| Persistence/migration | Integration test with existing data and failure/concurrency when integrity is affected; migration status without database reset. |
+| SPA | Headless browser with the app active, covering affected flows and relevant errors; `./tools/test-all.sh`. |
+| Deployment/configuration | Configuration validation and representative isolated smoke test, such as TLS behind a proxy when the `Secure` cookie depends on it. |
+| Documentation/guidelines only | Check links, examples, consistency with current scripts, and diff; run repository-required gates and record environment limits. |
 
-Registre comandos **realmente executados**, resultado, versão/ambiente relevantes e limites. Diferencie falha do produto de bloqueio de ambiente (como Chromium/Crashpad no sandbox); repita com a permissão indicada em `AGENTS.md` quando aplicável. Um gate com etapa falhando impede marcar a tarefa concluída. Teste não executado não é sucesso; explique o risco residual e se ele impede o aceite. Não repita gates já aprovados sem mudança ou dúvida concreta. Em uma auditoria somente leitura, use a evidência disponível e indique sua data; não instale ferramentas só para auditar.
+Record commands **actually run**, results, relevant versions/environment, and limits. Distinguish product failures from environment blocks (such as Chromium/Crashpad); retry with the permission described in `AGENTS.md` when applicable. A failing gate prevents marking the task complete. An unrun test is not a pass; explain residual risk and whether it blocks acceptance. Do not repeat an approved gate without a change or concrete doubt.

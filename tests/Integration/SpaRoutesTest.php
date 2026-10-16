@@ -18,7 +18,7 @@ class SpaRoutesTest extends TestCase
         $this->assertStringContainsString('text/html', $response->getHeaderLine('Content-Type'));
 
         $body = (string) $response->getBody();
-        $this->assertStringContainsString('<div id="app">', $body);
+        $this->assertStringContainsString('<div id="app"', $body);
         $this->assertStringContainsString('app.js', $body);
     }
 
@@ -31,11 +31,11 @@ class SpaRoutesTest extends TestCase
             $request = $this->createRequest('GET', $route, ['HTTP_ACCEPT' => 'text/html']);
             $response = $app->handle($request);
 
-            $this->assertSame(200, $response->getStatusCode(), "Falha na rota: {$route}");
+            $this->assertSame(200, $response->getStatusCode(), "Route failed: {$route}");
             $this->assertStringContainsString('text/html', $response->getHeaderLine('Content-Type'));
 
             $body = (string) $response->getBody();
-            $this->assertStringContainsString('<div id="app">', $body);
+            $this->assertStringContainsString('<div id="app"', $body);
         }
     }
 
@@ -49,5 +49,33 @@ class SpaRoutesTest extends TestCase
         $this->assertSame('nosniff', $response->getHeaderLine('X-Content-Type-Options'));
         $this->assertSame('DENY', $response->getHeaderLine('X-Frame-Options'));
         $this->assertSame('strict-origin-when-cross-origin', $response->getHeaderLine('Referrer-Policy'));
+    }
+
+    public function testShellUsesNegotiatedCanonicalLocaleAndCacheHeaders(): void
+    {
+        $app = $this->getApp();
+        $request = $this->createRequest('GET', '/', [
+            'Accept' => 'text/html',
+            'Accept-Language' => 'pt-PT, en;q=0.5',
+        ]);
+        $response = $app->handle($request);
+        $body = (string) $response->getBody();
+
+        self::assertSame('pt-BR', $response->getHeaderLine('Content-Language'));
+        self::assertSame('Accept-Language', $response->getHeaderLine('Vary'));
+        self::assertStringContainsString('<html lang="pt-BR">', $body);
+        self::assertStringContainsString('Sandbox PHP — documentação e blog', $body);
+        self::assertStringContainsString('Carregando a aplicação', $body);
+    }
+
+    public function testShellDefaultsToEnglishForUnsupportedPreferences(): void
+    {
+        $app = $this->getApp();
+        $request = $this->createRequest('GET', '/', ['Accept-Language' => 'fr-FR, *;q=0.8']);
+        $response = $app->handle($request);
+
+        self::assertSame('en', $response->getHeaderLine('Content-Language'));
+        self::assertStringContainsString('<html lang="en">', (string) $response->getBody());
+        self::assertStringContainsString('Sandbox PHP — documentation and blog', (string) $response->getBody());
     }
 }

@@ -1,24 +1,19 @@
-# Especificações
+# Specification guidelines
 
-Uma spec descreve **a solução técnica justificada e como comprovar o resultado**. Parta da `feature.md` e crie `features/NNN-nome/spec.md` a partir do [template](../templates/spec.md) após a escolha do usuário quando houver alternativas técnicas relevantes, ou após explicar a solução única evidente conforme o [fluxo](workflow.md). Consulte o código, os contratos e os testes existentes: a spec define o alvo, mas precisa identificar a base real da qual o projeto parte. Não transforme uma auditoria em spec nem copie todas as convenções do repositório para cada funcionalidade.
+Spec turns a validated product Feature into a technical contract. It does not implement the feature or divide it into Plan tasks.
 
-## Delimitar o trabalho
+## Understand before choosing
 
-- Declare o problema, quem é afetado, o comportamento atual observado e o comportamento esperado. Separe fatos verificados de hipóteses e cite arquivos ou rotas relevantes quando isso tornar o ponto conferível.
-- Liste o que entra e o que fica fora da mudança. Dê IDs estáveis aos requisitos; o [Plan](../templates/plan.md) quebrará a solução em tarefas entregáveis. Um pedido por item não autoriza executar a spec inteira.
-- Registre as restrições que importam para a decisão: PHP 8.4/Slim 4/Vue 3 sem build JS, compatibilidade HTTP, dados existentes, deploy e bibliotecas atuais. Evite soluções prescritas quando o contrato observável basta; justifique escolhas estruturais e novas dependências.
-- Identifique consumidores dos contratos afetados: API, SPA, OpenAPI, scripts, banco e documentação operacional. Mudança de requisito só está pronta quando esses consumidores foram considerados juntos.
+- Read the Feature, repository rules, and the current code/tests/contracts directly affected. Separate verified current behavior, assumptions, and the requested result.
+- Clarify only missing product decisions that change the behavior, permissions, data, compatibility, or boundaries. Do not invent a contract from silence.
+- Present real technical alternatives only when meaningful tradeoffs exist. Include retaining the current design when viable; do not fabricate options or rank them mechanically. If one solution is clearly indicated, briefly justify it with repository evidence and proceed.
+- For each useful option, state low/moderate/high code impact, affected components, concrete costs and risks, and relevant security, data, performance, compatibility, maintenance, and operational differences.
+- When the user must decide between real options, wait for their explicit choice before writing the final Spec. A recommendation is not approval.
 
-## Escrever requisitos testáveis
+## Write a verifiable contract
 
-Cada requisito deve ter um ID e um resultado observável. Descreva cenários com **estado inicial, ação e resultado esperado**. Inclua caminho de sucesso, entrada inválida, falta de autenticação/autorização e falha de dependência quando forem relevantes. Especifique status e forma da resposta HTTP apenas quando fizerem parte do contrato; não use “funciona”, “é seguro” ou “tem testes” como único aceite.
-
-Para dados, defina invariantes e transições: unicidade, estado permitido, atomicidade, concorrência, preservação de registros e comportamento de migrations já aplicadas. Uma migration nova deve ter plano para instalações vazias **e** existentes; rollback destrutivo não é um critério obrigatório. Para segredos e sessão, defina quem pode gerar ou usar o segredo, o que é persistido, quando expira ou é invalidado, e como operações simultâneas/falhas parciais se comportam. Para frontend, descreva também o fluxo no navegador, inclusive estado de sessão, erro de rede e CSRF quando aplicável.
-
-Exemplo de aceite útil: “dado um código de recuperação válido, se a gravação da nova senha falhar, o código permanece utilizável; se a gravação concluir, a senha muda e o código não pode ser reutilizado”. Isso determina o teste de transação sem impor uma classe ou método específico.
-
-## Alinhar decisões e histórico
-
-Antes de redigir o arquivo final, confirme as premissas na feature e no código. Se faltar uma decisão de produto que altere a solução, indique a lacuna concreta e peça esclarecimento. Apresente apenas opções técnicas reais, sem quantidade fixa: uma solução evidente pode ser explicada e seguida diretamente; alternativas com tradeoffs relevantes exigem escolha do usuário. Mostre essas alternativas em texto, uma abaixo da outra, sem tabela horizontal. Para cada proposta, classifique o impacto estimado das mudanças no código como baixo, moderado ou alto, cite os componentes afetados e explique por quê. Avalie a aderência em segurança, integridade, performance, compatibilidade, simplicidade, manutenção e operação somente onde isso esclarecer a decisão; identifique ressalvas e critérios não aplicáveis, sem calcular nota. Registre na spec a escolha do usuário quando necessária ou a justificativa técnica da solução única, data, motivo, impacto estimado e tradeoffs relevantes; não invente aprovação. Se a decisão contrariar a Feature validada, cite a passagem, o impacto e a aprovação explícita do usuário na Spec; **não edite a Feature**. No skeleton, a recuperação por códigos substituiu o fluxo histórico por SMTP; os checkboxes antigos não foram apagados. Quando uma spec nova substituir um contrato existente, indique a migração e quais rotas, telas, schemas e documentos devem mudar. Preserve specs/reviews anteriores como evidência histórica e deixe a decisão vigente explícita na nova spec. Um checkbox antigo só representa trabalho verificado no escopo e momento em que foi marcado; a [review](review.md) confronta esse registro com o código atual sem reescrevê-lo.
-
-Antes de passar ao Plan, confira se cada requisito tem fronteira clara, aceite observável e verificação proporcional ao risco. A Spec deve ter uma seção **Questões em aberto para validação**, inclusive quando a resposta for “Nenhuma”. Liste ali divergências com a Feature e decisões de produto ainda sem resposta, com opções e impacto suficientes para o usuário autorizar ou corrigir o contrato. Não declare a Spec validada enquanto o usuário ainda estiver avaliando essas questões; detalhes rotineiros de implementação podem ser resolvidos durante o trabalho.
+- Give requirements stable IDs and describe initial state, action, observable result, relevant failures, and data that must remain unchanged.
+- Define routes, payloads, status codes, permissions, session/CSRF behavior, persistence, migrations, and consumers only to the level needed for acceptance.
+- Link every requirement to a verification appropriate to its risk. Include browser or database integration when unit tests cannot prove the boundary.
+- Keep Feature immutable. Record later decisions that diverge from it in Spec with source, impact, and explicit user validation; do not silently rewrite the original requirement.
+- Record the technical decision and reasoning, then leave validation for Plan pending until the user explicitly validates the Spec. The choice itself does not count as that validation.

@@ -1,21 +1,21 @@
 # SDD Lite · Review
 
-Audite a funcionalidade após as tarefas de Code ou reaudite correções pedidas. Leia `AGENTS.md`, [workflow](../guidelines/workflow.md), [review](../guidelines/review.md), [quality](../guidelines/quality.md), [template](../templates/review.md), Feature, Spec e Plan. Para o skeleton histórico, use os artefatos existentes. Esta etapa registra evidência e correções em `review.md`; não implementa correções na mesma execução.
+Audit a feature after its Code tasks or re-audit requested corrections. Read `AGENTS.md`, [workflow](../guidelines/workflow.md), [review](../guidelines/review.md), [quality](../guidelines/quality.md), the [template](../templates/review.md), Feature, Spec, and Plan. For the historical skeleton, use its existing artifacts. This step records evidence and corrections in `review.md`; it does not implement corrections in the same execution.
 
-Aplique antes de começar a [regra multiagente de isolamento do chat](../guidelines/workflow.md#isolamento-recomendado-um-comando-por-chat-novo). Se esta conversa já foi usada para outro comando, avise do risco à qualidade, recomende um chat novo e não bloqueie o usuário; se ele insistir explicitamente, prossiga e reafirme na entrega que autorizou a quebra do fluxo. Encerre a etapa após Review.
+Before starting, apply the [multi-agent chat isolation rule](../guidelines/workflow.md#recommended-isolation-one-command-per-new-chat). If this conversation has already been used for another command, warn about the quality risk, recommend a new chat, and do not block the user. If they explicitly insist, proceed and state in the delivery that they authorized the exception. End after Review.
 
-## 1. Fixar a base da auditoria
+## 1. Fix the audit baseline
 
-1. Identifique o escopo auditado e confira o checklist do Plan, as evidências anotadas e o diff real. **Review não exige validação de cada iteração de Code.** Separe alterações preexistentes das feitas para a funcionalidade. Confirme quais decisões posteriores substituíram contratos antigos sem reescrever Feature ou Spec.
-2. Confira branch local, `git status --short`, `HEAD` e o remoto quando acessível. Registre o que foi possível verificar; ausência de commit, push ou acesso à rede é limite da auditoria, sem criar tarefa automática de publicação. Não faça commit nem push.
-3. Cruze requisito → tarefa → código → teste. Procure requisito sem entrega, checkbox sem prova, implementação divergente e regressão de contrato. Siga as fronteiras tocadas quando pertinentes.
+1. Identify the audited scope and check the Plan checklist, recorded evidence, and actual diff. **Review does not require validation of each Code iteration.** Separate pre-existing changes from feature changes. Confirm later decisions that replaced earlier contracts without rewriting Feature or Spec.
+2. Check the local branch, `git status --short`, `HEAD`, and the remote when accessible. Record what could be verified; missing commit, push, or network access is an audit limitation, not an automatic publication task. Do not commit or push.
+3. Trace requirement → task → code → test. Look for requirements without delivery, unchecked proof behind a checked box, divergent implementation, and contract regressions. Check affected boundaries as relevant.
 
-## 2. Produzir evidência proporcional
+## 2. Gather evidence proportional to risk
 
-1. Execute verificações específicas que possam confirmar ou refutar os riscos principais, conforme ambiente e autorização. Registre comando, resultado e ambiente/data. Separe teste executado agora, observação direta do código, evidência herdada de review anterior e inferência. Teste antigo não é teste repetido; teste não executado não é aprovado.
-2. Para uma falha, anote condição de reprodução e efeito. Para uma ausência de evidência, indique o que permanece incerto e se isso impede o aceite; não a rotule automaticamente como defeito comprovado. Priorize integridade e segurança, depois contrato e previsibilidade.
+1. Run focused checks that can confirm or refute the main risks, subject to environment and authorization. Record command, result, and environment/date. Distinguish tests run now, direct code observations, evidence inherited from an earlier review, and inference. An old test is not a rerun; an unrun test is not a pass.
+2. For a failure, record reproduction conditions and effect. For missing evidence, state what remains uncertain and whether it blocks acceptance; do not automatically call it a proven defect. Prioritize integrity and security, then contract and predictability.
 
-## 3. Registrar a conclusão
+## 3. Record the conclusion
 
-1. Crie `review.md` na primeira auditoria usando o template; nas reauditorias, atualize o mesmo arquivo, preservando IDs e decisões ainda relevantes. Cada achado recebe ID estável, evidência, impacto, correção suficiente, aceite e teste. Reavalie achados anteriores no próprio arquivo com a evidência atual. Não execute commit nem push durante Review.
-2. **Não altere Feature, Spec ou Plan.** Registre em `review.md` requisitos comprovados e pendentes; se não houver achados, registre a conclusão e seus limites. Não peça validação do usuário para cada correção ou rodada de Code. Entregue o link, o estado e as verificações. Pare antes de Code.
+1. Create `review.md` for the first audit; for re-audits, update that same file, preserving relevant IDs and decisions. Give each finding a stable ID, evidence, impact, sufficient correction, acceptance, and test. Reassess earlier findings in the file using current evidence. Do not commit or push during Review.
+2. **Do not change Feature, Spec, or Plan.** Record proven and pending requirements in `review.md`; if there are no findings, record the conclusion and its limits. Do not ask the user to validate every correction or Code round. Deliver the link, state, and checks. Stop before Code.

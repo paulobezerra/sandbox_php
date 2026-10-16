@@ -1,101 +1,101 @@
-# AGENTS.md — Regras para Codex neste repositório
+# AGENTS.md — Codex rules for this repository
 
-## Missão
+## Mission
 
-Este repositório fornece um **skeleton reutilizável** PHP/Slim/Vue com cadastro, login e blog de Posts. Para funcionalidades novas, siga `.specs/guidelines/workflow.md`: Feature → Spec → Plan → Code → Review. Antes de finalizar a Spec, apresente apenas alternativas técnicas reais e aguarde a escolha do usuário quando houver tradeoffs relevantes; para uma solução única evidente, justifique-a com base no código e prossiga. Leia `.specs/README.md` e a spec da funcionalidade antes de implementar. Para o skeleton histórico, consulte `.specs/features/001-skeleton/spec.md` e suas reviews; a funcionalidade 002 registra a simplificação atual do produto. A spec define o alvo; o código existente é a base real. **Não executar uma spec inteira de uma só vez sem escopo explícito.**
+This repository provides a reusable PHP/Slim/Vue skeleton with registration, login, and a Posts blog. For new features, follow `.specs/guidelines/workflow.md`: Feature → Spec → Plan → Code → Review. Before finalizing a Spec, present only real technical alternatives and wait for the user's choice when meaningful tradeoffs exist; when one solution is clearly appropriate, justify it from the code and proceed. Read `.specs/README.md` and the feature spec before implementation. For the historical skeleton, consult `.specs/features/001-skeleton/spec.md` and its reviews; feature 002 records the current product simplification. The spec defines the target; existing code is the real baseline. **Do not execute an entire spec at once without explicit scope.**
 
-**Premissa multiagente do SDD Lite:** regras, avisos e gates do fluxo devem funcionar para qualquer agente por meio dos comandos e artefatos canônicos em `.specs/`. Nunca implemente uma regra do SDD Lite apenas para Codex, Claude, Junie ou outra ferramenta; adaptadores específicos servem somente para descobrir o comando comum.
+**SDD Lite multi-agent premise:** workflow rules, notices, and gates must work for any agent through the canonical commands and artifacts in `.specs/`. Never implement an SDD Lite rule only for Codex, Claude, Junie, or another tool; tool-specific adapters only discover the shared command.
 
-**Exceções do fluxo:** não bloqueie o usuário por uma regra processual do SDD Lite. Avise qual regra seria quebrada, justifique tecnicamente o caminho recomendado e explique o risco da exceção. Se o usuário insistir explicitamente, siga no escopo autorizado e reafirme na entrega que a quebra ocorreu por autorização expressa. Não invente validações, decisões, testes ou gates aprovados; registre como pendente o que não foi comprovado. Restrições de segurança, autorização para operações destrutivas e limites externos ao SDD Lite permanecem aplicáveis.
+**Workflow exceptions:** do not block the user over an SDD Lite process rule. Explain which rule would be broken, technically justify the recommended path, and describe the risk of the exception. If the user explicitly insists, continue within the authorized scope and state in the delivery that the exception was expressly authorized. Do not invent validations, decisions, tests, or passed gates; record anything unproven as pending. Security restrictions, authorization for destructive operations, and limits outside SDD Lite still apply.
 
-**Isolamento recomendado do SDD Lite:** prefira um chat novo, com contexto zerado, para cada comando Feature, Spec, Plan, Code ou Review. Antes de executar outro comando na mesma conversa, avise que hipóteses e decisões provisórias acumuladas podem comprometer a qualidade e a rastreabilidade da nova etapa; recomende abrir um chat novo, sem bloquear o usuário. Se ele insistir explicitamente, siga a etapa pedida, relendo os artefatos e conferindo o estado real do repositório; reafirme na entrega que o isolamento foi quebrado por autorização explícita. Se o pedido ainda não expressar essa decisão, aguarde a resposta. Não use o histórico da conversa como validação ou evidência. Respostas necessárias para concluir o comando atual, como a escolha técnica da Spec, pertencem à mesma execução. Consulte `.specs/guidelines/workflow.md` para a regra completa.
+**Recommended SDD Lite isolation:** prefer a new chat with a clean context for each Feature, Spec, Plan, Code, or Review command. Before running another command in the same conversation, warn that accumulated assumptions and provisional decisions may compromise the quality and traceability of the new step; recommend a new chat without blocking the user. If the user explicitly insists, run the requested step after rereading the artifacts and checking the repository's actual state; state in the delivery that the isolation rule was waived with explicit authorization. If the current request has not expressed that decision, wait for the user's response. Do not use conversation history as validation or evidence. Responses needed to complete the current command, such as a technical choice during Spec, belong to that execution. See `.specs/guidelines/workflow.md` for the full rule.
 
-Feature, Spec e Plan exigem validação explícita do usuário antes da etapa seguinte, registrada **no próprio artefato validado**, com nome informado pelo usuário e data obtida do SO. Code não precisa de validação do usuário por tarefa; antes de cada ID, confira tarefas predecessoras marcadas no Plan e implementadas de fato no diff, código e testes. **Spec não altera Feature; Plan não altera Feature ou Spec; Code não altera Feature nem Spec e apenas marca a tarefa concluída no checklist do Plan; Review não altera Feature, Spec ou Plan.** Divergências aprovadas ficam no artefato da etapa atual, sem reescrever decisões anteriores. Uma funcionalidade nova usa apenas `feature.md`, `spec.md`, `plan.md` e `review.md`; não crie registros por tarefa ou arquivos de validação. Consulte `.specs/guidelines/workflow.md` para os registros e exceções.
+Feature, Spec, and Plan require explicit user validation before the next step. Record it **in the validated artifact**, with the name supplied by the user and the date obtained from the OS. Code does not require user validation for each task; before each ID, check that predecessor tasks are marked complete in the Plan and are actually implemented in the diff, code, and tests. **Spec does not change Feature; Plan does not change Feature or Spec; Code does not change Feature or Spec and only marks the Plan checklist task complete; Review does not change Feature, Spec, or Plan.** Approved deviations belong in the current step's artifact without rewriting earlier decisions. A new feature uses only `feature.md`, `spec.md`, `plan.md`, and `review.md`; do not create per-task records or validation files. See `.specs/guidelines/workflow.md` for records and exceptions.
 
-Feature cria e registra uma branch própria antes de escrever `feature.md`. Review confere branch, diff, commit local e, quando acessível, o remoto; falta de publicação comprovada é limite da auditoria, sem tarefa automática de push. A Review não faz commit nem push; siga a política de mudanças abaixo para essas operações.
+Feature creates and records its own branch before writing `feature.md`. Review checks the branch, diff, local commit, and remote when accessible; unproven publication is an audit limitation, not an automatic push task. Review does not commit or push; follow the change policy below for those operations.
 
-## Prioridades, em ordem
+## Priorities, in order
 
-1. Não quebrar comportamento/testes já existentes.
-2. Segurança e integridade de dados.
-3. Simplicidade e previsibilidade para outros desenvolvedores/agentes.
-4. Organização de domínio e baixo boilerplate.
-5. Melhorias opcionais de automação somente quando reduzirem manutenção.
+1. Do not break existing behavior or tests.
+2. Security and data integrity.
+3. Simplicity and predictability for other developers and agents.
+4. Domain organization and low boilerplate.
+5. Optional automation improvements only when they reduce maintenance.
 
-## Regras inegociáveis
+## Non-negotiable rules
 
-- PHP 8.4, Slim 4, Vue 3, Vue Router, PDO/MySQL, Phinx, PHPUnit; manter compatibilidade até decisão explícita em contrário.
-- Sem Node.js, npm, Vite, Webpack, transpilers, SFC compilado, bundling ou etapa de build JS.
-- Um deploy PHP/Apache da aplicação web; serviços externos necessários podem ser configurados separadamente.
-- Sempre `declare(strict_types=1);` em PHP novo; tipar propriedades, parâmetros e retornos.
-- Preferir métodos pequenos, nomes explícitos, validação determinística, DTOs apenas quando úteis.
-- **Não criar framework próprio**, roteador, container DI, ORM ou abstrações de extensão se bibliotecas existentes resolverem com menos código.
-- Não criar interface para cada service. Contratos de repository no Domain, implementações PDO na Infrastructure.
-- Domain não importa Slim, PDO, HTTP ou Infrastructure. Application não importa Slim ou PDO. Controllers são adaptadores finos.
-- Sem SQL nos controllers; sem regra de negócio nos repositories; sem `new` de dependências de infraestrutura dentro de serviços de domínio.
-- Não usar `float` para dinheiro. Não converter input inválido em valores defaults silenciosamente.
-- Não alterar contrato HTTP, migrations aplicadas ou dados existentes sem análise e testes.
-- Não inserir credenciais, `.env` real, tokens, logs sensíveis ou dump do banco no repositório.
-- Não adicionar dependências sem verificar compatibilidade, suporte e necessidade, e informar a decisão.
-- Não criar subagentes ou rodadas autônomas/loops de execução sem autorização explícita do usuário.
+- PHP 8.4, Slim 4, Vue 3, Vue Router, PDO/MySQL, Phinx, and PHPUnit; maintain compatibility unless explicitly decided otherwise.
+- No Node.js, npm, Vite, Webpack, transpilers, compiled SFCs, bundling, or JavaScript build step.
+- One PHP/Apache deployment for the web application; required external services may be configured separately.
+- Always use `declare(strict_types=1);` in new PHP; type properties, parameters, and return values.
+- Prefer small methods, explicit names, deterministic validation, and DTOs only when useful.
+- **Do not create a custom framework**, router, DI container, ORM, or extension abstractions when existing libraries solve the problem with less code.
+- Do not create an interface for every service. Repository contracts belong in Domain; PDO implementations belong in Infrastructure.
+- Domain must not import Slim, PDO, HTTP, or Infrastructure. Application must not import Slim or PDO. Controllers are thin adapters.
+- No SQL in controllers; no business rules in repositories; do not instantiate infrastructure dependencies inside domain services.
+- Do not use `float` for money. Do not silently turn invalid input into default values.
+- Do not change HTTP contracts, applied migrations, or existing data without analysis and tests.
+- Do not add credentials, a real `.env`, tokens, sensitive logs, or database dumps to the repository.
+- Do not add dependencies without checking compatibility, support, and need, and reporting the decision.
+- Do not create subagents or autonomous execution loops without the user's explicit authorization.
 
-## Estrutura alvo e direção de dependências
+## Target structure and dependency direction
 
 ```text
-src/Domain/{User,Post,Page}/       entidades, regras, interfaces de repository
-src/Application/{Auth,User,Post,Page}/  serviços de aplicação
-src/Infrastructure/Http/          controllers, middleware, erros, respostas
-src/Infrastructure/Database/      conexão e repositories PDO
-src/Infrastructure/{Auth,Mail,View}/ adaptações técnicas
-src/Bootstrap/                    configuração, wiring, inicialização
+src/Domain/{User,Post,Page}/       entities, rules, repository interfaces
+src/Application/{Auth,User,Post,Page}/  application services
+src/Infrastructure/Http/          controllers, middleware, errors, responses
+src/Infrastructure/Database/      connection and PDO repositories
+src/Infrastructure/{Auth,Mail,View}/ technical adapters
+src/Bootstrap/                    configuration, wiring, startup
 database/{migrations,seeds}/
 public/assets/{js,css,vendor}/
 tests/{Unit,Integration,Architecture}/
 ```
 
-Não criar pastas vazias. Controller faz parsing HTTP → chama service → transforma resultado em HTTP. Service orquestra regras/contratos. Entidade protege invariantes. Repository executa persistência. User padrão é customizável pelo projeto; preferir perfis de negócio relacionados, mas permitir adaptar User/Auth quando requerido.
+Do not create empty directories. A controller parses HTTP → calls a service → turns its result into HTTP. A service coordinates rules and contracts. An entity protects invariants. A repository performs persistence. The default User is customizable by derived projects; prefer related business profiles, while allowing User/Auth to be adapted when needed.
 
-## Fluxo obrigatório para cada execução de Code
+## Required workflow for each Code execution
 
-1. Ler a spec em `.specs/features/<id>/spec.md`, o plan e a review ativa quando houver, e inspecionar os arquivos relevantes ao escopo solicitado.
-2. Executar integralmente **uma** tarefa do plan ou review por sessão; para o skeleton histórico, respeitar o item ou fase explicitamente pedido.
-3. Planejar internamente e executar sem pedir confirmações intermediárias durante Code. A escolha entre soluções na etapa Spec é uma decisão do usuário antes da escrita final.
-4. Implementar código, migrations, testes e documentação necessários à conclusão.
-5. Executar testes específicos durante o trabalho. Para PHP, aplicar `composer format` após editar, verificar com `composer lint` (sem alterar arquivos) e executar `composer quality` completo antes de concluir, quando esses scripts estiverem configurados. Falhas dos gates impedem marcar a tarefa como concluída; registrar bloqueios reais.
-6. Não executar operações destrutivas sem autorização. Diante de bloqueios, avançar nos itens independentes.
-7. Marcar apenas a tarefa concluída em `.specs/features/<id>/plan.md` após aceite e gate; relatar testes na entrega. Antes da tarefa seguinte, conferir as predecessoras no checklist e no diff, código e testes; checkbox isolado não comprova prontidão. Correções apontadas pela Review são conferidas na reauditoria de `review.md`. Preservar os estados históricos de `todolist.md`.
-8. Entregar resumo curto com resultado, testes e pendências. Só encerrar quando o escopo estiver concluído ou realmente bloqueado.
+1. Read `.specs/features/<id>/spec.md`, the Plan, the active Review when present, and inspect files relevant to the requested scope.
+2. Fully execute **one** Plan or Review task per session; for the historical skeleton, follow only the explicitly requested item or phase.
+3. Plan internally and execute without asking for intermediate confirmation during Code. The choice between solutions belongs to the user during Spec, before its final write-up.
+4. Implement the code, migrations, tests, and documentation needed to complete the task.
+5. Run focused tests during the work. For PHP, run `composer format` after edits, check with `composer lint` (without changing files), and run the full `composer quality` before finishing when those scripts are configured. Gate failures prevent marking the task complete; record real blockers.
+6. Do not perform destructive operations without authorization. When blocked, continue with independent items.
+7. Mark only the task complete in `.specs/features/<id>/plan.md` after acceptance and verified gates; report tests in the delivery. Before the next task, check predecessors against the checklist and the diff, code, and tests; a checkbox alone does not prove readiness. Review corrections are checked during the re-audit of `review.md`. Preserve historical `todolist.md` states.
+8. Deliver a short result, tests, and pending work. Finish only when the requested scope is complete or genuinely blocked.
 
-## Orientações para reduzir uso de contexto/créditos
+## Guidance for reducing context and credits
 
-- Trabalhar com uma tarefa delimitada; não reanalisar todo repositório a cada prompt.
-- Usar `rg`/`find`/scripts locais para localizar arquivos e padrões antes de abrir grandes conteúdos.
-- Não ler `vendor/`, `.idea/`, `.git/`, dependências JS minificadas nem arquivos de lock por inteiro sem necessidade.
-- Não fazer edições cosméticas em arquivos fora do escopo.
-- Separar rodadas/diffs de formatação de mudanças funcionais; a padronização inicial de todo PHP está em `R001-18` da review ativa.
-- Preferir um agente/modelo econômico para tarefas mecânicas; escalar para modelo mais forte apenas em análise complexa, bug difícil ou decisão de segurança.
-- Não iniciar subagentes, paralelismos, loops Ralph ou exploração sem limite sem consentimento.
-- Evitar saídas extensas, testes repetidos desnecessários e geração de documentação redundante.
-- Sem suposições de sucesso: se não executou teste, dizer que não executou.
+- Work on a bounded task; do not reanalyze the entire repository for every prompt.
+- Use `rg`/`find`/local scripts to locate files and patterns before opening large files.
+- Do not read `vendor/`, `.idea/`, `.git/`, minified JavaScript dependencies, or lock files in full without need.
+- Avoid cosmetic edits to files outside the scope.
+- Keep formatting-only diffs separate from functional changes; the initial formatting of all PHP is tracked by `R001-18` in the active review.
+- Prefer a cost-efficient agent/model for mechanical work; use a stronger model only for complex analysis, difficult bugs, or security decisions.
+- Do not start subagents, parallel work, Ralph loops, or unbounded exploration without consent.
+- Avoid lengthy output, repeated unnecessary tests, and redundant documentation.
+- Do not assume success: say when a test was not run.
 
-## Regras de API e segurança
+## API and security rules
 
-- Preferir attributes de rotas quando integração estável com Slim for validada; métodos `public` sem annotation/attribute não viram endpoints.
-- OpenAPI gerada do código e checada contra rotas; evitar duplicação de path quando o custo de integração for razoável.
-- Erros de domínio não carregam status HTTP; adapter HTTP faz mapeamento consistente.
-- Sessão servidor + cookie HttpOnly/Secure/SameSite; regeneração após login; CSRF em operações mutáveis; autorização sempre no backend.
-- Senhas com `password_hash`/`password_verify`. O demonstrador atual não inclui perfis, recuperação de senha ou rate limiting; projetos derivados devem definir recuperação e controles contra abuso antes de exposição pública.
-- Conteúdo Markdown do CMS deve ter renderização segura e controles XSS; `v-html` não confiável é proibido.
-- Queries parametrizadas com PDO; migrations controladas e reversões seguras.
+- Prefer route attributes when stable Slim integration has been verified; public methods without an annotation or attribute do not become endpoints.
+- Generate OpenAPI from code and check it against routes; avoid duplicate path definitions when integration cost is reasonable.
+- Domain errors do not carry HTTP status codes; the HTTP adapter maps them consistently.
+- Server-side sessions with HttpOnly/Secure/SameSite cookies; regenerate after login; use CSRF for mutating operations; always authorize on the backend.
+- Use `password_hash`/`password_verify`. The current demo has no user profiles, password recovery, or rate limiting; derived projects must define recovery and abuse controls before public exposure.
+- CMS Markdown must be rendered safely with XSS controls; untrusted `v-html` is prohibited.
+- Use parameterized PDO queries and controlled, safely reversible migrations.
 
-## Orientações para frontend
+## Frontend guidance
 
-- Vue 3 sem build; módulos ES e vendors locais. Páginas sob `public/assets/js/pages/`, chamadas HTTP em `services/`, componentes comuns reaproveitados.
-- Não introduzir gerador de templates Vue caseiro nem sistema de estado complexo sem justificativa.
-- Fallback SPA só para páginas; `/api/*` desconhecida sempre 404 JSON.
-- Roteamento e autenticação no frontend são UX, **não autorização**.
+- Vue 3 without a build; native ES modules and local vendors. Pages live under `public/assets/js/pages/`, HTTP calls in `services/`, and shared components should be reused.
+- Do not introduce a custom Vue template generator or complex state system without justification.
+- SPA fallback applies only to pages; unknown `/api/*` paths always return JSON 404.
+- Frontend routing and authentication improve UX; they are **not authorization**.
 
-## Comandos atuais do projeto (confirmar ambiente antes de executar)
+## Current project commands (check the environment before running)
 
 ```bash
 composer install
@@ -104,33 +104,33 @@ composer lint
 composer test
 composer migrate
 composer migrate:status
-# Docker: conferir README e compose.yaml antes de subir serviços
+# Docker: check README.md and compose.yaml before starting services
 ```
 
-Para mudanças na SPA, `composer test` sozinho não valida sintaxe/carregamento dos módulos ES nem montagem dos componentes Vue. Com a aplicação `app` ativa, execute `./tools/test-all.sh` no host: ele abre as rotas principais em Chrome/Chromium headless e depois executa PHPUnit dentro do container. Chrome/Chromium é necessário no host; não adicionar Node.js ou etapa de build para esse teste.
+For SPA changes, `composer test` alone does not validate ES module syntax/loading or Vue mounting. With the `app` service active, run `./tools/test-all.sh` on the host: it opens the main routes in headless Chrome/Chromium, then runs PHPUnit in the container. Chrome/Chromium is required on the host; do not add Node.js or a build step for this test.
 
-Não assumir que Compose, MySQL ou SMTP estão ativos. Não executar `migrate:rollback`, reset de banco, `docker compose down -v`, limpeza de volumes ou exclusões sem autorização.
+Do not assume Compose, MySQL, or SMTP is active. Do not run `migrate:rollback`, reset a database, `docker compose down -v`, clear volumes, or delete files without authorization.
 
-### Acesso ao Docker Compose para agentes
+### Docker Compose access for agents
 
-- Este projeto não exige PHP nem Composer instalados no host. Primeiro confira o estado com `docker compose ps -a`.
-- Quando o serviço `app` estiver ativo, rode comandos PHP/Composer dentro dele, por exemplo: `docker compose exec -T app composer test`, `docker compose exec -T app php -l src/arquivo.php` e `docker compose exec -T app composer validate`.
-- Se o sandbox bloquear o socket do Docker, não conclua que Docker está indisponível: repita o comando usando a opção de execução com permissão escalada (`require_escalated`) e explique o motivo no pedido de aprovação.
-- Se `app` não estiver ativo, confira `README.md` e `compose.yaml`; suba apenas os serviços necessários quando isso fizer parte da tarefa autorizada. Não remova ou recrie volumes nem altere dados existentes sem autorização explícita.
-- `docker compose exec` só funciona para containers ativos; não use `docker compose down -v`, reset ou rollback destrutivo.
+- This project does not require PHP or Composer on the host. First check the state with `docker compose ps -a`.
+- When the `app` service is active, run PHP/Composer commands inside it, for example `docker compose exec -T app composer test`, `docker compose exec -T app php -l src/file.php`, and `docker compose exec -T app composer validate`.
+- If the sandbox blocks the Docker socket, do not conclude that Docker is unavailable: retry with elevated execution (`require_escalated`) and explain the reason in the approval request.
+- If `app` is not active, check `README.md` and `compose.yaml`; start only the required services when that is part of the authorized task. Do not remove or recreate volumes or change existing data without explicit authorization.
+- `docker compose exec` works only with active containers; do not use `docker compose down -v`, reset, or destructive rollback.
 
-## Política de mudanças
+## Change policy
 
-- Não criar PR, commit, publicar, enviar e-mail, alterar ambiente remoto ou implantar sem pedido explícito.
-- A instalação atual usa uma migration inicial para `users` e `posts`; alterações de schema para instalações existentes exigem análise e migration própria, preservando dados quando necessário.
-- Se houver conflito entre SPEC e código: identificar, explicar e propor menor mudança; não corrigir silenciosamente tudo de uma vez.
-- Evitar perguntar detalhes que já constem na spec ou review ativa; esclarecer só decisões indispensáveis.
+- Do not create a PR, commit, publish, send email, change a remote environment, or deploy without an explicit request.
+- The current installation uses an initial migration for `users` and `posts`; schema changes for existing installations require analysis and a separate migration that preserves data when necessary.
+- If the Spec conflicts with code, identify the conflict, explain it, and propose the smallest change; do not silently fix everything at once.
+- Avoid asking for details already present in the active Spec or Review; clarify only necessary decisions.
 
-## Operação e distribuição
+## Operations and distribution
 
-- Para desenvolvimento, siga o início rápido do `README.md`; migrations são executadas explicitamente e não no startup.
-- Para validar mudanças, use `docker compose exec -T app composer test`; para alterações de SPA use também `./tools/test-all.sh` com Chrome/Chromium no host.
-- Se `./tools/test-all.sh` falhar ao iniciar o Chromium com `setsockopt: Operation not permitted` ou erro do Crashpad, repita o mesmo comando no host com permissão escalada (`require_escalated`), justificando que a checagem headless precisa acessar recursos do navegador bloqueados pelo sandbox. Não remova `--no-sandbox` nem desative outras proteções do Chromium para contornar o bloqueio.
-- Para produção, use `compose.prod.yaml` e um `.env` externo ao controle de versão, com segredos próprios e `APP_URL` HTTPS. Termine TLS no proxy reverso e não exponha MySQL.
-- Leia `docs/customization.md` antes de adaptar User/Auth ou criar domínios. Mantenha contratos no Domain e adaptadores em Infrastructure; não altere internals de HTTP/PDO para acomodar uma entidade específica.
-- A sequência histórica das fases está em `.specs/features/001-skeleton/spec.md`. Não repita uma fase concluída; execute apenas o escopo explicitamente pedido. As reviews numeradas do skeleton 001 permanecem históricas; para funcionalidades novas, crie e reaudite um único `review.md`. Siga `.specs/guidelines/quality.md` para gates e mantenha `docs/` exclusivo da documentação da aplicação.
+- For development, follow the README quick start; migrations are run explicitly, not at startup.
+- To validate changes, use `docker compose exec -T app composer test`; for SPA changes also use `./tools/test-all.sh` with Chrome/Chromium on the host.
+- If `./tools/test-all.sh` cannot start Chromium because of `setsockopt: Operation not permitted` or a Crashpad error, retry the same command on the host with elevated execution (`require_escalated`), explaining that headless browser checks need browser resources blocked by the sandbox. Do not remove `--no-sandbox` or disable other Chromium protections to work around the block.
+- For production, use `compose.prod.yaml` and an `.env` outside version control with project-specific secrets and an HTTPS `APP_URL`. Terminate TLS at the reverse proxy and do not expose MySQL.
+- Read `docs/customization.md` before adapting User/Auth or adding domains. Keep contracts in Domain and adapters in Infrastructure; do not change HTTP/PDO internals to accommodate one entity.
+- Historical phase sequencing is in `.specs/features/001-skeleton/spec.md`. Do not repeat a completed phase; execute only the explicitly requested scope. Numbered reviews for skeleton 001 remain historical; for new features, create and re-audit one `review.md`. Follow `.specs/guidelines/quality.md` for gates and keep `docs/` exclusive to application documentation.

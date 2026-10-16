@@ -1,6 +1,6 @@
 ---
 name: sdd-code
-description: Implementar um ID aberto do plan ou review com testes e gate do SDD Lite.
+description: Implement an open Plan or Review ID with tests and the SDD Lite gate.
 ---
 
-Leia e execute [o comando canônico Code](../../../.specs/commands/code.md). Considere o ID ou contexto fornecido pelo usuário. As regras, limites e saída estão nesse arquivo.
+Read and execute the [canonical Code command](../../../.specs/commands/code.md). Use the ID or context provided by the user. That file defines the rules, limits, and output.

@@ -17,9 +17,9 @@ class ViewRenderer
     }
 
     /**
-     * Renderiza um template .phtml e escreve o resultado no body da Response.
+     * Renders a .phtml template and writes its output to the response body.
      *
-     * @param array<string, mixed> $data Dados passados ao template.
+     * @param array<string, mixed> $data Data passed to the template.
      */
     public function render(
         ResponseInterface $response,
@@ -29,7 +29,7 @@ class ViewRenderer
         $filePath = rtrim($this->templatePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($template, DIRECTORY_SEPARATOR);
 
         if (!is_file($filePath)) {
-            throw new RuntimeException(sprintf('Template "%s" não encontrado em "%s"', $template, $filePath));
+            throw new RuntimeException(sprintf('Template "%s" was not found at "%s"', $template, $filePath));
         }
 
         $escape = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -50,7 +50,7 @@ class ViewRenderer
     }
 
     /**
-     * Helper de escape avulso para valores dinâmicos.
+     * Escapes a standalone dynamic value.
      */
     public function escape(mixed $value): string
     {

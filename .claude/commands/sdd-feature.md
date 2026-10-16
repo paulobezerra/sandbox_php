@@ -1,5 +1,5 @@
 ---
-description: Define a necessidade de produto no SDD Lite.
+description: Define a product need in SDD Lite.
 ---
 
-Leia e execute `.specs/commands/feature.md` na raiz do repositório. Contexto ou ID informado: $ARGUMENTS
+Read and execute `.specs/commands/feature.md` from the repository root. User context or ID: $ARGUMENTS

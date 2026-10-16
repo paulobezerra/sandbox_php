@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Post;
 
-use App\Domain\{ContentNotFound, Post\Post, Post\PostRepository};
+use App\Domain\Post\{Post, PostRepository};
 use DateTimeImmutable;
-use DomainException;
 
 final readonly class PostService
 {
@@ -31,11 +30,11 @@ final readonly class PostService
 
     public function findMine(int $id, int $authorId): Post
     {
-        return $this->posts->findByAuthor($id, $authorId) ?? throw new ContentNotFound('Post não encontrado.');
+        return $this->posts->findByAuthor($id, $authorId) ?? throw new PostException('post.notFound');
     }
     public function findPublished(string $slug): Post
     {
-        return $this->posts->findPublishedBySlug($slug) ?? throw new ContentNotFound('Post não encontrado.');
+        return $this->posts->findPublishedBySlug($slug) ?? throw new PostException('post.notFound');
     }
 
     /** @param array<string, mixed> $data */
@@ -80,34 +79,34 @@ final readonly class PostService
     private function validate(array $data): array
     {
         if (array_key_exists('title', $data) && !is_string($data['title'])) {
-            throw new DomainException('O título deve ser texto.');
+            throw new PostException('post.titleText');
         }
         if (array_key_exists('content', $data) && !is_string($data['content'])) {
-            throw new DomainException('O conteúdo deve ser texto.');
+            throw new PostException('post.contentText');
         }
         $title = trim($data['title'] ?? '');
         $content = $data['content'] ?? '';
         if (array_key_exists('slug', $data) && !is_string($data['slug'])) {
-            throw new DomainException('Slug inválido. Use letras, números e hífens.');
+            throw new PostException('post.invalidSlug');
         }
         $rawSlug = trim($data['slug'] ?? '');
         $slug = $rawSlug === '' ? $this->slugify($title) : $rawSlug;
         $excerpt = $data['excerpt'] ?? null;
         if ($excerpt !== null && !is_string($excerpt)) {
-            throw new DomainException('Resumo inválido.');
+            throw new PostException('post.invalidExcerpt');
         }
         $excerpt = is_string($excerpt) ? trim($excerpt) : null;
         if ($title === '' || mb_strlen($title) > 200) {
-            throw new DomainException('O título é obrigatório e deve ter até 200 caracteres.');
+            throw new PostException('post.titleRequired');
         }
         if ($content === '' || mb_strlen($content) > 60000) {
-            throw new DomainException('O conteúdo é obrigatório e deve ter até 60000 caracteres.');
+            throw new PostException('post.contentRequired');
         }
         if (preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $slug) !== 1 || mb_strlen($slug) > 200) {
-            throw new DomainException('Slug inválido. Use letras, números e hífens.');
+            throw new PostException('post.invalidSlug');
         }
         if ($excerpt !== null && mb_strlen($excerpt) > 1000) {
-            throw new DomainException('O resumo deve ter até 1000 caracteres.');
+            throw new PostException('post.excerptTooLong');
         }
         return [$title, $slug, $content, $excerpt];
     }
@@ -123,7 +122,7 @@ final readonly class PostService
     private function pagination(int $page, int $perPage): array
     {
         if ($page < 1 || $perPage < 1 || $perPage > 100) {
-            throw new DomainException('Paginação inválida.');
+            throw new PostException('post.invalidPagination');
         }
         return [$page, $perPage, ($page - 1) * $perPage];
     }

@@ -1,5 +1,5 @@
 ---
-description: Audita a entrega e registra correções rastreáveis.
+description: Audit the delivery and record traceable corrections.
 ---
 
-Leia e execute `.specs/commands/review.md` na raiz do repositório. Contexto ou ID informado: $ARGUMENTS
+Read and execute `.specs/commands/review.md` from the repository root. User context or ID: $ARGUMENTS

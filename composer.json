@@ -1,6 +1,6 @@
 {
   "name": "app/slim-vue",
-  "description": "Aplicação Slim 4 com Vue 3 e MySQL",
+  "description": "Slim 4 application with Vue 3 and MySQL",
   "type": "project",
   "require": {
     "php": "^8.4",

@@ -1,22 +1,23 @@
-# PLAN — <nome da funcionalidade>
+# PLAN — <feature name>
 
-**Feature:** [feature.md](feature.md) · **Spec:** [spec.md](spec.md) · **Data:** AAAA-MM-DD · **Estado:** aberto
+**Feature:** [feature.md](feature.md) · **Spec:** [spec.md](spec.md) · **Date:** YYYY-MM-DD · **Status:** open
 
-**Validação do usuário para iniciar Code:** pendente. Após declaração explícita, registrar aqui a declaração, o nome informado pelo usuário e a data obtida do SO, sem alterar as tarefas.
+**User validation to start Code:** pending. After an explicit statement, record it here with the user's supplied name and the date obtained from the OS, without changing task scope.
 
-## Estratégia de entrega
+## Delivery strategy
 
-<ordem e dependências; como cada etapa entrega comportamento utilizável sem quebrar o existente>
+<order and dependencies; how each increment delivers usable behavior without breaking existing behavior>
 
-## Tarefas
+## Tasks
 
-- [ ] **TNNN-01 — <resultado funcional entregue>.** **Requisitos:** <SNNN-XX atendidos>. **Pré-condição:** <estado necessário>. **Escopo:** <caminho completo, incluindo dados/API/SPA/docs pertinentes>. **Aceite:** dado <estado>, quando <ação>, então <resultado e falhas relevantes>. **TDD/caracterização:** <teste que deve falhar antes da mudança; comportamento legado a preservar, se houver>. **Gate:** <testes específicos e quality.md>. **Dependências:** <IDs ou nenhuma>.
-<Repetir o formato completo para cada tarefa. Não criar tarefa apenas de branch, scaffolding ou formatação.>
+- [ ] **TNNN-01 — <delivered functional outcome>.** **Requirements:** <SNNN-XX covered>. **Precondition:** <required state>. **Scope:** <complete path, including relevant data/API/SPA/docs>. **Acceptance:** given <state>, when <action>, then <observable result and relevant failures>. **TDD/characterization:** <test expected to fail before the change; legacy behavior to preserve, if any>. **Gate:** <focused tests and quality.md>. **Dependencies:** <IDs or none>.
 
-## Riscos e verificação final
+<Repeat the full format for each task. Do not add tasks for branches, isolated scaffolding, or formatting.>
 
-<migração, compatibilidade, segurança, operação ou navegador que exijam teste conjunto ao concluir a feature; omitir se já cobertos nas tarefas>
+## Risks and final verification
 
-<Conferir antes de Code: cada requisito da spec aparece em pelo menos uma tarefa e cada tarefa entrega requisito identificável. Registrar aqui somente lacunas reais ou dependências entre incrementos.>
+<migration, compatibility, security, operations, or browser behavior that needs an integrated test on feature completion; omit if tasks already cover it>
 
-<Code marca somente o item concluído após verificar aceite e gate. Antes da tarefa seguinte, conferir também diff, código e testes das predecessoras; checkbox isolado não basta. Não criar registro de execução por tarefa.>
+<Before Code, check that every Spec requirement appears in at least one task and every task delivers an identifiable requirement. Record only real gaps or dependencies between increments.>
+
+<Code marks only an item completed after acceptance and gates are verified. Before the next task, also check predecessor diffs, code, and tests; a checkbox alone is insufficient. Do not create per-task execution records.>

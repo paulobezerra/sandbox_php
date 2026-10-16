@@ -1,26 +1,26 @@
-# Customização e novos domínios
+# Customization and new domains
 
-Este repositório é uma base de aplicação que pode ser adaptada ao produto derivado. A instalação padrão inclui cadastro, login, logout e Posts: cada conta autenticada gerencia somente os próprios Posts. Não há perfis de usuário, recuperação de senha nem limite de tentativas de autenticação. Defina controles contra abuso e um procedimento de recuperação antes de expor uma aplicação derivada publicamente.
+This repository is an application base that can be adapted to a derived product. The default installation includes registration, login, logout, and Posts: each authenticated account manages only its own Posts. There are no user profiles, password recovery, or authentication attempt limits. Define abuse controls and a recovery procedure before exposing a derived application publicly.
 
-## Adaptar User e Auth
+## Adapt User and Auth
 
-`src/Domain/User/User.php` contém a identidade básica e o e-mail normalizado; `src/Application/Auth/AuthService.php` implementa cadastro, login e logout. Para acrescentar dados próprios, prefira uma entidade de perfil relacionada quando isso mantiver a autenticação independente do CMS. Se o projeto exigir outra identidade, adapte User/Auth e seus contratos em conjunto.
+`src/Domain/User/User.php` contains the basic identity and normalized email; `src/Application/Auth/AuthService.php` implements registration, login, and logout. To add product-specific data, prefer a related profile entity when that keeps authentication independent from the CMS. If the project needs a different identity, adapt User/Auth and their contracts together.
 
-Ao adaptar:
+When adapting:
 
-1. Mantenha `password_hash`/`password_verify`, sessão no servidor, regeneração de sessão no login, cookies seguros e CSRF nas mutações autenticadas.
-2. Defina um procedimento de recuperação de conta com verificação de identidade e controles contra abuso adequados ao ambiente. O demonstrador não oferece recuperação nem limitação de tentativas.
-3. Atualize o contrato de User, sua implementação PDO, migration e testes juntos. Não faça SQL em controller nem introduza dependência PDO no Domain/Application.
-4. Atualize os schemas OpenAPI quando mudar a API e rode `composer openapi:generate` e `composer quality`.
+1. Keep `password_hash`/`password_verify`, server-side sessions, session regeneration at login, secure cookies, and CSRF on authenticated mutations.
+2. Define an account recovery procedure with identity verification and abuse controls suited to the environment. The demo does not provide recovery or attempt limits.
+3. Update the User contract, its PDO implementation, migration, and tests together. Do not put SQL in a controller or add a PDO dependency to Domain/Application.
+4. Update the OpenAPI schemas when the API changes, then run `composer openapi:generate` and `composer quality`.
 
-## Adicionar um domínio
+## Add a domain
 
-Entidades e contratos de persistência ficam em `src/Domain/<Nome>/`; operações de aplicação ficam em `src/Application/<Nome>/`; implementações MySQL ficam em `src/Infrastructure/Database/Repository/`. Um domínio persistido e exposto por API também precisa de migration, binding no Bootstrap, controller com attributes explícitos de rota e testes. Mantenha os contratos no Domain e os adaptadores na Infrastructure; não altere internals de conexão, controllers ou repositories de outros domínios para acomodar a entidade nova.
+Entities and persistence contracts belong in `src/Domain/<Name>/`; application operations belong in `src/Application/<Name>/`; MySQL implementations belong in `src/Infrastructure/Database/Repository/`. A persisted domain exposed through the API also needs a migration, Bootstrap binding, controller with explicit route attributes, and tests. Keep contracts in Domain and adapters in Infrastructure; do not change connection internals, controllers, or repositories from other domains to accommodate the new entity.
 
-## Convenções
+## Conventions
 
-- Entidades protegem invariantes; services de aplicação coordenam contratos e regras de caso de uso.
-- Use queries PDO parametrizadas e migrations Phinx explícitas. Para uma instalação existente, crie migration aditiva e preserve os dados necessários ao projeto.
-- Controllers Slim são adaptadores HTTP finos. Apenas métodos com attributes de rota são publicados.
-- Adicione testes unitários para invariantes e casos de uso; use integração quando a mudança envolver SQL, HTTP, sessão ou configuração.
-- Não crie interface para cada serviço, abstrações genéricas de plugin ou pastas vazias. Use o caminho mais curto que preserve as fronteiras acima.
+- Entities protect invariants; application services coordinate contracts and use-case rules.
+- Use parameterized PDO queries and explicit Phinx migrations. For an existing installation, create an additive migration and preserve the data the project needs.
+- Slim controllers are thin HTTP adapters. Only methods with route attributes are exposed.
+- Add unit tests for invariants and use cases; use integration tests when a change involves SQL, HTTP, sessions, or configuration.
+- Do not create an interface for every service, generic plugin abstractions, or empty directories. Use the shortest path that preserves the boundaries above.

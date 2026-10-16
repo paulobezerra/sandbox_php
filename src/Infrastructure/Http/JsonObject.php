@@ -6,7 +6,6 @@ namespace App\Infrastructure\Http;
 
 use JsonException;
 use Psr\Http\Message\ServerRequestInterface;
-use Slim\Exception\HttpBadRequestException;
 
 final class JsonObject
 {
@@ -15,15 +14,15 @@ final class JsonObject
     {
         $contentType = strtolower(trim(explode(';', $request->getHeaderLine('Content-Type'))[0]));
         if ($contentType !== 'application/json') {
-            throw new HttpBadRequestException($request, 'O corpo deve ser um objeto JSON.');
+            throw new JsonRequestException($request, 'invalid_json_object');
         }
         try {
             $decoded = json_decode((string) $request->getBody(), false, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException) {
-            throw new HttpBadRequestException($request, 'JSON malformado.');
+            throw new JsonRequestException($request, 'malformed_json');
         }
         if (!is_object($decoded)) {
-            throw new HttpBadRequestException($request, 'O corpo deve ser um objeto JSON.');
+            throw new JsonRequestException($request, 'invalid_json_object');
         }
         return get_object_vars($decoded);
     }

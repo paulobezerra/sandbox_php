@@ -2,7 +2,7 @@
     "openapi": "3.1.0",
     "info": {
         "title": "Sandbox PHP API",
-        "description": "API HTTP do skeleton. A autenticação usa sessão PHP em cookie HttpOnly, SameSite=Lax e Secure conforme APP_URL. Toda operação mutável exige X-CSRF-Token obtido em GET /api/auth/csrf ou /api/auth/me, salvo exceção anônima exata declarada na composição da aplicação; sessões autenticadas nunca podem usar essas exceções.",
+        "description": "Skeleton HTTP API. Authentication uses a PHP session with an HttpOnly, SameSite=Lax cookie that is Secure according to APP_URL. Every mutating operation requires an X-CSRF-Token obtained from GET /api/auth/csrf or /api/auth/me, except for an exact anonymous exception declared in the application composition; authenticated sessions can never use these exceptions.",
         "version": "1.0.0"
     },
     "servers": [
@@ -17,9 +17,19 @@
                     "Auth"
                 ],
                 "operationId": "ab524af6c7c90298c1e3a82793bb6598",
+                "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Selects the language of application-owned response messages.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Token CSRF para a sessão"
+                        "description": "CSRF token for the session"
                     }
                 }
             }
@@ -30,6 +40,16 @@
                     "Auth"
                 ],
                 "operationId": "65caa1792e73f25ec9c158f684725ca2",
+                "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Selects the language of application-owned response messages.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -60,16 +80,16 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Usuário criado"
+                        "description": "User created"
                     },
                     "400": {
-                        "description": "Payload inválido"
+                        "description": "Invalid request payload"
                     },
                     "409": {
-                        "description": "E-mail já cadastrado"
+                        "description": "Email already registered"
                     },
                     "422": {
-                        "description": "Dados inválidos"
+                        "description": "Invalid account data"
                     }
                 }
             }
@@ -80,6 +100,16 @@
                     "Auth"
                 ],
                 "operationId": "18468d1b085a6893ecda31943aa8ace7",
+                "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Selects the language of application-owned response messages.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -106,13 +136,13 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Sessão iniciada e token CSRF renovado"
+                        "description": "Session started and CSRF token renewed"
                     },
                     "400": {
-                        "description": "Payload inválido"
+                        "description": "Invalid request payload"
                     },
                     "401": {
-                        "description": "Credenciais inválidas"
+                        "description": "Invalid credentials"
                     }
                 }
             }
@@ -123,9 +153,19 @@
                     "Auth"
                 ],
                 "operationId": "a8949cd76ed14d60327f211285aae94f",
+                "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Selects the language of application-owned response messages.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Sessão encerrada"
+                        "description": "Session ended"
                     }
                 }
             }
@@ -136,9 +176,19 @@
                     "Auth"
                 ],
                 "operationId": "5748656ff08958c5e000086a9ad9557d",
+                "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Selects the language of application-owned response messages.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Usuário atual ou sessão anônima"
+                        "description": "Current user or anonymous session"
                     }
                 }
             }
@@ -149,6 +199,16 @@
                     "Posts"
                 ],
                 "operationId": "b5ec5208f67fc55f7a111cbaa996a1a6",
+                "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Selects the language of application-owned response messages.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -170,10 +230,10 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Markdown renderizado com HTML bruto escapado"
+                        "description": "Markdown rendered with raw HTML escaped"
                     },
                     "401": {
-                        "description": "Não autenticado"
+                        "description": "Authentication required"
                     }
                 },
                 "security": [
@@ -190,6 +250,14 @@
                 ],
                 "operationId": "5e80b67394496952e0f736a9a5a54747",
                 "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Selects the language of application-owned response messages.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     {
                         "name": "page",
                         "in": "query",
@@ -210,7 +278,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Posts publicados paginados",
+                        "description": "Paginated published Posts",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -230,6 +298,14 @@
                 "operationId": "2800b5d719aa4349fd30704048ad20a6",
                 "parameters": [
                     {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Selects the language of application-owned response messages.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "slug",
                         "in": "path",
                         "required": true,
@@ -240,7 +316,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Post publicado",
+                        "description": "Published Post",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -250,7 +326,7 @@
                         }
                     },
                     "404": {
-                        "description": "Não encontrado"
+                        "description": "Not found"
                     }
                 }
             }
@@ -261,9 +337,19 @@
                     "Posts"
                 ],
                 "operationId": "9a89a5507a351027291a2782c1723b18",
+                "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Selects the language of application-owned response messages.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Posts do usuário autenticado",
+                        "description": "Posts belonging to the authenticated user",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -273,7 +359,7 @@
                         }
                     },
                     "401": {
-                        "description": "Não autenticado"
+                        "description": "Authentication required"
                     }
                 },
                 "security": [
@@ -287,6 +373,16 @@
                     "Posts"
                 ],
                 "operationId": "5895e27b45dcf5f56d1cd3362eeee9b3",
+                "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Selects the language of application-owned response messages.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -321,13 +417,13 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Rascunho criado"
+                        "description": "Draft created"
                     },
                     "401": {
-                        "description": "Não autenticado"
+                        "description": "Authentication required"
                     },
                     "422": {
-                        "description": "Validação"
+                        "description": "Validation failed"
                     }
                 },
                 "security": [
@@ -345,6 +441,14 @@
                 "operationId": "7a8a924be4b7928f193ed1ad03cb22bd",
                 "parameters": [
                     {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Selects the language of application-owned response messages.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "id",
                         "in": "path",
                         "required": true,
@@ -355,13 +459,13 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Post do usuário"
+                        "description": "Post belonging to the current user"
                     },
                     "401": {
-                        "description": "Não autenticado"
+                        "description": "Authentication required"
                     },
                     "404": {
-                        "description": "Não encontrado"
+                        "description": "Not found"
                     }
                 },
                 "security": [
@@ -376,6 +480,14 @@
                 ],
                 "operationId": "a35323567c48ca907ad0b7d431ccc929",
                 "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Selects the language of application-owned response messages.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     {
                         "name": "id",
                         "in": "path",
@@ -419,16 +531,16 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Post atualizado"
+                        "description": "Post updated"
                     },
                     "401": {
-                        "description": "Não autenticado"
+                        "description": "Authentication required"
                     },
                     "404": {
-                        "description": "Não encontrado"
+                        "description": "Not found"
                     },
                     "422": {
-                        "description": "Validação"
+                        "description": "Validation failed"
                     }
                 },
                 "security": [
@@ -444,6 +556,14 @@
                 "operationId": "9bc4f7f2242b2e5ec63c921282dc21b4",
                 "parameters": [
                     {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Selects the language of application-owned response messages.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "id",
                         "in": "path",
                         "required": true,
@@ -454,13 +574,13 @@
                 ],
                 "responses": {
                     "204": {
-                        "description": "Post excluído"
+                        "description": "Post deleted"
                     },
                     "401": {
-                        "description": "Não autenticado"
+                        "description": "Authentication required"
                     },
                     "404": {
-                        "description": "Não encontrado"
+                        "description": "Not found"
                     }
                 },
                 "security": [
@@ -476,15 +596,25 @@
                     "Posts"
                 ],
                 "operationId": "18c43d592f6e39946d9a2039d314570a",
+                "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Selects the language of application-owned response messages.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Post publicado"
+                        "description": "Published Post"
                     },
                     "401": {
-                        "description": "Não autenticado"
+                        "description": "Authentication required"
                     },
                     "404": {
-                        "description": "Não encontrado"
+                        "description": "Not found"
                     }
                 },
                 "security": [
@@ -500,15 +630,25 @@
                     "Posts"
                 ],
                 "operationId": "6116a2760725fd897f74a3184128708b",
+                "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Selects the language of application-owned response messages.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Post despublicado"
+                        "description": "Post unpublished"
                     },
                     "401": {
-                        "description": "Não autenticado"
+                        "description": "Authentication required"
                     },
                     "404": {
-                        "description": "Não encontrado"
+                        "description": "Not found"
                     }
                 },
                 "security": [
@@ -596,7 +736,7 @@
                         "format": "date-time"
                     },
                     "html": {
-                        "description": "HTML de Markdown escapado, presente na API pública",
+                        "description": "Escaped Markdown HTML, included in the public API",
                         "type": "string"
                     },
                     "createdAt": {
@@ -663,7 +803,7 @@
         "securitySchemes": {
             "cookieAuth": {
                 "type": "apiKey",
-                "description": "Sessão PHP; operações mutáveis exigem X-CSRF-Token obtido em /api/auth/csrf ou /api/auth/me.",
+                "description": "PHP session; mutating operations require an X-CSRF-Token obtained from /api/auth/csrf or /api/auth/me.",
                 "name": "sandbox_session",
                 "in": "cookie"
             }

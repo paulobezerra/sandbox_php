@@ -5,12 +5,26 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Application;
 
 use App\Application\Post\PostService;
+use App\Application\Post\PostException;
 use App\Domain\Post\PostRepository;
 use DomainException;
 use PHPUnit\Framework\TestCase;
 
 final class PostServiceTest extends TestCase
 {
+    public function testValidationErrorsExposeStableReasonsInsteadOfPresentationText(): void
+    {
+        $service = new PostService($this->createMock(PostRepository::class));
+
+        try {
+            $service->create(['title' => '', 'content' => 'Body'], 1);
+            self::fail('Invalid Post data must be rejected.');
+        } catch (PostException $error) {
+            self::assertSame('post.titleRequired', $error->reason);
+            self::assertSame('', $error->getMessage());
+        }
+    }
+
     public function testInvalidExplicitSlugAndWrongFieldTypesAreRejected(): void
     {
         $repository = $this->createMock(PostRepository::class);

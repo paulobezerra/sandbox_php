@@ -9,7 +9,7 @@ use Psr\Http\Message\ResponseInterface;
 class JsonResponse
 {
     /**
-     * Retorna uma resposta JSON de sucesso.
+     * Returns a successful JSON response.
      *
      * @param array<array-key, mixed>|object $data
      */
@@ -22,7 +22,7 @@ class JsonResponse
     }
 
     /**
-     * Retorna uma resposta JSON de erro padronizada.
+     * Returns a standardized JSON error response.
      *
      * @param array<string, mixed> $details
      */
@@ -47,14 +47,14 @@ class JsonResponse
     }
 
     /**
-     * Retorna uma resposta JSON de erro de validação (HTTP 422).
+     * Returns a validation error JSON response (HTTP 422).
      *
      * @param array<string, mixed> $errors
      */
     public static function validationError(
         ResponseInterface $response,
         array $errors,
-        string $message = 'Erro de validação'
+        string $message = 'Validation error'
     ): ResponseInterface {
         return self::error($response, $message, 422, $errors);
     }

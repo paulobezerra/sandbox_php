@@ -1,8 +1,8 @@
 
-# Estágio base: configurações comuns
+# Base stage: shared configuration
 FROM php:8.4-apache AS base
 
-# Dependências do sistema e extensões PHP
+# System dependencies and PHP extensions
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         git unzip libzip-dev \
@@ -11,15 +11,15 @@ RUN apt-get update \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
-# Configuração do Apache apontando para public/
+# Configure Apache to point to public/
 COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
 
-# Composer binário
+# Composer executable
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 
 WORKDIR /var/www/html
 
-# Estágio de desenvolvimento: Xdebug habilitado e php.ini de desenvolvimento
+# Development stage: Xdebug enabled and development php.ini
 FROM base AS development
 
 RUN pecl install xdebug \
@@ -30,13 +30,13 @@ RUN cp "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 
 EXPOSE 80
 
-# Estágio de produção: sem Xdebug, com OPcache otimizado e dependências instaladas no build
+# Production stage: no Xdebug, optimized OPcache, and dependencies installed at build time
 FROM base AS production
 
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-# Instala dependências de produção
+# Install production dependencies
 COPY composer.json composer.lock* ./
 RUN composer install \
     --no-dev \
@@ -46,12 +46,12 @@ RUN composer install \
     --no-scripts \
     --optimize-autoloader
 
-# Código da aplicação
+# Application code
 COPY . .
 
 RUN composer assets:publish
 
-# Permissões do Apache
+# Apache permissions
 RUN chown -R www-data:www-data /var/www/html
 
 EXPOSE 80

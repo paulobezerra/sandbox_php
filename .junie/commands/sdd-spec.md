@@ -1,6 +1,6 @@
 ---
-description: Compara soluções e registra a spec após a escolha do usuário.
+description: Compare solutions and record the spec after the user's choice.
 allowPromptArgument: true
 ---
 
-Leia e execute `.specs/commands/spec.md` na raiz do repositório. Use o contexto ou ID recebido do usuário.
+Read and execute `.specs/commands/spec.md` from the repository root. Use the context or ID provided by the user.

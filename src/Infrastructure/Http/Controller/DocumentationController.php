@@ -32,7 +32,7 @@ final class DocumentationController
 
         $contents = file_get_contents($filePath);
         if ($contents === false) {
-            throw new RuntimeException('O arquivo de documentação da API não está disponível.');
+            throw new RuntimeException('The API documentation file is unavailable.');
         }
         if ($this->config !== null) {
             $document = json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
@@ -50,7 +50,7 @@ final class DocumentationController
     ): ResponseInterface {
         $contents = file_get_contents($filePath);
         if ($contents === false) {
-            throw new RuntimeException('O arquivo de documentação da API não está disponível.');
+            throw new RuntimeException('The API documentation file is unavailable.');
         }
 
         $response->getBody()->write($contents);

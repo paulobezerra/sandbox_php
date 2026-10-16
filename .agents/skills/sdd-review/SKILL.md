@@ -1,6 +1,6 @@
 ---
 name: sdd-review
-description: Auditar um incremento contra feature, spec e plan e registrar correções rastreáveis.
+description: Audit an increment against its feature, spec, and plan, and record traceable corrections.
 ---
 
-Leia e execute [o comando canônico Review](../../../.specs/commands/review.md). Considere o ID ou contexto fornecido pelo usuário. As regras, limites e saída estão nesse arquivo.
+Read and execute the [canonical Review command](../../../.specs/commands/review.md). Use the ID or context provided by the user. That file defines the rules, limits, and output.

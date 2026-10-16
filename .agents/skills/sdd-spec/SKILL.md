@@ -1,6 +1,6 @@
 ---
 name: sdd-spec
-description: Comparar soluções para uma feature, obter escolha técnica do usuário e registrar spec.md.
+description: Compare solutions for a feature, obtain the user's technical choice, and record spec.md.
 ---
 
-Leia e execute [o comando canônico Spec](../../../.specs/commands/spec.md). Considere o ID ou contexto fornecido pelo usuário. As regras, a porta de decisão e a saída estão nesse arquivo.
+Read and execute the [canonical Spec command](../../../.specs/commands/spec.md). Use the ID or context provided by the user. That file defines the rules, decision gate, and output.

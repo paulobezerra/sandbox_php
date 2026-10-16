@@ -1,20 +1,20 @@
 # SDD Lite · Plan
 
-Transforme uma `spec.md` escolhida em tarefas `TNNN-XX` entregáveis. Leia `AGENTS.md`, [workflow](../guidelines/workflow.md), [quality](../guidelines/quality.md), [template](../templates/plan.md), feature, spec e o código/testes pertinentes. Uma invocação executa somente Plan; não implementa tarefas.
+Turn a selected `spec.md` into deliverable `TNNN-XX` tasks. Read `AGENTS.md`, [workflow](../guidelines/workflow.md), [quality](../guidelines/quality.md), the [template](../templates/plan.md), Feature, Spec, and relevant code/tests. One invocation performs Plan only; it does not implement tasks.
 
-Aplique antes de começar a [regra multiagente de isolamento do chat](../guidelines/workflow.md#isolamento-recomendado-um-comando-por-chat-novo). Se esta conversa já foi usada para outro comando, avise do risco à qualidade, recomende um chat novo e não bloqueie o usuário; se ele insistir explicitamente, prossiga e reafirme na entrega que autorizou a quebra do fluxo. Encerre a etapa após Plan.
+Before starting, apply the [multi-agent chat isolation rule](../guidelines/workflow.md#recommended-isolation-one-command-per-new-chat). If this conversation has already been used for another command, warn about the quality risk, recommend a new chat, and do not block the user. If they explicitly insist, proceed and state in the delivery that they authorized the exception. End after Plan.
 
-## 1. Conferir pré-requisitos
+## 1. Check prerequisites
 
-1. Confira a validação explícita do usuário para Plan no campo de `spec.md`, com nome e data do SO; a escolha técnica não a substitui. Se faltar, aplique a [regra de entrada](../guidelines/workflow.md#premissa-de-entrada-validação-explícita-do-passo-anterior). Verifique se a escolha técnica foi registrada, se os requisitos têm IDs e se os aceites são observáveis. Confira contradições com feature, código atual e regras do repositório. Não altere Feature nem Spec, salvo o registro da validação no próprio artefato validado: registre a divergência e o impacto no Plan, peça validação explícita do usuário para mudança de contrato e mantenha dependências afetadas pendentes até a decisão.
-2. Faça um inventário curto dos requisitos, consumidores e riscos que exigem trabalho: dados/migration, domínio, API/OpenAPI, SPA, segurança e operação quando aplicáveis. Não gere tarefas para camadas que a funcionalidade não toca.
+1. Check explicit user validation for Plan in `spec.md`, including name and OS date; the technical choice does not replace it. If missing, apply the [entry rule](../guidelines/workflow.md#entry-premise-explicit-validation-of-the-previous-step). Confirm the technical choice is recorded, requirements have IDs, and acceptance criteria are observable. Check conflicts with Feature, current code, and repository rules. Do not change Feature or Spec, except to record validation in the validated artifact itself. Record any deviation and its impact in the Plan, request explicit user validation for a contract change, and leave affected dependencies pending until decided.
+2. Make a short inventory of requirements, consumers, and risks that require work: data/migration, domain, API/OpenAPI, SPA, security, and operations as applicable. Do not create tasks for layers the feature does not touch.
 
-## 2. Dividir em incrementos
+## 2. Divide into increments
 
-1. Ordene tarefas por dependência e risco. Cada ID deve entregar um comportamento utilizável e verificável, com pré-condição, sucesso, falha pertinente e preservação do contrato antigo. Inclua na mesma tarefa tudo que torna aquela fatia completa: migration, backend, API, SPA, testes e documentação necessários. Preparação técnica entra na primeira tarefa que a usa; branch, scaffolding isolado e formatter não são incrementos funcionais.
-2. Cite os requisitos atendidos por cada tarefa e as dependências entre IDs. Indique o teste que deve falhar antes da implementação e o gate aplicável; para mudanças não comportamentais, indique uma verificação real em vez de um teste trivial. Se uma tarefa for grande demais para concluir e validar em uma sessão Code, divida-a em fatias com resultado utilizável próprio.
+1. Order tasks by dependency and risk. Each ID must deliver usable, verifiable behavior with prerequisites, success, relevant failure, and preservation of the prior contract. Include everything needed to complete that slice: migration, backend, API, SPA, tests, and documentation. Technical preparation belongs in the first task that uses it; branches, isolated scaffolding, and formatters are not functional increments.
+2. Cite requirements covered by each task and dependencies between IDs. State the test expected to fail before implementation and the applicable gate; for non-behavioral changes, specify a real check instead of a trivial test. If a task is too large for one Code session, divide it into slices that each deliver a usable result.
 
-## 3. Auditar o plano antes de entregar
+## 3. Audit the Plan before delivery
 
-1. Confira requisito → tarefa → aceite/verificação: nenhum requisito implementável deve ficar sem tarefa, e nenhuma tarefa deve existir sem resultado da spec. Confira ordem de dependências e riscos de integração final, sobretudo preservação de dados, contrato HTTP, autorização e navegador quando afetados.
-2. Escreva `plan.md` a partir do template, com IDs estáveis. Deixe o campo de validação do Plan para Code pendente até declaração explícita do usuário; depois registre-a apenas nesse campo do `plan.md`, com nome e data do SO. Entregue o link, a sequência de execução e as lacunas que ainda impeçam Code. Pare antes de implementar.
+1. Check requirement → task → acceptance/verification: every implementable requirement needs a task, and every task must deliver a Spec outcome. Check dependency order and final integration risks, especially data preservation, HTTP contract, authorization, and browser behavior where affected.
+2. Write `plan.md` from the template with stable IDs. Leave Plan validation for Code pending until the user explicitly states it; then record it only in that field with their name and the OS date. Deliver the link, execution order, and any gaps that still prevent Code. Stop before implementation.

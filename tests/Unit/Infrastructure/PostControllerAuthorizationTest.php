@@ -8,6 +8,7 @@ use App\Application\Post\PostService;
 use App\Domain\Post\PostRepository;
 use App\Domain\User\{User, UserRepository};
 use App\Infrastructure\Http\Controller\PostController;
+use App\Infrastructure\I18n\Localization;
 use App\Infrastructure\View\MarkdownRenderer;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
@@ -27,12 +28,12 @@ final class PostControllerAuthorizationTest extends TestCase
         unset($_SESSION['user_id']);
         $users = $this->createMock(UserRepository::class);
         $users->expects(self::never())->method('findById');
-        $controller = new PostController(new PostService($this->createMock(PostRepository::class)), $users, new MarkdownRenderer());
+        $controller = new PostController(new PostService($this->createMock(PostRepository::class)), $users, new MarkdownRenderer(), Localization::load(['en', 'pt-BR'], 'en'));
 
         $response = $controller->myList((new ServerRequestFactory())->createServerRequest('GET', '/api/me/posts'), new Response());
 
         self::assertSame(401, $response->getStatusCode());
-        self::assertStringContainsString('Autenticação necessária', (string) $response->getBody());
+        self::assertStringContainsString('Sign in to manage Posts.', (string) $response->getBody());
     }
 
     public function testAnyAuthenticatedUserCanListTheirPostsWithoutAnAdminRole(): void
@@ -45,7 +46,7 @@ final class PostControllerAuthorizationTest extends TestCase
         $repository = $this->createMock(PostRepository::class);
         $repository->expects(self::once())->method('listByAuthor')->with(123, 20, 0)->willReturn([]);
         $repository->expects(self::once())->method('countByAuthor')->with(123)->willReturn(0);
-        $controller = new PostController(new PostService($repository), $users, new MarkdownRenderer());
+        $controller = new PostController(new PostService($repository), $users, new MarkdownRenderer(), Localization::load(['en', 'pt-BR'], 'en'));
 
         $response = $controller->myList((new ServerRequestFactory())->createServerRequest('GET', '/api/me/posts'), new Response());
 
