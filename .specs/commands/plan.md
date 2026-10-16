@@ -2,11 +2,11 @@
 
 Transforme uma `spec.md` escolhida em tarefas `TNNN-XX` entregáveis. Leia `AGENTS.md`, [workflow](../guidelines/workflow.md), [quality](../guidelines/quality.md), [template](../templates/plan.md), feature, spec e o código/testes pertinentes. Uma invocação executa somente Plan; não implementa tarefas.
 
-Aplique antes de começar a [premissa máxima de um comando por chat novo](../guidelines/workflow.md#premissa-máxima-um-comando-por-chat-novo). Encerre este chat após Plan.
+Aplique antes de começar a [regra multiagente de isolamento do chat](../guidelines/workflow.md#isolamento-recomendado-um-comando-por-chat-novo). Se esta conversa já foi usada para outro comando, avise do risco à qualidade, recomende um chat novo e não bloqueie o usuário; se ele insistir explicitamente, prossiga e reafirme na entrega que autorizou a quebra do fluxo. Encerre a etapa após Plan.
 
 ## 1. Conferir pré-requisitos
 
-1. Confira na `spec.md` a validação explícita do usuário para Plan, com nome e data do SO; a escolha técnica não a substitui. Se faltar, aplique a [regra de entrada](../guidelines/workflow.md#premissa-de-entrada-validação-explícita-do-passo-anterior) antes de prosseguir. Verifique se a escolha técnica foi registrada, se os requisitos têm IDs e se os aceites são observáveis. Confira contradições com feature, código atual e regras do repositório. Se faltar uma decisão que muda produto ou solução, corrija no artefato de origem com a decisão necessária; não a esconda no plan.
+1. Confira a validação explícita do usuário para Plan no campo de `spec.md`, com nome e data do SO; a escolha técnica não a substitui. Se faltar, aplique a [regra de entrada](../guidelines/workflow.md#premissa-de-entrada-validação-explícita-do-passo-anterior). Verifique se a escolha técnica foi registrada, se os requisitos têm IDs e se os aceites são observáveis. Confira contradições com feature, código atual e regras do repositório. Não altere Feature nem Spec, salvo o registro da validação no próprio artefato validado: registre a divergência e o impacto no Plan, peça validação explícita do usuário para mudança de contrato e mantenha dependências afetadas pendentes até a decisão.
 2. Faça um inventário curto dos requisitos, consumidores e riscos que exigem trabalho: dados/migration, domínio, API/OpenAPI, SPA, segurança e operação quando aplicáveis. Não gere tarefas para camadas que a funcionalidade não toca.
 
 ## 2. Dividir em incrementos
@@ -17,4 +17,4 @@ Aplique antes de começar a [premissa máxima de um comando por chat novo](../gu
 ## 3. Auditar o plano antes de entregar
 
 1. Confira requisito → tarefa → aceite/verificação: nenhum requisito implementável deve ficar sem tarefa, e nenhuma tarefa deve existir sem resultado da spec. Confira ordem de dependências e riscos de integração final, sobretudo preservação de dados, contrato HTTP, autorização e navegador quando afetados.
-2. Escreva `plan.md` a partir do template, com IDs estáveis e estado aberto. Deixe a validação do Plan para Code pendente até declaração explícita do usuário. Entregue o link, a sequência de execução e as lacunas que ainda impeçam Code. Pare antes de implementar.
+2. Escreva `plan.md` a partir do template, com IDs estáveis. Deixe o campo de validação do Plan para Code pendente até declaração explícita do usuário; depois registre-a apenas nesse campo do `plan.md`, com nome e data do SO. Entregue o link, a sequência de execução e as lacunas que ainda impeçam Code. Pare antes de implementar.

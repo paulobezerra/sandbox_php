@@ -2,7 +2,7 @@
 
 **Feature:** [feature.md](feature.md) · **Spec:** [spec.md](spec.md) · **Data:** AAAA-MM-DD · **Estado:** aberto
 
-**Validação do usuário para iniciar Code:** pendente. Após declaração explícita, registrar **Nome:** <nome informado pelo usuário> · **Data:** <AAAA-MM-DD obtida do SO no momento do registro>.
+**Validação do usuário para iniciar Code:** pendente. Após declaração explícita, registrar aqui a declaração, o nome informado pelo usuário e a data obtida do SO, sem alterar as tarefas.
 
 ## Estratégia de entrega
 
@@ -19,8 +19,4 @@
 
 <Conferir antes de Code: cada requisito da spec aparece em pelo menos uma tarefa e cada tarefa entrega requisito identificável. Registrar aqui somente lacunas reais ou dependências entre incrementos.>
 
-## Registro de execução
-
-<Para cada ID concluído: data, arquivos relevantes, teste vermelho observado, testes verdes, gate e limites. Não marcar com gate falhando. Repetir o campo de validação abaixo para cada ID concluído; ele não controla a execução do próximo ID de Code.>
-
-**Validação do usuário do Code <TNNN-XX> para Review:** pendente. Após declaração explícita, registrar **Nome:** <nome informado pelo usuário> · **Data:** <AAAA-MM-DD obtida do SO no momento do registro>.
+<Code marca somente o item concluído após verificar aceite e gate. Antes da tarefa seguinte, conferir também diff, código e testes das predecessoras; checkbox isolado não basta. Não criar registro de execução por tarefa.>

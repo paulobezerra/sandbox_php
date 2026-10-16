@@ -2,11 +2,17 @@
 
 ## Missão
 
-Este repositório evolui de um exemplo PHP/Slim/Vue com CRUD de planos para um **skeleton reutilizável** com mini CMS (User/Auth, Posts e Pages). Para funcionalidades novas, siga `.specs/guidelines/workflow.md`: Feature → Spec → Plan → Code → Review. Antes de finalizar a Spec, apresentar alternativas técnicas e aguardar a escolha do usuário. Leia `.specs/README.md` e a spec da funcionalidade antes de implementar. Para o skeleton, use `.specs/features/001-skeleton/spec.md` e suas reviews históricas. A spec define o alvo; o código existente é a base real. **Não executar uma spec inteira de uma só vez sem escopo explícito.**
+Este repositório fornece um **skeleton reutilizável** PHP/Slim/Vue com cadastro, login e blog de Posts. Para funcionalidades novas, siga `.specs/guidelines/workflow.md`: Feature → Spec → Plan → Code → Review. Antes de finalizar a Spec, apresente apenas alternativas técnicas reais e aguarde a escolha do usuário quando houver tradeoffs relevantes; para uma solução única evidente, justifique-a com base no código e prossiga. Leia `.specs/README.md` e a spec da funcionalidade antes de implementar. Para o skeleton histórico, consulte `.specs/features/001-skeleton/spec.md` e suas reviews; a funcionalidade 002 registra a simplificação atual do produto. A spec define o alvo; o código existente é a base real. **Não executar uma spec inteira de uma só vez sem escopo explícito.**
 
-**Premissa máxima do SDD Lite:** cada comando começa em um chat novo, com contexto de conversa zerado. Depois de executar Feature, Spec, Plan, Code ou Review, não execute outro comando, outra etapa ou outro ID de Code na mesma conversa, mesmo se o usuário insistir. Oriente-o a abrir outro chat e informe que esta sessão está comprometida para a próxima execução. Respostas necessárias para concluir o comando atual, como a escolha técnica da Spec, fazem parte da mesma execução. Consulte `.specs/guidelines/workflow.md` para a regra completa.
+**Premissa multiagente do SDD Lite:** regras, avisos e gates do fluxo devem funcionar para qualquer agente por meio dos comandos e artefatos canônicos em `.specs/`. Nunca implemente uma regra do SDD Lite apenas para Codex, Claude, Junie ou outra ferramenta; adaptadores específicos servem somente para descobrir o comando comum.
 
-Antes de um passo SDD Lite após Feature, exija validação explícita do usuário para a entrega anterior, registrada no artefato com nome informado pelo usuário e data obtida do SO. Se faltar, avise e só continue após declaração explícita de validação. Entre tarefas de Code, siga a ordem do plan/review e comprove no código e nos testes os pré-requisitos; isso não exige aprovação adicional do usuário. A validação técnica do agente e a validação do usuário têm finalidades distintas.
+**Exceções do fluxo:** não bloqueie o usuário por uma regra processual do SDD Lite. Avise qual regra seria quebrada, justifique tecnicamente o caminho recomendado e explique o risco da exceção. Se o usuário insistir explicitamente, siga no escopo autorizado e reafirme na entrega que a quebra ocorreu por autorização expressa. Não invente validações, decisões, testes ou gates aprovados; registre como pendente o que não foi comprovado. Restrições de segurança, autorização para operações destrutivas e limites externos ao SDD Lite permanecem aplicáveis.
+
+**Isolamento recomendado do SDD Lite:** prefira um chat novo, com contexto zerado, para cada comando Feature, Spec, Plan, Code ou Review. Antes de executar outro comando na mesma conversa, avise que hipóteses e decisões provisórias acumuladas podem comprometer a qualidade e a rastreabilidade da nova etapa; recomende abrir um chat novo, sem bloquear o usuário. Se ele insistir explicitamente, siga a etapa pedida, relendo os artefatos e conferindo o estado real do repositório; reafirme na entrega que o isolamento foi quebrado por autorização explícita. Se o pedido ainda não expressar essa decisão, aguarde a resposta. Não use o histórico da conversa como validação ou evidência. Respostas necessárias para concluir o comando atual, como a escolha técnica da Spec, pertencem à mesma execução. Consulte `.specs/guidelines/workflow.md` para a regra completa.
+
+Feature, Spec e Plan exigem validação explícita do usuário antes da etapa seguinte, registrada **no próprio artefato validado**, com nome informado pelo usuário e data obtida do SO. Code não precisa de validação do usuário por tarefa; antes de cada ID, confira tarefas predecessoras marcadas no Plan e implementadas de fato no diff, código e testes. **Spec não altera Feature; Plan não altera Feature ou Spec; Code não altera Feature nem Spec e apenas marca a tarefa concluída no checklist do Plan; Review não altera Feature, Spec ou Plan.** Divergências aprovadas ficam no artefato da etapa atual, sem reescrever decisões anteriores. Uma funcionalidade nova usa apenas `feature.md`, `spec.md`, `plan.md` e `review.md`; não crie registros por tarefa ou arquivos de validação. Consulte `.specs/guidelines/workflow.md` para os registros e exceções.
+
+Feature cria e registra uma branch própria antes de escrever `feature.md`. Review confere branch, diff, commit local e, quando acessível, o remoto; falta de publicação comprovada é limite da auditoria, sem tarefa automática de push. A Review não faz commit nem push; siga a política de mudanças abaixo para essas operações.
 
 ## Prioridades, em ordem
 
@@ -57,7 +63,7 @@ Não criar pastas vazias. Controller faz parsing HTTP → chama service → tran
 4. Implementar código, migrations, testes e documentação necessários à conclusão.
 5. Executar testes específicos durante o trabalho. Para PHP, aplicar `composer format` após editar, verificar com `composer lint` (sem alterar arquivos) e executar `composer quality` completo antes de concluir, quando esses scripts estiverem configurados. Falhas dos gates impedem marcar a tarefa como concluída; registrar bloqueios reais.
 6. Não executar operações destrutivas sem autorização. Diante de bloqueios, avançar nos itens independentes.
-7. Atualizar apenas checkboxes comprovados no plan, spec ou review correspondente, com referência entre correção e item auditado; preservar os estados históricos de `todolist.md`.
+7. Marcar apenas a tarefa concluída em `.specs/features/<id>/plan.md` após aceite e gate; relatar testes na entrega. Antes da tarefa seguinte, conferir as predecessoras no checklist e no diff, código e testes; checkbox isolado não comprova prontidão. Correções apontadas pela Review são conferidas na reauditoria de `review.md`. Preservar os estados históricos de `todolist.md`.
 8. Entregar resumo curto com resultado, testes e pendências. Só encerrar quando o escopo estiver concluído ou realmente bloqueado.
 
 ## Orientações para reduzir uso de contexto/créditos
@@ -78,7 +84,7 @@ Não criar pastas vazias. Controller faz parsing HTTP → chama service → tran
 - OpenAPI gerada do código e checada contra rotas; evitar duplicação de path quando o custo de integração for razoável.
 - Erros de domínio não carregam status HTTP; adapter HTTP faz mapeamento consistente.
 - Sessão servidor + cookie HttpOnly/Secure/SameSite; regeneração após login; CSRF em operações mutáveis; autorização sempre no backend.
-- Nunca permitir ADMIN via cadastro público. Senhas com `password_hash`/`password_verify`; seguir a review ativa para substituir recuperação por e-mail por códigos aleatórios de uso único, armazenados como hash, exibidos uma vez e regenerados mediante reautenticação; aplicar rate limiting.
+- Senhas com `password_hash`/`password_verify`. O demonstrador atual não inclui perfis, recuperação de senha ou rate limiting; projetos derivados devem definir recuperação e controles contra abuso antes de exposição pública.
 - Conteúdo Markdown do CMS deve ter renderização segura e controles XSS; `v-html` não confiável é proibido.
 - Queries parametrizadas com PDO; migrations controladas e reversões seguras.
 
@@ -116,7 +122,7 @@ Não assumir que Compose, MySQL ou SMTP estão ativos. Não executar `migrate:ro
 ## Política de mudanças
 
 - Não criar PR, commit, publicar, enviar e-mail, alterar ambiente remoto ou implantar sem pedido explícito.
-- Não remover o CRUD de Plans até concluir substituição incremental e garantir migração segura de dados.
+- A instalação atual usa uma migration inicial para `users` e `posts`; alterações de schema para instalações existentes exigem análise e migration própria, preservando dados quando necessário.
 - Se houver conflito entre SPEC e código: identificar, explicar e propor menor mudança; não corrigir silenciosamente tudo de uma vez.
 - Evitar perguntar detalhes que já constem na spec ou review ativa; esclarecer só decisões indispensáveis.
 
@@ -126,5 +132,5 @@ Não assumir que Compose, MySQL ou SMTP estão ativos. Não executar `migrate:ro
 - Para validar mudanças, use `docker compose exec -T app composer test`; para alterações de SPA use também `./tools/test-all.sh` com Chrome/Chromium no host.
 - Se `./tools/test-all.sh` falhar ao iniciar o Chromium com `setsockopt: Operation not permitted` ou erro do Crashpad, repita o mesmo comando no host com permissão escalada (`require_escalated`), justificando que a checagem headless precisa acessar recursos do navegador bloqueados pelo sandbox. Não remova `--no-sandbox` nem desative outras proteções do Chromium para contornar o bloqueio.
 - Para produção, use `compose.prod.yaml` e um `.env` externo ao controle de versão, com segredos próprios e `APP_URL` HTTPS. Termine TLS no proxy reverso e não exponha MySQL.
-- Leia `docs/customization.md` antes de adaptar User/Auth ou criar domínios. Mantenha contracts no Domain e adaptadores em Infrastructure; não altere internals de HTTP/PDO para acomodar uma entidade específica.
-- A sequência histórica das fases está em `.specs/features/001-skeleton/spec.md`. Não repita uma fase concluída; execute apenas o escopo explicitamente pedido. Para nova auditoria, crie `review-002.md`, `review-003.md` etc., sem sobrescrever reviews anteriores. Siga `.specs/guidelines/quality.md` para gates e mantenha `docs/` exclusivo da documentação da aplicação.
+- Leia `docs/customization.md` antes de adaptar User/Auth ou criar domínios. Mantenha contratos no Domain e adaptadores em Infrastructure; não altere internals de HTTP/PDO para acomodar uma entidade específica.
+- A sequência histórica das fases está em `.specs/features/001-skeleton/spec.md`. Não repita uma fase concluída; execute apenas o escopo explicitamente pedido. As reviews numeradas do skeleton 001 permanecem históricas; para funcionalidades novas, crie e reaudite um único `review.md`. Siga `.specs/guidelines/quality.md` para gates e mantenha `docs/` exclusivo da documentação da aplicação.
