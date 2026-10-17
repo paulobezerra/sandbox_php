@@ -2,7 +2,7 @@
 
 Audit a feature after its Code tasks or re-audit requested corrections. Read `AGENTS.md`, [workflow](../guidelines/workflow.md), [review](../guidelines/review.md), [quality](../guidelines/quality.md), the [template](../templates/review.md), Feature, Spec, and Plan. For the historical skeleton, use its existing artifacts. This step records evidence and corrections in `review.md`; it does not implement corrections in the same execution.
 
-Before starting, apply the [multi-agent chat isolation rule](../guidelines/workflow.md#recommended-isolation-one-command-per-new-chat). If this conversation has already been used for another command, warn about the quality risk, recommend a new chat, and do not block the user. If they explicitly insist, proceed and state in the delivery that they authorized the exception. End after Review.
+Before starting, apply the [context isolation rule](../guidelines/workflow.md#recommended-isolation-clean-context-for-each-execution). If a previous execution's context is still present, briefly warn about the quality and traceability risk and recommend clearing the context, either here or in a new conversation. Do not block the user; if they explicitly insist on continuing with accumulated context, proceed and state in the delivery that they authorized the exception. Reconstruct state from versioned artifacts and the actual repository. End after Review.
 
 ## 1. Fix the audit baseline
 

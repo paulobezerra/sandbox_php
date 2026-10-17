@@ -2,7 +2,7 @@
 
 Execute **one open ID** from `plan.md`, or one correction identified in `review.md`, per invocation. Read `AGENTS.md`, [workflow](../guidelines/workflow.md), [implementation](../guidelines/implementation.md), and [quality](../guidelines/quality.md). The Spec defines the target; code and tests show the actual baseline. For the historical skeleton, follow only the explicitly requested item or phase. Do not proceed to another ID or Review in this execution.
 
-Before starting, apply the [multi-agent chat isolation rule](../guidelines/workflow.md#recommended-isolation-one-command-per-new-chat). If this conversation has already been used for another command, warn about the quality risk, recommend a new chat, and do not block the user. If they explicitly insist, proceed and state in the delivery that they authorized the exception. End after the selected ID, even if blocked; another ID requires a new chat or a new warning.
+Before starting, apply the [context isolation rule](../guidelines/workflow.md#recommended-isolation-clean-context-for-each-execution). If a previous execution's context is still present, briefly warn about the quality and traceability risk and recommend clearing the context, either here or in a new conversation. Do not block the user; if they explicitly insist on continuing with accumulated context, proceed and state in the delivery that they authorized the exception. Reconstruct state from versioned artifacts and the actual repository. End after the selected ID, even if blocked; another ID requires clean context or a new warning.
 
 ## 1. Fix the scope before editing
 

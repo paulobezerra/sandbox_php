@@ -2,7 +2,7 @@
 
 Turn a product need into `.specs/features/NNN-name/feature.md`. Read `AGENTS.md`, [workflow](../guidelines/workflow.md), and the [template](../templates/feature.md). This step defines **why**, **for whom**, and **what outcome**; it does not choose architecture or begin Spec/Plan/Code.
 
-Before starting, apply the [multi-agent chat isolation rule](../guidelines/workflow.md#recommended-isolation-one-command-per-new-chat). If this conversation has already been used for another command, warn about the quality risk, recommend a new chat, and do not block the user. If they explicitly insist, proceed and state in the delivery that they authorized the exception. End after Feature.
+Before starting, apply the [context isolation rule](../guidelines/workflow.md#recommended-isolation-clean-context-for-each-execution). If a previous execution's context is still present, briefly warn about the quality and traceability risk and recommend clearing the context, either here or in a new conversation. Do not block the user; if they explicitly insist on continuing with accumulated context, proceed and state in the delivery that they authorized the exception. Reconstruct state from versioned artifacts and the actual repository. End after Feature.
 
 ## 1. Understand the request
 
