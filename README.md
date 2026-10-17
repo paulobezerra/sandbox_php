@@ -51,7 +51,45 @@ docker compose --env-file .env -f compose.prod.yaml up -d --build
 docker compose --env-file .env -f compose.prod.yaml exec -T app composer migrate --no-interaction
 ```
 
-Back up the database before upgrading the application and apply migrations as a controlled deployment step. Do not expose the MySQL port to the internet. Keep `.env` and backups outside the public directory; Apache uses `public/` as its DocumentRoot. The image contains the application code and production dependencies. For shared hosting, publish only `public/` as the web root, keep `src/`, `vendor/`, and `.env` outside it, and configure the same variables in the PHP environment.
+Back up the database before upgrading the application and apply migrations as a controlled deployment step. Do not expose the MySQL port to the internet. Keep `.env` and backups outside the public directory; Apache uses `public/` as its DocumentRoot. The image contains the application code and production dependencies. For shared hosting, publish only `public/` as the web root and keep `src/`, `vendor/`, and `.env` outside it.
+
+## Shared-hosting configuration
+
+PHP reads the ignored project-root `.env` as a fallback, so shared hosting does not need provider-specific environment-variable support. Start from the existing example and set unique production credentials:
+
+```sh
+cp .env.example .env
+chmod 600 .env
+```
+
+Set `APP_ENV=production`, `APP_DEBUG=false`, `OPENAPI_ENABLED=false`, a public `APP_URL=https://www.example.com`, and the database settings `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD`. Use a database user created by the hosting provider; `DB_ROOT_PASSWORD` is only for the Docker MySQL service and is not read by PHP. Keep the `.env` file in the application root with private permissions, outside `public/`, and configure the site's document root to point to `public/`.
+
+The application and Phinx read the same settings through `Config::fromEnvironment()`. PHP process variables take precedence one key at a time; `.env` supplies keys that are absent from the process. An explicitly empty process value also takes precedence and is checked by the normal configuration validation. For values containing `#`, `$`, or `=`, use quotes; single quotes preserve a literal dollar sign consistently with Docker Compose, for example:
+
+```dotenv
+DB_PASSWORD='a#long$secret=value'
+```
+
+Comments may follow a value after whitespace. Compose continues to pass its configured process variables to PHP, so those values override a bind-mounted `.env`; the production image does not need `.env` copied into it. PHP reads only application settings. Compose-only values such as `DB_ROOT_PASSWORD` and `APP_PORT` are ignored by the PHP configuration loader.
+
+If startup reports `DB_DATABASE is required` or `DB_USERNAME is required`, check those keys in `.env` and confirm that the file is readable by PHP. A malformed or unreadable file reports its filename without printing its contents. Other validation errors identify the invalid setting; do not paste credentials into support logs.
+
+### Shared-hosting deployment
+
+The installer expects the repository checkout to be on a clean local `main` branch that tracks a remote `main`, with Git authentication already configured for non-interactive use. It resolves the checkout from its own location, so it can be run from any working directory. Back up the database first and confirm that the existing database and its database-scoped user are ready. The user configured by `DB_USERNAME` needs DDL and DML privileges on that database, including permission to create/alter tables, indexes, foreign keys, and Phinx's `phinxlog` table. MySQL root and `DB_ROOT_PASSWORD` are not used by the installer.
+
+Optional `PHP_BIN` and `GIT_BIN` settings select absolute executable paths; `COMPOSER_BIN` selects an absolute path to a Composer file. The installer checks process environment values first, then literal assignments in the project-root `.env`, then defaults: a PHP version compatible with the project's `^8.4` requirement and Git from `PATH`, plus the Composer PHAR tracked in this repository. For example, set `PHP_BIN=/opt/cpanel/ea-php84/root/usr/bin/php` in `.env` when the host's default PHP is older. These values are paths only; do not use shell syntax, interpolation, or relative paths. The installer never sources `.env` as a shell script.
+
+After the backup and access checks, run:
+
+```sh
+cd /path/to/application
+./tools/deploy-shared-hosting.sh
+```
+
+The command does not prompt. It verifies the branch and working tree, fast-forward pulls remote `main`, installs production dependencies with an optimized autoloader, then applies only pending migrations in the `production` Phinx environment using the same PHP and database settings. A zero exit status means all three deployment steps completed. Repeating it when there are no new commits or migrations is safe. A nonzero status names the failed step; fix the reported Git, PHP/Composer, or database privilege problem and run the command again. The installer does not switch branches or roll back a partial update. If the pull succeeded but dependency installation or migration failed, the checkout may already contain the new code: keep the backup, correct the cause, and rerun. Restore code or database from backup only through the operator's normal recovery process.
+
+The repository pins Composer 2.10.3 as `composer.phar`; its SHA-256 is `7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6`, published on the [official Composer download page](https://getcomposer.org/download/). Update it only through a reviewed repository change: obtain a pinned PHAR from the official Composer site, verify the official digest or signature, then commit that verified file. `.dockerignore` keeps this host tool out of Docker builds; Docker continues to install Composer through its existing image setup.
 
 ## Structure and extension
 
