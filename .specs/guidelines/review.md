@@ -4,7 +4,7 @@ Review checks the delivered behavior against the validated Feature, Spec, and Pl
 
 ## Audit principles
 
-- Check task checkboxes against implementation and tests. A checked box alone is not proof; a failed or unrun gate remains pending.
+- Check task checkboxes against implementation and tests. A checked box alone is not proof; a failed or unrun applicable gate remains pending. Follow the first-audit and re-audit gates in [quality.md](quality.md).
 - Separate direct observation, test results, inherited earlier evidence, and inference. Record the commands and environment that produced evidence.
 - Inspect only the branch, commit, diff, and remote state that can be verified. Missing publication evidence is a limit, not an automatic push request. Review never commits or pushes.
 - Prioritize data integrity and security, then HTTP/API contracts, compatibility, and predictable maintenance. Report reproducible conditions and concrete effects.

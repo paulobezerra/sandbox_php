@@ -1,25 +1,29 @@
-# Quality gate
+# Validation and quality gates
 
-The gate checks the implemented scope; it does not replace tests for specific risks. Check current scripts in `composer.json` and execution instructions in `AGENTS.md`/`README.md` before running commands. The project may require Docker Compose: check `docker compose ps -a` and run Composer inside the active `app` service. Do not assume Docker, MySQL, SMTP, or Chrome is available.
+Validation checks the implemented scope and the risks at its boundaries. Consult the project's configured commands and execution instructions before running checks; do not assume that required services or tools are available. The Plan defines acceptance, focused tests, and applicable gates for each task. Code proves that task; the first Review validates the feature as a whole.
 
 In the [Code](workflow.md) step, record a red and green test for new or corrected behavior. Before refactoring, use characterization tests to capture the existing contract that must remain.
 
 ## During implementation
 
-- Run focused tests for changed behavior and its boundary: domain invariants, MySQL transactions/concurrency, HTTP contract/authorization, and browser mounting/flows for SPA changes. Coverage alone does not prove critical scenarios passed.
-- For PHP, run `composer format` after edits and review the diff; run `composer lint` for style and syntax without writing. Keep broad formatting separate from functional changes. Do not edit applied migrations to change schema; use an additive migration and check empty and existing data when onboarding/distribution is affected.
-- When changing the API, update attributes, generate `docs/openapi.json`, and check routes, methods, bodies, responses, and authentication. When changing SPA JavaScript/CSS/routes, run `./tools/test-all.sh` on the host with `app` active: isolated PHPUnit cannot detect ES module or Vue mount failures.
+- Run focused tests for changed behavior and its boundary: domain invariants, persistence transactions/concurrency, API contracts/authorization, and client flows when affected. Coverage alone does not prove critical scenarios passed.
+- Run the checks relevant to changed files and contracts, including formatting, static checks, API contract checks, integration tests, or browser checks where applicable. Review the diff after any writing formatter. Keep broad formatting separate from functional changes. Check schema changes against existing data and affected deployment paths.
+- Test affected boundaries directly: an isolated unit test does not establish that an API, browser flow, database migration, or deployment path works.
 
-## Close the scope
+## Stage gates
 
-Current `composer quality` runs, in order, `composer lint`, PHPUnit with Clover coverage, a total `src/` line coverage minimum of 80%, PHPStan level 6, and `composer openapi:check`. It is a **verification** gate: `composer format` is excluded because it writes files. Do not add artificial exclusions, suppressions, or tests that only mirror implementation to reach the threshold; a real technical exclusion needs justification. Run the complete gate after focused checks and fixes. `composer validate --no-check-publish`, `git diff --check`, and `migrate:status` are complementary checks when relevant, not substitutes for the gate.
+- **Code:** run the Plan's task checks and further checks justified by impact and risk. The complete suite or aggregate quality gate is optional unless the task's explicit gate or a concrete risk requires it. A relevant failure blocks completion; a check reserved for Review is not reported as passed by Code.
+- **First Review:** run the complete suite and applicable aggregate quality gates after checking the task evidence and affected boundaries. Record failures and environment limits as findings or pending evidence; do not call an unrun gate passed.
+- **Later Reviews:** verify corrections and regressions with checks proportional to their impact. Repeat the complete suite or an aggregate gate when a correction can affect broad behavior, invalidates earlier evidence, or a concrete doubt warrants it. Preserve valid evidence from the first audit and identify it as earlier evidence, not a new run.
+
+An aggregate gate verifies the feature across tasks; it does not replace focused checks. If it includes the complete suite, one run satisfies both requirements. Do not add artificial exclusions, suppressions, or tests that only mirror implementation to make a gate pass. Keep checks that write files separate from verification gates. A gate explicitly required by an existing validated Plan still applies to that task; change its scope through the normal artifact decision process, not by silently omitting it.
 
 | Change | Additional expected evidence |
 |---|---|
 | HTTP/Auth contract | Relevant positive and negative payload, authentication, authorization, CSRF, rate limit, and session cases; synchronized OpenAPI. |
 | Persistence/migration | Integration test with existing data and failure/concurrency when integrity is affected; migration status without database reset. |
-| SPA | Headless browser with the app active, covering affected flows and relevant errors; `./tools/test-all.sh`. |
+| Client application | End-to-end check with the application active, covering affected flows and relevant errors. |
 | Deployment/configuration | Configuration validation and representative isolated smoke test, such as TLS behind a proxy when the `Secure` cookie depends on it. |
-| Documentation/guidelines only | Check links, examples, consistency with current scripts, and diff; run repository-required gates and record environment limits. |
+| Documentation/guidelines only | Check links, examples, consistency with current commands, and diff; run any explicitly applicable gates and record limits. |
 
-Record commands **actually run**, results, relevant versions/environment, and limits. Distinguish product failures from environment blocks (such as Chromium/Crashpad); retry with the permission described in `AGENTS.md` when applicable. A failing gate prevents marking the task complete. An unrun test is not a pass; explain residual risk and whether it blocks acceptance. Do not repeat an approved gate without a change or concrete doubt.
+Record checks **actually run**, results, relevant environment, and limits. Distinguish product failures from environment blocks and follow the repository's execution instructions for retries. A failing applicable gate prevents marking the task complete or Review accepted. An unrun test is not a pass; explain residual risk and whether it blocks acceptance. Do not repeat a passed gate without a change or concrete doubt.

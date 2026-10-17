@@ -10,9 +10,9 @@ Before starting, apply the [multi-agent chat isolation rule](../guidelines/workf
 2. Check the local branch, `git status --short`, `HEAD`, and the remote when accessible. Record what could be verified; missing commit, push, or network access is an audit limitation, not an automatic publication task. Do not commit or push.
 3. Trace requirement → task → code → test. Look for requirements without delivery, unchecked proof behind a checked box, divergent implementation, and contract regressions. Check affected boundaries as relevant.
 
-## 2. Gather evidence proportional to risk
+## 2. Gather evidence for the audit
 
-1. Run focused checks that can confirm or refute the main risks, subject to environment and authorization. Record command, result, and environment/date. Distinguish tests run now, direct code observations, evidence inherited from an earlier review, and inference. An old test is not a rerun; an unrun test is not a pass.
+1. On the first audit, run the complete suite and applicable aggregate quality gates, plus focused checks that can confirm or refute the main risks. On later audits, verify corrections and affected behavior; repeat broad gates only when the impact invalidates earlier evidence or creates a concrete risk. Follow `quality.md` and the project's execution instructions. Record command, result, and environment/date. Distinguish tests run now, direct code observations, evidence inherited from an earlier review, and inference. An old test is not a rerun; an unrun test is not a pass.
 2. For a failure, record reproduction conditions and effect. For missing evidence, state what remains uncertain and whether it blocks acceptance; do not automatically call it a proven defect. Prioritize integrity and security, then contract and predictability.
 
 ## 3. Record the conclusion
