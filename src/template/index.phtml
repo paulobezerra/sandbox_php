@@ -10,7 +10,7 @@
 </head>
 <body>
 
-<div id="app" data-locale="<?= $e($locale) ?>" aria-busy="true">
+<div id="app" v-cloak data-locale="<?= $e($locale) ?>" aria-busy="true">
     <p id="boot-message" role="status"><?= $e($translations['shell.loading']) ?></p>
     <aside class="sidebar">
         <div class="brand">Sandbox PHP</div>

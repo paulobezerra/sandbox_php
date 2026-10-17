@@ -70,6 +70,21 @@ check_page() {
     printf 'OK: %s (%s)\n' "$label" "$path"
 }
 
+boot_file="$work_dir/boot.html"
+if ! curl --fail --silent --show-error \
+    --header 'Accept-Language: en-US' \
+    "$base_url/" >"$boot_file"; then
+    echo 'FAILED: the application boot state did not load.' >&2
+    exit 1
+fi
+if ! grep -Eq '<div[^>]+id="app"[^>]+v-cloak' "$boot_file" \
+    || ! grep -Fq 'role="status">Loading the application…' "$boot_file"; then
+    echo 'FAILED: the application boot state exposes its uncompiled Vue template.' >&2
+    cat "$boot_file" >&2
+    exit 1
+fi
+printf 'OK: loading state cloaks the uncompiled Vue template\n'
+
 check_page / 'A reusable foundation for PHP applications' 'English documentation Home'
 check_page / 'Installation and first use' 'Home installation section'
 check_page / 'Registration, login, and the Posts workflow' 'Posts workflow on Home'

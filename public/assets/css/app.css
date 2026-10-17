@@ -15,6 +15,22 @@ body {
     min-height: 100vh;
 }
 
+#app[v-cloak] {
+    display: grid;
+    place-items: center;
+}
+
+#app[v-cloak] > :not(#boot-message) {
+    display: none;
+}
+
+#boot-message {
+    margin: 0;
+    padding: 24px;
+    color: #475569;
+    font-weight: 600;
+}
+
 .sidebar {
     width: 240px;
     flex-shrink: 0;

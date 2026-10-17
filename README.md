@@ -78,6 +78,19 @@ If startup reports `DB_DATABASE is required` or `DB_USERNAME is required`, check
 
 The installer expects the repository checkout to be on a clean local `main` branch that tracks a remote `main`, with Git authentication already configured for non-interactive use. It resolves the checkout from its own location, so it can be run from any working directory. Back up the database first and confirm that the existing database and its database-scoped user are ready. The user configured by `DB_USERNAME` needs DDL and DML privileges on that database, including permission to create/alter tables, indexes, foreign keys, and Phinx's `phinxlog` table. MySQL root and `DB_ROOT_PASSWORD` are not used by the installer.
 
+On Apache shared hosting, keep the provider's existing directives in `public/.htaccess` and add the following rewrite block so page routes, `/api/*`, and `/docs` reach `public/index.php`:
+
+```apache
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+```
+
+The local `public/.htaccess` remains ignored because cPanel may write account-specific PHP handler directives into it. Configure the domain's PHP version through the hosting control panel and do not delete those generated directives when adding the rewrite block. In production, `/docs` is available only when `OPENAPI_ENABLED=true`; keep it disabled unless the API reference is intended to be public.
+
 Optional `PHP_BIN` and `GIT_BIN` settings select absolute executable paths; `COMPOSER_BIN` selects an absolute path to a Composer file. The installer checks process environment values first, then literal assignments in the project-root `.env`, then defaults: a PHP version compatible with the project's `^8.4` requirement and Git from `PATH`, plus the Composer PHAR tracked in this repository. For example, set `PHP_BIN=/opt/cpanel/ea-php84/root/usr/bin/php` in `.env` when the host's default PHP is older. These values are paths only; do not use shell syntax, interpolation, or relative paths. The installer never sources `.env` as a shell script.
 
 After the backup and access checks, run:
