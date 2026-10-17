@@ -53,13 +53,13 @@ final readonly class MysqlPostRepository implements PostRepository
         $s = $this->pdo->prepare('INSERT INTO posts(title,slug,content,excerpt,status,author_id,published_at,created_at,updated_at) VALUES(?,?,?,?,?,?,NULL,?,?)');
         $now = $p->createdAt->format('Y-m-d H:i:s');
         $s->execute([$p->title,$p->slug,$p->content,$p->excerpt,$p->status,$p->authorId,$now,$now]);
-        return $this->find((int)$this->pdo->lastInsertId()) ?? throw new \RuntimeException('Post não persistido.');
+        return $this->find((int)$this->pdo->lastInsertId()) ?? throw new \RuntimeException('Post was not persisted.');
     }
     public function update(Post $p): Post
     {
         $s = $this->pdo->prepare('UPDATE posts SET title=?,slug=?,content=?,excerpt=?,status=?,published_at=?,updated_at=? WHERE id=?');
         $s->execute([$p->title,$p->slug,$p->content,$p->excerpt,$p->status,$p->publishedAt?->format('Y-m-d H:i:s'),$p->updatedAt->format('Y-m-d H:i:s'),$p->id]);
-        return $this->find($p->id) ?? throw new \RuntimeException('Post não encontrado após atualização.');
+        return $this->find($p->id) ?? throw new \RuntimeException('Post was not found after update.');
     }
     public function delete(int $id): void
     {

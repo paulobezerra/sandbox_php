@@ -1,6 +1,6 @@
 ---
-description: Implementa um ID aberto com os testes e gates do SDD Lite.
+description: Implement an open ID with SDD Lite tests and gates.
 allowPromptArgument: true
 ---
 
-Leia e execute `.specs/commands/code.md` na raiz do repositório. Use o contexto ou ID recebido do usuário.
+Read and execute `.specs/commands/code.md` from the repository root. Use the context or ID provided by the user.

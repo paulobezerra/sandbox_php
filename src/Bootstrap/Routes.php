@@ -21,7 +21,7 @@ class Routes
     ): void {
         $routeCollector = $app->getRouteCollector();
         if (!$routeCollector instanceof RouteCollector) {
-            throw new \RuntimeException('O coletor de rotas com atributos não foi configurado.');
+            throw new \RuntimeException('The attribute-based route collector is not configured.');
         }
         $routeCollector->registerRoutes();
 

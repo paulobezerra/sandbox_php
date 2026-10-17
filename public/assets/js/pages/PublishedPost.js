@@ -7,5 +7,5 @@ export default {
         catch (error) { this.error = error.message; }
         finally { this.loading = false; }
     },
-    template: `<article><p v-if="loading" class="loading">Carregando…</p><p v-else-if="error" class="alert alert-error">{{ error }}</p><template v-else-if="post"><router-link to="/blog">← Blog</router-link><h1>{{ post.title }}</h1><p v-if="post.excerpt" class="lead">{{ post.excerpt }}</p><div class="markdown-content" v-html="post.html"></div></template></article>`
+    template: `<article><p v-if="loading" class="loading">{{ $t('post.loading') }}</p><p v-else-if="error" class="alert alert-error" role="alert">{{ error }}</p><template v-else-if="post"><router-link to="/blog">{{ $t('post.backToBlog') }}</router-link><h1>{{ post.title }}</h1><p v-if="post.excerpt" class="lead">{{ post.excerpt }}</p><div class="markdown-content" v-html="post.html"></div></template></article>`
 };

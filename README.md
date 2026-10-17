@@ -1,32 +1,32 @@
-# Skeleton PHP + Slim + Vue
+# PHP + Slim + Vue Skeleton
 
-Base reutilizável para aplicações PHP 8.4 com Slim 4, MySQL/PDO, Phinx e Vue 3. Backend e frontend são servidos pelo mesmo deploy PHP/Apache. O JavaScript usa módulos ES nativos e arquivos locais: não há Node.js nem etapa de build.
+A reusable base for PHP 8.4 applications with Slim 4, MySQL/PDO, Phinx, and Vue 3. The backend and frontend are served by the same PHP/Apache deployment. JavaScript uses native ES modules and local files: there is no Node.js or build step.
 
-## Repositório
+## Repository
 
-Este projeto está publicado como [`paulobezerra/sandbox_php`](https://github.com/paulobezerra/sandbox_php).
+This project is published as [`paulobezerra/sandbox_php`](https://github.com/paulobezerra/sandbox_php).
 
-## Requisitos
+## Requirements
 
-- Docker Engine com Docker Compose v2 (caminho recomendado) ou PHP 8.4, Composer 2, extensões `pdo_mysql` e `mbstring`, MySQL 8.4 e Apache com `mod_rewrite`.
-- Chrome ou Chromium no host apenas para `tools/test-all.sh`.
+- Docker Engine with Docker Compose v2 (recommended), or PHP 8.4, Composer 2, the `pdo_mysql` and `mbstring` extensions, MySQL 8.4, and Apache with `mod_rewrite`.
+- Chrome or Chromium on the host only for `tools/test-all.sh`.
 
-## Início local
+## Local setup
 
 ```sh
-git clone https://github.com/paulobezerra/sandbox_php.git meu-projeto
-cd meu-projeto
+git clone https://github.com/paulobezerra/sandbox_php.git my-project
+cd my-project
 cp .env.example .env
-# Troque todas as senhas de exemplo antes de iniciar.
+# Replace all example passwords before starting.
 docker compose up -d --build
 docker compose exec -T app composer migrate
 ```
 
-Abra `http://localhost:8080`. A migration é explícita e não roda no startup. A Home documental está em `/`, o blog em `/blog`, o cadastro e login em `/login`, a área pessoal de Posts em `/my-posts`, a API em `/api` e a documentação OpenAPI em `/docs` no ambiente local. O MySQL de desenvolvimento publica a porta `127.0.0.1:3306`.
+Open `http://localhost:8080`. The migration is explicit and does not run at startup. The documentation Home is at `/`, the blog at `/blog`, registration and login at `/login`, the personal Posts area at `/my-posts`, the API at `/api`, and the OpenAPI documentation at `/docs` in the local environment. The development MySQL service publishes port `127.0.0.1:3306`.
 
-Crie uma conta pelo link de cadastro na tela de login. Toda conta autenticada pode criar, editar, publicar e remover somente os próprios Posts. O demonstrador não tem recuperação de senha: defina um procedimento operacional de recuperação antes de usar contas importantes.
+Create an account using the registration link on the login page. Each authenticated account can create, edit, publish, and remove only its own Posts. The demo has no password recovery; define an operational recovery procedure before using important accounts.
 
-## Verificações
+## Checks
 
 ```sh
 docker compose exec -T app composer format
@@ -37,49 +37,55 @@ docker compose exec -T app composer migrate:status
 ./tools/test-all.sh
 ```
 
-`composer format` aplica PSR-12 aos arquivos PHP próprios; `composer lint` verifica estilo e sintaxe sem escrever. `composer test` executa PHPUnit no container e `composer quality` inclui lint, testes com cobertura, cobertura mínima, PHPStan e checagem OpenAPI. `./tools/test-all.sh` também abre as rotas centrais com Chrome/Chromium headless no host. Para rodar apenas o navegador, use `./tools/test-frontend.sh`; defina `CHROME_BIN` se o executável não estiver no PATH. `composer migrate:status` lista o estado das migrations. `composer openapi:generate` regenera `docs/openapi.json` a partir dos atributos PHP.
+`composer format` applies PSR-12 to project PHP files; `composer lint` checks style and syntax without writing files. `composer test` runs PHPUnit in the container, and `composer quality` also runs lint, tests with coverage, the minimum coverage check, PHPStan, and the OpenAPI check. `./tools/test-all.sh` also opens the main routes with headless Chrome/Chromium on the host. To run only the browser checks, use `./tools/test-frontend.sh`; set `CHROME_BIN` if the executable is not on `PATH`. `composer migrate:status` lists migration status. `composer openapi:generate` regenerates `docs/openapi.json` from PHP attributes.
 
-## Produção em Docker
+## Docker production
 
-O arquivo `compose.prod.yaml` usa uma imagem otimizada sem Xdebug, sem bind mount e com documentação OpenAPI desligada. Use um `.env` de produção fora do controle de versão, com credenciais únicas e `APP_URL` apontando para o domínio HTTPS público. A aplicação define o cookie `Secure` a partir dessa URL. O Compose publica HTTP; termine TLS em um proxy reverso ou balanceador.
+`compose.prod.yaml` uses an optimized image without Xdebug, bind mounts, or enabled OpenAPI documentation. Use a production `.env` outside version control, with unique credentials and `APP_URL` set to the public HTTPS domain. The application sets the `Secure` cookie flag based on this URL. Compose serves HTTP; terminate TLS at a reverse proxy or load balancer.
 
 ```sh
 cp .env.example .env
-# Edite .env: segredos fortes, APP_ENV=production, APP_DEBUG=false,
-# OPENAPI_ENABLED=false e APP_URL=https://www.exemplo.com.
+# Edit .env: strong secrets, APP_ENV=production, APP_DEBUG=false,
+# OPENAPI_ENABLED=false, and APP_URL=https://www.example.com.
 docker compose --env-file .env -f compose.prod.yaml up -d --build
 docker compose --env-file .env -f compose.prod.yaml exec -T app composer migrate --no-interaction
 ```
 
-Faça backup do banco antes de atualizar a aplicação e aplique migrations como etapa controlada do deploy. Não exponha a porta MySQL à internet. Guarde `.env` e backups fora do diretório público; o Apache usa `public/` como DocumentRoot. A imagem contém o código e dependências de produção. Para hospedagem compartilhada, publique somente `public/` como raiz web, mantenha `src/`, `vendor/` e `.env` fora dela e configure as mesmas variáveis no ambiente PHP.
+Back up the database before upgrading the application and apply migrations as a controlled deployment step. Do not expose the MySQL port to the internet. Keep `.env` and backups outside the public directory; Apache uses `public/` as its DocumentRoot. The image contains the application code and production dependencies. For shared hosting, publish only `public/` as the web root, keep `src/`, `vendor/`, and `.env` outside it, and configure the same variables in the PHP environment.
 
-## Estrutura e extensão
+## Structure and extension
 
 ```text
-src/Domain/             Entidades, invariantes e contratos de repository
-src/Application/        Operações de aplicação
-src/Infrastructure/     Adaptadores HTTP, PDO, sessão e views
-src/Bootstrap/          Composição das dependências e rotas
-database/migrations/    Schema inicial e migrations explícitas
-public/assets/          Vue, Vue Router, CSS e bibliotecas locais
-tests/                  Unitários, integração e arquitetura
-docs/                   OpenAPI e guias do skeleton
+src/Domain/             Entities, invariants, and repository contracts
+src/Application/        Application operations
+src/Infrastructure/     HTTP, PDO, session, and view adapters
+src/Bootstrap/          Dependency composition and routes
+database/migrations/    Initial schema and explicit migrations
+public/assets/          Vue, Vue Router, CSS, and local libraries
+tests/                  Unit, integration, and architecture tests
+docs/                   OpenAPI and skeleton guides
 ```
 
-As dependências seguem `Infrastructure → Application → Domain`; o Bootstrap compõe os adaptadores. Leia [o guia de customização e extensão](docs/customization.md) antes de adaptar User/Auth ou adicionar um domínio. A aplicação padrão contém Auth e Posts.
+Dependencies flow from `Infrastructure → Application → Domain`; Bootstrap composes the adapters. Read the [customization and extension guide](docs/customization.md) before adapting User/Auth or adding a domain. The default application contains Auth and Posts.
 
-## Segurança e manutenção
+## Languages
 
-- Senhas são armazenadas com `password_hash` e verificadas com `password_verify`. Sessões ficam no servidor, são regeneradas no login e usam cookies HttpOnly; mutações autenticadas exigem CSRF e o backend confere a autoria de cada Post.
-- O cadastro é aberto. Este demonstrador não inclui recuperação de senha nem limita tentativas de autenticação; antes de expô-lo publicamente, defina controles contra abuso e um procedimento de recuperação adequados ao projeto.
-- Posts armazenam Markdown e escapam HTML bruto na renderização. As views usam `v-html` somente com HTML produzido pelo `MarkdownRenderer`, que rejeita HTML bruto e links inseguros; preview e publicação compartilham esse renderer. Os templates Vue ficam em módulos ES sem build e são compilados no navegador, por isso a CSP mantém `unsafe-eval`; não forneça templates Vue nem HTML renderizável por usuários.
-- Para mudar o schema de uma instalação existente, crie uma migration nova; não altere uma migration já aplicada.
-- Nunca coloque credenciais reais, tokens ou dumps no repositório.
+The application negotiates English (`en`) and Brazilian Portuguese (`pt-BR`) from the browser's `Accept-Language` header. Set `SUPPORTED_LOCALES` to a comma-separated list of canonical locale tags and `FALLBACK_LOCALE` to one of them. Each supported locale needs a complete JSON catalog under `public/assets/i18n/`; the catalogs must contain matching keys. Add a language by copying `public/assets/i18n/en.json`, translating every value, and setting both configuration variables. Startup rejects duplicate, malformed, unsupported, missing, or incomplete locale configuration. Localized HTML and JSON responses set `Content-Language` and vary shared caches by `Accept-Language`.
 
-## Documentação adicional
+The browser checks exercise both supported locales. With the app running and Chrome or Chromium installed on the host, run `./tools/test-all.sh` for the browser and PHP checks.
 
-- [Customizar User/Auth e adicionar domínios](docs/customization.md)
-- [Contrato OpenAPI](docs/openapi.json)
-- [AGENTS.md](AGENTS.md): convenções de trabalho para agentes neste repositório
-- [SDD Lite](.specs/README.md): índice das especificações e auditorias
-- [Spec do skeleton](.specs/features/001-skeleton/spec.md): requisitos e histórico de fases
+## Security and maintenance
+
+- Passwords are stored with `password_hash` and checked with `password_verify`. Sessions are server-side, regenerated at login, and use HttpOnly cookies; authenticated mutations require CSRF, and the backend checks ownership of every Post.
+- Registration is open. This demo has no password recovery or authentication attempt limit; before exposing it publicly, define abuse controls and a recovery procedure suited to the project.
+- Posts store Markdown and escape raw HTML during rendering. Views use `v-html` only with HTML produced by `MarkdownRenderer`, which rejects raw HTML and unsafe links; preview and publishing share this renderer. Vue templates use ES modules without a build step and are compiled in the browser, so the CSP retains `unsafe-eval`; do not provide Vue templates or user-renderable HTML.
+- To change the schema of an existing installation, create a new migration; do not edit a migration that has already been applied.
+- Never put real credentials, tokens, or database dumps in the repository.
+
+## Additional documentation
+
+- [Customize User/Auth and add domains](docs/customization.md)
+- [OpenAPI contract](docs/openapi.json)
+- [AGENTS.md](AGENTS.md): agent workflow conventions for this repository
+- [SDD Lite](.specs/README.md): specifications and reviews index
+- [Skeleton specification](.specs/features/001-skeleton/spec.md): requirements and phase history

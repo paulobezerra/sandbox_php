@@ -1,50 +1,50 @@
-# SPEC — <nome da funcionalidade>
+# SPEC — <feature name>
 
-**ID:** NNN-nome · **Estado:** proposta · **Data:** AAAA-MM-DD
+**ID:** NNN-name · **Status:** proposed · **Date:** YYYY-MM-DD
 
-**Validação do usuário para Plan:** pendente. Após declaração explícita, registrar aqui a declaração, o nome informado pelo usuário e a data obtida do SO, sem alterar requisitos ou decisões. A decisão técnica abaixo não equivale à validação.
+**User validation for Plan:** pending. After an explicit statement, record it here with the user's supplied name and the date obtained from the OS, without changing requirements or decisions. The technical decision below is not validation.
 
-## Problema, base e objetivo
+## Problem, baseline, and goal
 
-<quem é afetado; comportamento atual verificado e referência ao código/contrato; resultado esperado>
+<who is affected; verified current behavior and code/contract reference; expected outcome>
 
-## Escopo e restrições
+## Scope and constraints
 
-- **Inclui:** <resultados desta spec>
-- **Fora do escopo:** <limites explícitos>
-- **Restrições:** <compatibilidade, stack, deploy, dependências e dados relevantes; consultar AGENTS.md>
+- **Included:** <outcomes in this Spec>
+- **Out of scope:** <explicit boundaries>
+- **Constraints:** <compatibility, stack, deployment, dependencies, and relevant data; consult AGENTS.md>
 
-## Solução técnica
+## Technical solution
 
-**Decisão técnica:** <escolha do usuário e data, quando houver alternativas relevantes; ou solução única evidente, data e justificativa baseada no código. Não atribuir escolha ao usuário sem declaração.>
+**Technical decision:** <user's choice and date when meaningful alternatives exist; or clearly evident single solution, date, and code-based reason. Do not attribute a choice to the user without their statement.>
 
-<Resuma em texto apenas as opções reais: a solução única evidente ou a escolhida e suas alternativas relevantes, em blocos separados. Para cada uma, registre o impacto estimado no código (baixo, moderado ou alto), os componentes afetados e os pontos de aderência ou ressalva que importaram à decisão. Identifique critérios não aplicáveis. Evite comparação extensa sem tradeoff real.>
+<Summarize only real options: the clearly evident solution or the selected option and relevant alternatives, in separate blocks. For each, record estimated code impact (low, moderate, or high), affected components, and decision-relevant fit or caveats. Identify criteria that do not apply. Avoid extensive comparison without a real tradeoff.>
 
-**Motivo da decisão:** <evidência verificada, benefício decisivo e custo aceito; para solução única, explicar por que não havia alternativa relevante>.
+**Reason for the decision:** <verified evidence, decisive benefit, and accepted cost; for a single solution, explain why no relevant alternative exists>.
 
-## Questões em aberto para validação
+## Open questions for validation
 
-<Liste decisões de produto ou divergências com a Feature que o usuário ainda precisa avaliar. Para cada uma, cite o contrato anterior, as opções reais, o impacto e a proposta atual. Se nenhuma restar, escreva “Nenhuma” para tornar a checagem visível antes da validação. Não trate a escolha técnica já feita como validação da Spec.>
+<List product decisions or Feature deviations the user still needs to assess. For each, cite the prior contract, real options, impact, and current proposal. If none remain, write “None” so the check is visible before validation. Do not treat an earlier technical choice as Spec validation.>
 
-## Requisitos
+## Requirements
 
-- **SNNN-01** — <resultado observável; consumidores afetados: API, SPA, OpenAPI, banco, operação>
-- **SNNN-02** — <outro resultado; dependência de SNNN-01 se houver>
+- **SNNN-01** — <observable outcome; affected consumers: API, SPA, OpenAPI, database, operations>
+- **SNNN-02** — <another outcome; dependency on SNNN-01, if any>
 
-<O plan transformará estes requisitos em tarefas entregáveis. Code e Review registram progresso fora desta Spec.>
+<Plan will turn these requirements into deliverable tasks. Code and Review track progress outside this Spec.>
 
-## Contratos, dados e segurança
+## Contracts, data, and security
 
-<Rotas/payloads/status, invariantes, autenticação/autorização/CSRF, segredos/sessões, migrations e compatibilidade existentes. Omitir partes não aplicáveis, justificando decisões que alterem contratos.>
+<Existing routes/payloads/statuses, invariants, authentication/authorization/CSRF, secrets/sessions, migrations, and compatibility. Omit irrelevant areas and justify decisions that change contracts.>
 
-## Critérios de aceite e verificação
+## Acceptance and verification criteria
 
-- **Sucesso:** dado <estado inicial>, quando <ação>, então <resultado observável>. Teste: <nível e cenário>.
-- **Falha/limite:** dado <entrada inválida, acesso indevido ou falha parcial pertinente>, quando <ação>, então <resposta/estado preservado>. Teste: <nível e cenário>.
-- **Integração/compatibilidade:** <dados existentes, API/SPA/OpenAPI ou instalação limpa afetados>. Teste: <cenário e ambiente>.
+- **Success:** given <initial state>, when <action>, then <observable result>. Test: <level and scenario>.
+- **Failure/boundary:** given <relevant invalid input, denied access, or partial failure>, when <action>, then <response/preserved state>. Test: <level and scenario>.
+- **Integration/compatibility:** <affected existing data, API/SPA/OpenAPI, or clean installation>. Test: <scenario and environment>.
 
-**Gate aplicável:** <comandos de ../guidelines/quality.md e verificação adicional motivada pelo risco; consultar ../guidelines/implementation.md e registrar execução/limites na review>.
+**Applicable gate:** <commands from ../guidelines/quality.md and risk-based additional checks; consult ../guidelines/implementation.md and record execution/limits in Review>.
 
-## Decisões e histórico
+## Decisions and history
 
-- AAAA-MM-DD — <decisão, motivo, contrato anterior substituído, efeitos e referência à review/spec anterior; não reescrever histórico>.
+- YYYY-MM-DD — <decision, reason, prior contract replaced, effects, and reference to earlier Review/Spec; do not rewrite history>

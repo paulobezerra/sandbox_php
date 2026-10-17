@@ -1,15 +1,15 @@
-# Auditoria e correções
+# Review guidelines
 
-A Review compara Feature, Spec, checklist do Plan, código, diffs, testes e operação. Para uma funcionalidade nova, crie `review.md` na primeira auditoria e atualize o mesmo arquivo nas reauditorias. Os arquivos numerados do skeleton 001 são históricos e permanecem como estão. Review audita e descreve correções; Code as implementa em outra execução.
+Review checks the delivered behavior against the validated Feature, Spec, and Plan. It reads actual diffs and execution evidence; it does not redo Code or silently repair historical decisions.
 
-## Base e evidência
+## Audit principles
 
-Confira tarefas marcadas no Plan contra diff, código e testes. Um checkbox isolado não comprova entrega. Separe comportamento observado, teste executado nesta rodada, evidência anterior e inferência; informe limites e testes não executados. Confira branch, alterações não commitadas, `HEAD` e remoto quando acessível. Ausência de publicação comprovada é um limite da auditoria, não autorização para commit ou push nem uma correção automática.
+- Check task checkboxes against implementation and tests. A checked box alone is not proof; a failed or unrun gate remains pending.
+- Separate direct observation, test results, inherited earlier evidence, and inference. Record the commands and environment that produced evidence.
+- Inspect only the branch, commit, diff, and remote state that can be verified. Missing publication evidence is a limit, not an automatic push request. Review never commits or pushes.
+- Prioritize data integrity and security, then HTTP/API contracts, compatibility, and predictable maintenance. Report reproducible conditions and concrete effects.
+- Do not call missing evidence a proven defect. State the uncertainty and whether it prevents acceptance.
 
-Siga os contratos entre camadas afetadas: HTTP/OpenAPI, serviço/repository, migration/schema, API/SPA, sessão/autorização, configuração e documentação. Faça verificações proporcionais ao risco; um teste unitário não prova um fluxo de integração dependente de HTTP, banco ou navegador.
+## Findings and re-audits
 
-## Achados e reauditoria
-
-Cada achado recebe ID estável, prioridade, evidência verificável, impacto, menor correção suficiente, aceite e teste. Não chame risco potencial de defeito demonstrado. Registre no mesmo `review.md` o estado atual de cada achado após correções e a evidência que mudou a conclusão. Preserve IDs; evite transcrições e arquivos por rodada. A próxima sessão de Code pode corrigir um achado sem validação adicional do usuário, mas só uma nova Review o marca como resolvido.
-
-Registre quais requisitos da Spec foram comprovados e quais ficaram pendentes. Conclua com estado claro, bloqueios reais e limites da verificação. Uma afirmação de gate aprovado deve apontar para resultados descritos em [quality.md](quality.md).
+Use one `review.md` per new feature. Give each finding a stable ID and record evidence, impact, the smallest sufficient correction, acceptance, and a verification method. Re-audit corrections in the same file, preserving IDs and historical decisions while updating status and current evidence. Do not change Feature, Spec, or Plan during Review.

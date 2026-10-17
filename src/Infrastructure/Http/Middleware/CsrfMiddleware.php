@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http\Middleware;
 
+use App\Infrastructure\Http\Response\JsonResponse;
+use App\Infrastructure\I18n\Localization;
 use Psr\Http\Message\{ResponseInterface,ServerRequestInterface};
 use Psr\Http\Server\{MiddlewareInterface,RequestHandlerInterface};
 use Slim\Psr7\Response;
@@ -11,7 +13,7 @@ use Slim\Psr7\Response;
 final class CsrfMiddleware implements MiddlewareInterface
 {
     /** @param list<string> $anonymousMutationExemptions Entries use "METHOD /exact/path". */
-    public function __construct(private array $anonymousMutationExemptions = [])
+    public function __construct(private array $anonymousMutationExemptions = [], private ?Localization $localization = null)
     {
     }
 
@@ -27,9 +29,10 @@ final class CsrfMiddleware implements MiddlewareInterface
             $expected = $_SESSION['csrf'] ?? '';
             $provided = $request->getHeaderLine('X-CSRF-Token');
             if (!is_string($expected) || $expected === '' || !hash_equals($expected, $provided)) {
-                $response = new Response(419);
-                $response->getBody()->write('{"error":{"status":419,"message":"Token CSRF inválido ou ausente."}}');
-                return $response->withHeader('Content-Type', 'application/json');
+                $locale = $request->getAttribute('locale');
+                $locale = is_string($locale) ? $locale : $this->localization?->negotiator->negotiate($request->getHeaderLine('Accept-Language')) ?? 'en';
+                $message = $this->localization?->translate($locale, 'csrf.invalid') ?? 'The CSRF token is missing or invalid.';
+                return JsonResponse::error(new Response(), $message, 419);
             }
         }
         return $handler->handle($request);

@@ -1,6 +1,6 @@
 ---
 name: sdd-feature
-description: Definir a necessidade de produto de uma funcionalidade e registrar feature.md no SDD Lite.
+description: Define a feature's product need and record feature.md in SDD Lite.
 ---
 
-Leia e execute [o comando canônico Feature](../../../.specs/commands/feature.md). Considere o ID ou contexto fornecido pelo usuário. As regras, limites e saída estão nesse arquivo.
+Read and execute the [canonical Feature command](../../../.specs/commands/feature.md). Use the ID or context provided by the user. That file defines the rules, limits, and output.

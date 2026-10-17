@@ -1,5 +1,5 @@
 ---
-description: Planeja tarefas funcionais e rastreáveis de uma spec.
+description: Plan functional and traceable tasks for a spec.
 ---
 
-Leia e execute `.specs/commands/plan.md` na raiz do repositório. Contexto ou ID informado: $ARGUMENTS
+Read and execute `.specs/commands/plan.md` from the repository root. User context or ID: $ARGUMENTS

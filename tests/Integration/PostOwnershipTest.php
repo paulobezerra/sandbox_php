@@ -7,7 +7,7 @@ namespace App\Tests\Integration;
 use App\Application\Post\PostService;
 use App\Bootstrap\App;
 use App\Bootstrap\Config;
-use App\Domain\ContentNotFound;
+use App\Application\Post\PostException;
 use App\Infrastructure\Database\ConnectionFactory;
 use App\Infrastructure\Database\Repository\{MysqlPostRepository, MysqlUserRepository};
 use App\Tests\TestCase;
@@ -38,6 +38,26 @@ final class PostOwnershipTest extends TestCase
             $list = $app->handle($this->createRequest('GET', '/api/me/posts'));
             self::assertSame(200, $list->getStatusCode());
             self::assertSame([], json_decode((string) $list->getBody(), true, flags: JSON_THROW_ON_ERROR)['items']);
+
+            $invalidPortuguese = $app->handle($withCsrf($this->createJsonRequest('POST', '/api/me/posts', [
+                'title' => '', 'content' => 'Body',
+            ])->withHeader('Accept-Language', 'pt-BR')));
+            $invalidEnglish = $app->handle($withCsrf($this->createJsonRequest('POST', '/api/me/posts', [
+                'title' => '', 'content' => 'Body',
+            ])->withHeader('Accept-Language', 'en')));
+            self::assertSame(422, $invalidPortuguese->getStatusCode());
+            self::assertSame(422, $invalidEnglish->getStatusCode());
+            $ptError = json_decode((string) $invalidPortuguese->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            $enError = json_decode((string) $invalidEnglish->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            self::assertSame(['error'], array_keys($ptError));
+            self::assertSame(['status', 'message'], array_keys($ptError['error']));
+            self::assertSame(422, $ptError['error']['status']);
+            self::assertSame('Informe um título com até 200 caracteres.', $ptError['error']['message']);
+            self::assertSame('Enter a title of up to 200 characters.', $enError['error']['message']);
+
+            $missingPortuguese = $app->handle($this->createRequest('GET', '/api/posts/missing-' . $suffix)->withHeader('Accept-Language', 'pt-BR'));
+            self::assertSame(404, $missingPortuguese->getStatusCode());
+            self::assertSame('O Post não foi encontrado.', json_decode((string) $missingPortuguese->getBody(), true, flags: JSON_THROW_ON_ERROR)['error']['message']);
 
             $missingCsrf = $app->handle($this->createJsonRequest('POST', '/api/me/posts', [
                 'title' => 'Protected post', 'content' => 'Body',
@@ -145,13 +165,13 @@ final class PostOwnershipTest extends TestCase
             try {
                 $service->findMine($postA->id, $authorB->id);
                 self::fail('A different author must not read the post.');
-            } catch (ContentNotFound) {
+            } catch (PostException) {
                 self::assertSame('Private A ' . $suffix, $service->findMine($postA->id, $authorA->id)->title);
             }
             try {
                 $service->updateMine($postA->id, $authorB->id, ['title' => 'Stolen', 'content' => 'Changed']);
                 self::fail('A different author must not update the post.');
-            } catch (ContentNotFound) {
+            } catch (PostException) {
                 self::assertSame('Private A ' . $suffix, $service->findMine($postA->id, $authorA->id)->title);
             }
             $updated = $service->updateMine($postA->id, $authorA->id, ['title' => 'Updated A', 'content' => 'Own update', 'authorId' => $authorB->id]);
@@ -164,7 +184,7 @@ final class PostOwnershipTest extends TestCase
             try {
                 $service->deleteMine($postB->id, $authorA->id);
                 self::fail('A different author must not delete the post.');
-            } catch (ContentNotFound) {
+            } catch (PostException) {
                 self::assertNotNull($posts->find($postB->id));
             }
         } finally {

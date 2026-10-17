@@ -35,7 +35,7 @@ class ConfigTest extends TestCase
     public function testRequiresDatabaseNameAndUser(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('DB_DATABASE é obrigatório.');
+        $this->expectExceptionMessage('DB_DATABASE is required.');
 
         Config::fromArray([]);
     }
@@ -43,7 +43,7 @@ class ConfigTest extends TestCase
     public function testRejectsInvalidDebugValue(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('APP_DEBUG deve ser um valor booleano válido.');
+        $this->expectExceptionMessage('APP_DEBUG must be a valid boolean value.');
 
         Config::fromArray([
             'APP_DEBUG' => 'maybe',
@@ -55,7 +55,7 @@ class ConfigTest extends TestCase
     public function testRejectsInvalidPort(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('DB_PORT deve ser um número entre 1 e 65535.');
+        $this->expectExceptionMessage('DB_PORT must be a number between 1 and 65535.');
 
         Config::fromArray([
             'DB_PORT' => '70000',
@@ -78,8 +78,53 @@ class ConfigTest extends TestCase
     public function testProductionRequiresPublicHttpsUrl(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('APP_URL deve usar HTTPS em produção.');
+        $this->expectExceptionMessage('APP_URL must use HTTPS in production.');
         Config::fromArray(['DB_DATABASE' => 'app', 'DB_USERNAME' => 'app-user', 'APP_ENV' => 'production']);
+    }
+
+    public function testConfiguresSupportedLocalesAndFallback(): void
+    {
+        $config = Config::fromArray([
+            'DB_DATABASE' => 'app',
+            'DB_USERNAME' => 'app-user',
+            'APP_ENV' => 'testing',
+            'SUPPORTED_LOCALES' => 'en, pt-BR',
+            'FALLBACK_LOCALE' => 'pt-BR',
+        ]);
+
+        self::assertSame(['en', 'pt-BR'], $config->supportedLocales);
+        self::assertSame('pt-BR', $config->fallbackLocale);
+    }
+
+    public function testRejectsFallbackOutsideSupportedLocales(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('FALLBACK_LOCALE must be included in SUPPORTED_LOCALES.');
+        Config::fromArray([
+            'DB_DATABASE' => 'app',
+            'DB_USERNAME' => 'app-user',
+            'APP_ENV' => 'testing',
+            'SUPPORTED_LOCALES' => 'en,pt-BR',
+            'FALLBACK_LOCALE' => 'fr',
+        ]);
+    }
+
+    public function testRejectsCataloguesWithDifferentKeys(): void
+    {
+        $directory = sys_get_temp_dir() . '/locale_' . bin2hex(random_bytes(6));
+        mkdir($directory);
+        file_put_contents($directory . '/en.json', '{"home":"Home"}');
+        file_put_contents($directory . '/pt-BR.json', '{"home":"Início","extra":"x"}');
+
+        try {
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessage('has incomplete keys');
+            \App\Infrastructure\I18n\Localization::load(['en', 'pt-BR'], 'en', $directory);
+        } finally {
+            unlink($directory . '/en.json');
+            unlink($directory . '/pt-BR.json');
+            rmdir($directory);
+        }
     }
 
 }

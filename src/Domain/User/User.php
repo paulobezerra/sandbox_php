@@ -17,13 +17,13 @@ final readonly class User
         public DateTimeImmutable $createdAt
     ) {
         if ($id < 0 || trim($name) === '' || mb_strlen($name) > 120) {
-            throw new InvalidArgumentException('Dados de usuário inválidos.');
+            throw new InvalidArgumentException('Invalid user data.');
         }
         if (filter_var($email, FILTER_VALIDATE_EMAIL) === false || mb_strlen($email) > 254) {
-            throw new InvalidArgumentException('E-mail de usuário inválido.');
+            throw new InvalidArgumentException('Invalid user email.');
         }
         if ($passwordHash === '') {
-            throw new InvalidArgumentException('Credenciais de usuário inválidas.');
+            throw new InvalidArgumentException('Invalid user credentials.');
         }
     }
 

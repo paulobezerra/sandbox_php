@@ -1,29 +1,29 @@
-# FEATURE — <nome>
+# FEATURE — <name>
 
-**ID:** NNN-nome · **Estado:** proposta · **Data:** AAAA-MM-DD
+**ID:** NNN-name · **Status:** proposed · **Date:** YYYY-MM-DD
 
-**Branch:** `feature/NNN-nome` <ou `fix/NNN-nome` para conserto independente; registrar a branch local efetiva>.
+**Branch:** `feature/NNN-name` <or `fix/NNN-name` for an independent fix; record the effective local branch>.
 
-**Validação do usuário para Spec:** pendente. Após declaração explícita, registrar aqui a declaração, o nome informado pelo usuário e a data obtida do SO, sem alterar o restante da Feature.
+**User validation for Spec:** pending. After an explicit statement, record it here with the user's supplied name and the date obtained from the OS, without changing the rest of the Feature.
 
-## Necessidade de negócio
+## Business need
 
-<problema ou oportunidade, para quem e por que agora>
+<problem or opportunity, for whom, and why now>
 
-## Resultado desejado
+## Desired outcome
 
-<capacidade observável pelo usuário ou operador e valor esperado; sem arquitetura>
+<observable capability and expected value for a user or operator; no architecture>
 
-## Limites e contexto
+## Boundaries and context
 
-- **Inclui:** <o que pertence a esta funcionalidade>
-- **Fora do escopo:** <o que fica para depois>
-- **Restrições de produto:** <prazo, política, integrações ou compatibilidade conhecidas>
+- **Included:** <what belongs to this feature>
+- **Out of scope:** <what is deferred>
+- **Product constraints:** <known deadline, policy, integration, or compatibility constraints>
 
-## Sinais de sucesso
+## Success signals
 
-- <como saber que a necessidade foi atendida, sem prescrever implementação>
+- <how to tell that the need has been met, without prescribing implementation>
 
-## Questões de produto
+## Product questions
 
-- <decisão indispensável ainda sem resposta; remover seção se nenhuma>
+- <essential unanswered decision; remove this section if there are none>

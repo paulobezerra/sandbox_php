@@ -1,9 +1,9 @@
 export default {
     template: `
         <section>
-            <h1>404 — Página não encontrada</h1>
-            <p>O recurso ou página solicitado não foi encontrado.</p>
-            <router-link to="/">Voltar para o início</router-link>
+            <h1>{{ $t('notFound.title') }}</h1>
+            <p>{{ $t('error.notFound') }}</p>
+            <router-link to="/">{{ $t('notFound.back') }}</router-link>
         </section>
     `
 };

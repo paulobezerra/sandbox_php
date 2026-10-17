@@ -19,6 +19,8 @@ use App\Infrastructure\Database\Repository\MysqlPostRepository;
 use App\Infrastructure\Database\Repository\MysqlUserRepository;
 use App\Infrastructure\View\MarkdownRenderer;
 use App\Infrastructure\View\ViewRenderer;
+use App\Infrastructure\I18n\Localization;
+use App\Infrastructure\Http\Middleware\LocaleMiddleware;
 use DI\Container;
 use DI\ContainerBuilder;
 use Jgut\Slim\Routing\AppFactory as RoutingAppFactory;
@@ -39,13 +41,15 @@ class App
     ): SlimApp {
         $config ??= Config::fromEnvironment();
         $db = $pdo ?? ConnectionFactory::create($config);
+        $localization = Localization::load($config->supportedLocales, $config->fallbackLocale);
         $viewRenderer = new ViewRenderer();
-        $appController = new AppController($viewRenderer);
+        $appController = new AppController($viewRenderer, $localization);
 
         $containerBuilder = new ContainerBuilder();
         $definitions = [
             PDO::class => $db,
             Config::class => $config,
+            Localization::class => $localization,
             UserRepository::class => \DI\autowire(MysqlUserRepository::class),
             PostRepository::class => \DI\autowire(MysqlPostRepository::class),
             AuthService::class => \DI\autowire(),
@@ -65,7 +69,7 @@ class App
 
         // Route resolution runs before CSRF so unknown API paths keep their 404 contract.
         $app->addBodyParsingMiddleware();
-        $app->add(new CsrfMiddleware($anonymousMutationCsrfExemptions));
+        $app->add(new CsrfMiddleware($anonymousMutationCsrfExemptions, $localization));
         $app->addRoutingMiddleware();
 
         $displayErrorDetails = $config->appEnv === 'development' || $config->appDebug;
@@ -73,11 +77,12 @@ class App
         $logErrorDetails = $displayErrorDetails;
 
         $errorMiddleware = $app->addErrorMiddleware($displayErrorDetails, $logErrors, $logErrorDetails);
-        $errorHandler = new HttpErrorHandler($app->getResponseFactory());
+        $errorHandler = new HttpErrorHandler($app->getResponseFactory(), $localization);
         $errorMiddleware->setDefaultErrorHandler($errorHandler);
 
         $app->add(new SecurityHeadersMiddleware());
         $app->add(new SessionMiddleware($config));
+        $app->add(new LocaleMiddleware($localization));
 
         // 3. Register routes
         Routes::register($app, $appController, new DocumentationController($config), $config->openApiEnabled);

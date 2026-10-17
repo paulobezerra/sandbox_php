@@ -1,21 +1,21 @@
-# REVIEW — <nome da funcionalidade>
+# REVIEW — <feature name>
 
-**Feature:** [feature.md](feature.md) · **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md) · **Data:** AAAA-MM-DD · **Estado:** <aberta | correções pendentes | concluída>
+**Feature:** [feature.md](feature.md) · **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md) · **Date:** YYYY-MM-DD · **Status:** <open | corrections pending | complete>
 
-## Base e limites
+## Baseline and limits
 
-<Branch, diff e commit examinados; publicação comprovada ou não; testes executados e não executados. Separar observação, teste e inferência.>
+<Branch, diff, and commit examined; whether publication was proven; tests run and not run. Separate observation, test, and inference.>
 
-## Requisitos verificados
+## Verified requirements
 
-<Para cada requisito: tarefa do Plan, comportamento observado, evidência e pendência real. Conferir checklist contra código e testes.>
+<For each requirement: Plan task, observed behavior, evidence, and actual pending work. Check the checklist against code and tests.>
 
-## Achados
+## Findings
 
-- **R-01 — <título>.** **Estado:** aberto. **Evidência:** <arquivo/linha ou comando e resultado>. **Impacto:** <efeito concreto>. **Correção:** <menor mudança suficiente>. **Aceite e teste:** <o que comprova a correção>.
+- **R-01 — <title>.** **Status:** open. **Evidence:** <file/line or command and result>. **Impact:** <concrete effect>. **Correction:** <smallest sufficient change>. **Acceptance and test:** <what proves the correction>.
 
-<Omitir o exemplo quando não houver achados. Na reauditoria, atualizar o estado e a evidência no mesmo arquivo, preservando IDs.>
+<Omit the example if there are no findings. In re-audits, update status and evidence in this same file, preserving IDs.>
 
-## Conclusão
+## Conclusion
 
-<Estado da funcionalidade, gate verificado, bloqueios e limites. Não declarar teste não executado como aprovado.>
+<Feature state, verified gate, blockers, and limits. Do not claim an unrun test passed.>

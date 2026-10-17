@@ -1,6 +1,6 @@
 ---
 name: sdd-plan
-description: Dividir uma spec escolhida em tarefas funcionais, rastreáveis e testáveis no plan.md.
+description: Break a selected spec into functional, traceable, testable tasks in plan.md.
 ---
 
-Leia e execute [o comando canônico Plan](../../../.specs/commands/plan.md). Considere o ID ou contexto fornecido pelo usuário. As regras, limites e saída estão nesse arquivo.
+Read and execute the [canonical Plan command](../../../.specs/commands/plan.md). Use the ID or context provided by the user. That file defines the rules, limits, and output.

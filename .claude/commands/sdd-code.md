@@ -1,5 +1,5 @@
 ---
-description: Implementa um ID aberto com os testes e gates do SDD Lite.
+description: Implement an open ID with SDD Lite tests and gates.
 ---
 
-Leia e execute `.specs/commands/code.md` na raiz do repositório. Contexto ou ID informado: $ARGUMENTS
+Read and execute `.specs/commands/code.md` from the repository root. User context or ID: $ARGUMENTS

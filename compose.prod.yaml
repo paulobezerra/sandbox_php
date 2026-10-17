@@ -15,7 +15,7 @@ services:
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
-      APP_URL: ${APP_URL:?Defina APP_URL com a URL HTTPS pública}
+      APP_URL: ${APP_URL:?Set APP_URL to the public HTTPS URL}
       SESSION_COOKIE: ${SESSION_COOKIE:-skeleton_session}
     depends_on:
       mysql:

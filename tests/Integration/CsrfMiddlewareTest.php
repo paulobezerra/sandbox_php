@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Integration;
 
 use App\Infrastructure\Http\Middleware\CsrfMiddleware;
+use App\Infrastructure\I18n\Localization;
 use App\Tests\TestCase;
 use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 use Psr\Http\Server\{RequestHandlerInterface};
@@ -85,5 +86,28 @@ final class CsrfMiddlewareTest extends TestCase
         );
 
         self::assertSame(204, $result->getStatusCode());
+    }
+
+    public function testRejectedMutationUsesNegotiatedLocaleAndPreservesJsonShape(): void
+    {
+        $_SESSION = [];
+        $localization = Localization::load(['en', 'pt-BR'], 'en');
+        $handler = new class () implements RequestHandlerInterface {
+            public function handle(ServerRequestInterface $request): ResponseInterface
+            {
+                return new Response();
+            }
+        };
+
+        foreach ([
+            ['en', 'The CSRF token is missing or invalid.'],
+            ['pt-BR', 'O token CSRF está ausente ou é inválido.'],
+        ] as [$locale, $message]) {
+            $request = $this->createRequest('POST', '/api/extensions/mutate', ['Accept-Language' => $locale]);
+            $response = (new CsrfMiddleware([], $localization))->process($request, $handler);
+            $body = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
+            self::assertSame(419, $response->getStatusCode());
+            self::assertSame(['status' => 419, 'message' => $message], $body['error']);
+        }
     }
 }

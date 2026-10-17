@@ -58,7 +58,7 @@ final class CreateInitialSchema extends AbstractMigration
             if ($this->hasTable($tableName)
                 && $this->fetchRow("SELECT 1 FROM {$tableName} LIMIT 1") !== false) {
                 throw new RuntimeException(
-                    "A reversão foi interrompida: {$tableName} contém dados. Faça backup antes de removê-los."
+                    "Rollback stopped: {$tableName} contains data. Back it up before removing it."
                 );
             }
         }

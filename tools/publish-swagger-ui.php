@@ -19,12 +19,12 @@ $requiredFiles = [
 $legalFiles = ['LICENSE', 'NOTICE'];
 
 if (!is_dir($sourceDirectory)) {
-    fwrite(STDERR, "Swagger UI não está instalado. Execute composer install primeiro.\n");
+    fwrite(STDERR, "Swagger UI is not installed. Run composer install first.\n");
     exit(1);
 }
 
 if (!is_dir($targetDirectory) && !mkdir($targetDirectory, 0775, true) && !is_dir($targetDirectory)) {
-    fwrite(STDERR, "Não foi possível criar o diretório de assets Swagger UI.\n");
+    fwrite(STDERR, "Could not create the Swagger UI asset directory.\n");
     exit(1);
 }
 
@@ -60,7 +60,7 @@ foreach ($requiredFiles as $file) {
 
     $destination = $file === 'index.html' ? $uiPage : $targetDirectory . '/' . $file;
     if (file_put_contents($destination, $contents) === false) {
-        fwrite(STDERR, sprintf("Não foi possível publicar o asset Swagger UI: %s\n", $file));
+        fwrite(STDERR, sprintf("Could not publish the Swagger UI asset: %s\n", $file));
         exit(1);
     }
 }
@@ -72,7 +72,7 @@ if (is_file($targetDirectory . '/index.html')) {
 foreach ($legalFiles as $file) {
     $contents = file_get_contents($projectRoot . '/vendor/swagger-api/swagger-ui/' . $file);
     if ($contents === false || file_put_contents($targetDirectory . '/' . $file, $contents) === false) {
-        fwrite(STDERR, sprintf("Não foi possível publicar o arquivo legal Swagger UI: %s\n", $file));
+        fwrite(STDERR, sprintf("Could not publish the Swagger UI legal file: %s\n", $file));
         exit(1);
     }
 }

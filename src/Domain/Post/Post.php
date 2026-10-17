@@ -29,7 +29,7 @@ final readonly class Post
             || ($status === 'PUBLISHED' && $publishedAt === null)
             || ($status === 'DRAFT' && $publishedAt !== null)
             || $updatedAt < $createdAt) {
-            throw new InvalidArgumentException('Post contém estado inválido.');
+            throw new InvalidArgumentException('Post has an invalid state.');
         }
     }
 
