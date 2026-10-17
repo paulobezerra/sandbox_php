@@ -7,4 +7,8 @@
 /.idea/
 /.ide-libs/
 /node_modules/
+/error_log
+/public/.htaccess
+/public/.user.ini
+/public/php.ini
 *.log
