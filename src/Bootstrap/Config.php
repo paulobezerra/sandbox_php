@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Bootstrap;
 
 use InvalidArgumentException;
+use Dotenv\Dotenv;
+use Throwable;
 use App\Infrastructure\I18n\LocaleNegotiator;
 use App\Infrastructure\I18n\Localization;
 
@@ -28,10 +30,12 @@ final readonly class Config
     ) {
     }
 
-    public static function fromEnvironment(): self
+    /**
+     * @param array<string, string>|null $processEnvironment Explicit source values, primarily for isolated tests.
+     */
+    public static function fromEnvironment(?array $processEnvironment = null, ?string $environmentFile = null): self
     {
-        $values = [];
-        foreach ([
+        $names = [
             'APP_ENV',
             'APP_DEBUG',
             'OPENAPI_ENABLED',
@@ -42,14 +46,41 @@ final readonly class Config
             'DB_PASSWORD',
             'DB_CHARSET',
             'APP_URL', 'SESSION_COOKIE', 'SUPPORTED_LOCALES', 'FALLBACK_LOCALE',
-        ] as $name) {
-            $value = getenv($name);
-            if ($value !== false) {
-                $values[$name] = $value;
+        ];
+
+        if ($processEnvironment === null) {
+            $processEnvironment = [];
+            foreach ($names as $name) {
+                $value = getenv($name);
+                if ($value !== false) {
+                    $processEnvironment[$name] = $value;
+                }
             }
         }
 
-        return self::fromArray($values);
+        $environmentFile ??= dirname(__DIR__, 2) . '/.env';
+        $fileValues = [];
+        if (file_exists($environmentFile)) {
+            if (!is_file($environmentFile) || !is_readable($environmentFile)) {
+                throw new InvalidArgumentException('Unable to read configuration file ' . basename($environmentFile) . '.');
+            }
+
+            $contents = @file_get_contents($environmentFile);
+            if ($contents === false) {
+                throw new InvalidArgumentException('Unable to read configuration file ' . basename($environmentFile) . '.');
+            }
+
+            try {
+                $fileValues = Dotenv::parse($contents);
+            } catch (Throwable) {
+                throw new InvalidArgumentException('Unable to parse configuration file ' . basename($environmentFile) . '.');
+            }
+        }
+
+        $recognizedFileValues = array_intersect_key($fileValues, array_flip($names));
+        $recognizedProcessValues = array_intersect_key($processEnvironment, array_flip($names));
+
+        return self::fromArray(array_replace($recognizedFileValues, $recognizedProcessValues));
     }
 
     /** @param array<string, string> $values */
