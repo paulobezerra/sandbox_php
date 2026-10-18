@@ -94,34 +94,68 @@ check_page /features 'Page not found' 'removed features page route'
 check_page /architecture 'Page not found' 'removed architecture page route'
 check_page /guide 'Page not found' 'removed guide page route'
 check_page /about 'Page not found' 'removed About page route'
-home_file="$work_dir/home.html"
-if ! "$chrome_bin" \
-    --headless=new \
-    --lang=en-US \
-    --accept-lang=en-US \
-    --no-sandbox \
-    --disable-gpu \
-    --disable-dev-shm-usage \
-    --no-first-run \
-    --no-default-browser-check \
-    --user-data-dir="$work_dir/home-profile" \
-    --virtual-time-budget=4000 \
-    --dump-dom "$base_url/" >"$home_file" 2>"$work_dir/home-chrome.log"; then
-    echo 'FAILED: the Home did not open in Chromium for anchor checks.' >&2
-    cat "$work_dir/home-chrome.log" >&2
-    exit 1
-fi
-for anchor in capacidades stack arquitetura instalacao primeiro-uso rotas qualidade producao customizacao sdd-lite; do
-    if ! grep -Fq "id=\"$anchor\"" "$home_file" || ! grep -Fq "href=\"#$anchor\"" "$home_file"; then
-        echo "FAILED: missing Home anchor or target: $anchor." >&2
-        exit 1
+check_home_details() {
+    local browser_locale="$1"
+    local expected_locale="$2"
+    local repository_label="$3"
+    local guide_label="$4"
+    local foundation_text="$5"
+    local examples_text="$6"
+    local home_file="$work_dir/home-$expected_locale.html"
+    local error_file="$work_dir/home-$expected_locale-chrome.log"
+
+    if ! "$chrome_bin" \
+        --headless=new \
+        --lang="$browser_locale" \
+        --accept-lang="$browser_locale" \
+        --no-sandbox \
+        --disable-gpu \
+        --disable-dev-shm-usage \
+        --no-first-run \
+        --no-default-browser-check \
+        --user-data-dir="$work_dir/home-profile-$expected_locale" \
+        --virtual-time-budget=4000 \
+        --dump-dom "$base_url/" >"$home_file" 2>"$error_file"; then
+        echo "FAILED: the Home did not open in Chromium for $expected_locale checks." >&2
+        cat "$error_file" >&2
+        return 1
     fi
-done
-if grep -Eq 'href="/(about|features|architecture|guide)([/?#"]|$)' "$home_file"; then
-    echo 'FAILED: the Home still links to a removed institutional page.' >&2
-    exit 1
-fi
-printf 'OK: Home anchors and internal links\n'
+
+    for anchor in capacidades stack arquitetura instalacao primeiro-uso rotas qualidade producao customizacao sdd-lite; do
+        if ! grep -Fq "id=\"$anchor\"" "$home_file" || ! grep -Fq "href=\"#$anchor\"" "$home_file"; then
+            echo "FAILED: missing Home anchor or target in $expected_locale: $anchor." >&2
+            return 1
+        fi
+    done
+    if ! grep -Fq "href=\"https://github.com/paulobezerra/sandbox_php\"" "$home_file" \
+        || ! grep -Fq ">$repository_label</a>" "$home_file" \
+        || ! grep -Fq 'href="https://github.com/paulobezerra/sandbox_php/blob/main/docs/customization.md"' "$home_file" \
+        || ! grep -Fq ">$guide_label</a>" "$home_file"; then
+        echo "FAILED: missing localized repository or customization link in $expected_locale." >&2
+        return 1
+    fi
+    if ! grep -Fq 'test-all.sh' "$home_file" || ! grep -Fq 'migrate:status' "$home_file" \
+        || ! grep -Fq 'composer format' "$home_file" || ! grep -Fq 'composer quality' "$home_file"; then
+        echo "FAILED: missing operational guidance in $expected_locale." >&2
+        return 1
+    fi
+    local foundation_position
+    local examples_position
+    foundation_position="$(grep -boF "$foundation_text" "$home_file" | head -n 1 | cut -d: -f1)"
+    examples_position="$(grep -boF "$examples_text" "$home_file" | head -n 1 | cut -d: -f1)"
+    if [[ -z "$foundation_position" || -z "$examples_position" || "$foundation_position" -ge "$examples_position" ]]; then
+        echo "FAILED: the reusable foundation must be introduced before Auth/Posts examples in $expected_locale." >&2
+        return 1
+    fi
+    if grep -Eq 'href="/(about|features|architecture|guide)([/?#"]|$)' "$home_file"; then
+        echo "FAILED: the Home still links to a removed institutional page in $expected_locale." >&2
+        return 1
+    fi
+    printf 'OK: Home anchors, links, and operational guidance (%s)\n' "$expected_locale"
+}
+
+check_home_details en-US en 'View the sandbox_php repository on GitHub' 'Read the User/Auth customization and domain extension guide' 'A reusable PHP, Slim, and Vue foundation' 'Registration, login, and the Posts workflow'
+check_home_details pt-BR pt-BR 'Acesse o repositório sandbox_php no GitHub' 'Leia o guia para customizar User/Auth e adicionar domínios' 'Uma base reutilizável em PHP, Slim e Vue' 'Cadastro, login e ciclo de Posts'
 check_page /blog 'Blog' 'English public blog'
 check_page /blog 'Blog' 'Portuguese public blog' pt-BR pt-BR
 check_page /uma-pagina-antiga 'Page not found' 'removed dynamic Pages route'

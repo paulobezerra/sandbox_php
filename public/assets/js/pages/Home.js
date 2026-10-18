@@ -6,6 +6,7 @@ export default {
                 <h1>{{ $t('home.title') }}</h1>
                 <p class="lead">{{ $t('home.lead') }}</p>
                 <p>{{ $t('home.intro') }}</p>
+                <p><a class="home-repository-link" href="https://github.com/paulobezerra/sandbox_php" target="_blank" rel="noopener noreferrer">{{ $t('home.repositoryLink') }}</a></p>
                 <nav :aria-label="$t('home.contents')" class="home-toc">
                     <a href="#capacidades">{{ $t('home.features') }}</a><a href="#stack">{{ $t('home.stack') }}</a>
                     <a href="#arquitetura">{{ $t('home.architecture') }}</a><a href="#instalacao">{{ $t('home.install') }}</a>
@@ -45,7 +46,9 @@ docker compose exec -T app composer migrate:status</code></pre>
 docker compose exec -T app composer lint
 docker compose exec -T app composer test
 docker compose exec -T app composer quality
-./tools/test-frontend.sh</code></pre>
+docker compose exec -T app composer migrate:status
+./tools/test-frontend.sh
+./tools/test-all.sh</code></pre>
                 <p>{{ $t('home.qualityDetails') }}</p>
             </section>
             <section id="producao" class="content-card"><h2>{{ $t('home.security') }}</h2><p>{{ $t('home.securityText') }}</p>
@@ -59,6 +62,7 @@ docker compose --env-file .env -f compose.prod.yaml exec -T app composer migrate
             </section>
             <section id="customizacao" class="content-card"><h2>{{ $t('home.customization') }}</h2><p>{{ $t('home.customizationText') }}</p>
                 <p>{{ $t('home.customizationModel') }}</p><p>{{ $t('home.customizationDomain') }}</p>
+                <p><a href="https://github.com/paulobezerra/sandbox_php/blob/main/docs/customization.md" target="_blank" rel="noopener noreferrer">{{ $t('home.customizationGuideLink') }}</a></p>
             </section>
             <section id="sdd-lite" class="content-card"><h2>{{ $t('home.sdd') }}</h2><p>{{ $t('home.sddText') }}</p>
                 <p>{{ $t('home.sddDetails') }}</p><p>{{ $t('home.sddStart') }}</p>
