@@ -137,6 +137,6 @@ The browser checks exercise both supported locales. With the app running and Chr
 
 - [Customize User/Auth and add domains](docs/customization.md)
 - [OpenAPI contract](docs/openapi.json)
-- [AGENTS.md](AGENTS.md): agent workflow conventions for this repository
-- [SDD Lite](.specs/README.md): specifications and reviews index
+- [AGENTS.md](AGENTS.md): project engineering and operations guidance
+- SDD Lite: use the standalone `$sdd-lite` skill for the workflow; project context is in `.specs/project-context.md` and `.specs/implementation.md`.
 - [Skeleton specification](.specs/features/001-skeleton/spec.md): requirements and phase history

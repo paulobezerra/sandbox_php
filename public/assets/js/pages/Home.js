@@ -62,8 +62,6 @@ docker compose --env-file .env -f compose.prod.yaml exec -T app composer migrate
             </section>
             <section id="sdd-lite" class="content-card"><h2>{{ $t('home.sdd') }}</h2><p>{{ $t('home.sddText') }}</p>
                 <p>{{ $t('home.sddDetails') }}</p><p>{{ $t('home.sddStart') }}</p>
-                <p><code>$sdd-feature add categories to Posts</code> · <code>$sdd-code T003-01</code></p>
-                <p><a href="https://github.com/paulobezerra/sandbox_php/blob/main/.specs/README.md">SDD Lite guide</a></p>
             </section>
         </article>
     `
