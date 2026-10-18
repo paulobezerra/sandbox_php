@@ -22,7 +22,7 @@ docker compose up -d --build
 docker compose exec -T app composer migrate
 ```
 
-Open `http://localhost:8080`. The migration is explicit and does not run at startup. The documentation Home is at `/`, the blog at `/blog`, registration and login at `/login`, the personal Posts area at `/my-posts`, the API at `/api`, and the OpenAPI documentation at `/docs` in the local environment. The development MySQL service publishes port `127.0.0.1:3306`.
+Open `http://localhost:8080`. The migration is explicit and does not run at startup. The documentation Home is at `/`, the blog at `/blog`, login at `/login`, registration at `/register`, the personal Posts area at `/my-posts`, the API at `/api`, and the OpenAPI documentation at `/docs` in the local environment. The development MySQL service publishes port `127.0.0.1:3306`.
 
 Create an account using the registration link on the login page. Each authenticated account can create, edit, publish, and remove only its own Posts. The demo has no password recovery; define an operational recovery procedure before using important accounts.
 
