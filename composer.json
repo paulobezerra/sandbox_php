@@ -1,6 +1,7 @@
 {
   "name": "paulobezerra/sandbox-php",
   "description": "Reusable PHP application skeleton with Slim 4, Vue 3, and MySQL",
+  "license": "0BSD",
   "type": "project",
   "archive": {
     "exclude": [

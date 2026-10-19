@@ -57,6 +57,11 @@ Do not create empty directories. A controller parses HTTP â†’ calls a service â†
 - Avoid lengthy output, repeated unnecessary tests, and redundant documentation.
 - Do not assume success: say when a test was not run.
 
+## SDD Lite branch base
+
+- Before creating any new Feature or Bug branch, run `git fetch origin main` from the host workspace and create the branch from `origin/main`. Do not base new work on a local `main` that may be stale or on another task's branch. Check the workspace before switching branches so unrelated changes are not mixed.
+- During an SDD Lite Review, edit only the target feature's or bug's `review.md`. Do not modify implementation files, product documentation, tests, or Feature/Spec/Plan/Bug artifacts to fix a finding. Record the evidence, required correction, and acceptance check in `review.md`, then stop. Make corrections in a separate Code execution when requested.
+
 ## API and security rules
 
 - Prefer route attributes when stable Slim integration has been verified; public methods without an annotation or attribute do not become endpoints.
