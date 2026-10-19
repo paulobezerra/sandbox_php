@@ -16,6 +16,8 @@ Implement the release and deployment workflow as one integrated task: pull reque
 
 **Code-stage decision:** Paulo explicitly requested removal of the deployment package and installer tests, including the existing `SharedHostingInstallerTest.php`. No deployment-specific automated tests remain. Keep T009-01 open until the GitHub PR workflow and an authorized deployment provide the remaining end-to-end evidence.
 
+**Workflow decision:** Paulo requested temporarily removing frontend browser tests from the GitHub workflow. The production build check remains enabled. Keep S009-01 open until frontend browser checks are restored and validated.
+
 - The task intentionally spans CI, packaging, installer, and operator guidance because the requested result is one usable workflow. Keep the changes bounded to those pieces and verify their integration as a unit.
 - Workflow YAML cannot configure repository branch protection. The required status checks must be enabled in repository settings before claiming merges are blocked.
 - Redeploying older code does not reverse database migrations; confirm code/schema compatibility for any selected tag.
