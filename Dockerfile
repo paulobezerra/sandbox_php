@@ -30,6 +30,15 @@ RUN cp "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 
 EXPOSE 80
 
+# Build frontend assets before assembling the production PHP image.
+FROM node:22-alpine AS frontend-build
+
+WORKDIR /var/www/html
+COPY frontend/package.json frontend/package-lock.json ./frontend/
+RUN npm --prefix frontend ci
+COPY frontend/ ./frontend/
+RUN npm --prefix frontend run build
+
 # Production stage: no Xdebug, optimized OPcache, and dependencies installed at build time
 FROM base AS production
 
@@ -48,6 +57,7 @@ RUN composer install \
 
 # Application code
 COPY . .
+COPY --from=frontend-build /var/www/html/public/assets/build/ ./public/assets/build/
 
 RUN composer assets:publish
 

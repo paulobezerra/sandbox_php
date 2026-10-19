@@ -4,5 +4,6 @@
 .env
 vendor/
 node_modules/
+public/assets/build/
 composer.phar
 *.log

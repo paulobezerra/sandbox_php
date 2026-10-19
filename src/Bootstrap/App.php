@@ -19,6 +19,7 @@ use App\Infrastructure\Database\Repository\MysqlPostRepository;
 use App\Infrastructure\Database\Repository\MysqlUserRepository;
 use App\Infrastructure\View\MarkdownRenderer;
 use App\Infrastructure\View\ViewRenderer;
+use App\Infrastructure\View\ViteAssetLoader;
 use App\Infrastructure\I18n\Localization;
 use App\Infrastructure\Http\Middleware\LocaleMiddleware;
 use DI\Container;
@@ -43,7 +44,8 @@ class App
         $db = $pdo ?? ConnectionFactory::create($config);
         $localization = Localization::load($config->supportedLocales, $config->fallbackLocale);
         $viewRenderer = new ViewRenderer();
-        $appController = new AppController($viewRenderer, $localization);
+        $viteAssets = new ViteAssetLoader(dirname(__DIR__, 2) . '/public', 'http://localhost:5173');
+        $appController = new AppController($viewRenderer, $localization, $config, $viteAssets);
 
         $containerBuilder = new ContainerBuilder();
         $definitions = [
@@ -80,7 +82,7 @@ class App
         $errorHandler = new HttpErrorHandler($app->getResponseFactory(), $localization);
         $errorMiddleware->setDefaultErrorHandler($errorHandler);
 
-        $app->add(new SecurityHeadersMiddleware());
+        $app->add(new SecurityHeadersMiddleware($config));
         $app->add(new SessionMiddleware($config));
         $app->add(new LocaleMiddleware($localization));
 

@@ -25,6 +25,7 @@ Starting point for Spec, Code, Bug and Review; the feature Spec defines the cont
 ## Client and interface
 
 - Frontend code uses Vue with native ES modules and local assets; there is no JavaScript build step. API access is organized in `public/assets/js/services/`. — `observed`, `README.md`, `public/assets/js/app.js`, `public/assets/js/services/api.js`
+- Third-party frontend libraries should be delivered from version-pinned CDNs by default. If a CDN integration fails, correct that integration rather than adding a local copy, unless the user makes a later decision. — `decided`, Paulo Bezerra, 2026-10-19
 - SPA browser checks are provided by host-side `tools/test-all.sh` and `tools/test-frontend.sh`; Chrome/Chromium and a running app are required. — `observed`, `README.md`, `tools/test-all.sh`, `tools/test-frontend.sh`
 
 ## Testing and quality gates

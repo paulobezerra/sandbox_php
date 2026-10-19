@@ -28,10 +28,10 @@ final class AppCompositionTest extends TestCase
 
     public function testVueRouterKeepsBlogSlugWithoutPublishedPageSlugFallback(): void
     {
-        $router = (string) file_get_contents(dirname(__DIR__, 2) . '/public/assets/js/router.js');
+        $router = (string) file_get_contents(dirname(__DIR__, 2) . '/frontend/src/spa/router.js');
 
         self::assertStringContainsString("path: '/blog/:slug'", $router);
         self::assertStringNotContainsString("path: '/:slug'", $router);
-        self::assertStringNotContainsString("from './pages/PublishedPage.js'", $router);
+        self::assertStringNotContainsString("from './pages/PublishedPage.vue'", $router);
     }
 }

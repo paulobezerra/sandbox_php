@@ -1,0 +1,25 @@
+# REVIEW — Collapsible sidebar menu
+
+**Source:** [feature.md](feature.md) · [spec.md](spec.md) · [plan.md](plan.md) · **Date:** 2026-10-19 · **Status:** complete
+
+## Baseline and limits
+
+The audited branch is `feature/008-menu-lateral-recolhivel` at `938340259cdfeeda871086edd722c62a6e87f664` (`docs: use Packagist create-project command`). The Plan marks T008-01 through T008-05 complete. The working tree contains 40 changed, deleted, or untracked paths, including the feature implementation and its artifacts; none of these changes is committed, so the branch commit does not contain the delivery. The remote read-only check `git ls-remote origin refs/heads/feature/008-menu-lateral-recolhivel` returned no matching ref; publication is not verified. `git diff --check` passed.
+
+The first `./tools/test-all.sh` attempt could not launch Chromium because the sandbox denied a Crashpad socket operation. Retrying the same command with host execution passed: Vite build and manifest checks, 15 Vitest/Playwright browser tests, and 98 PHPUnit tests (485 assertions). `docker compose exec -T app composer quality` passed: PHP-CS-Fixer found no changes, PHP syntax checks passed, PHPUnit passed (98 tests, 485 assertions), executable-line coverage was 87.60% against an 80% minimum, PHPStan reported no errors, and OpenAPI checks passed (2 tests, 41 assertions). The aggregate output included Git's “dubious ownership” warning from `/var/www/html`; it did not prevent either gate from completing successfully. The shell also printed expected Slim 404/405 request traces from tests. The browser suite and PHP checks exercise the active application/container; the Vite production build generated manifest and hashed CSS/JS assets under the ignored `public/assets/build/` directory.
+
+## Verified requirements
+
+- **T008-01 / S008-06–07:** `ViteAssetLoader` selects the local Vite entry in development, resolves manifest assets in production, validates asset paths, and reports a missing manifest with a build command. The build and manifest check passed in `./tools/test-all.sh`; template/configuration tests passed in the PHP quality suite. Development CSP allowances are conditional on the development environment, and the browser suite mounted the PHP-served app.
+- **T008-02 / S008-02, S008-05, S008-08:** frontend source is under `frontend/src/api/` and `frontend/src/spa/`, uses Vue SFCs, and the production Vite build succeeded. Browser checks passed for home, blog, login, registration, and authenticated posts views. PHP tests passed.
+- **T008-03 / S008-01, S008-03–04:** the sidebar starts closed, uses bundled Lucide icons, preserves navigation visibility, and was browser-checked at desktop and narrow widths. The implementation uses one toolbar button that changes from Menu to X when opened. This differs from the Spec's separate in-sidebar close control; the user reviewed that design and explicitly chose to keep the current behavior because the separate control looked visually bad (R-01).
+- **T008-04 / S008-09:** browser checks passed for both locales, local technology marks, documentation links, and build guidance. README and home-page npm workflow text are present.
+- **T008-05 / S008-10:** the integrated browser suite and PHPUnit orchestration passed as recorded above. `composer quality` also passed.
+
+## Findings
+
+- **R-01 — Separate in-sidebar close control omitted by user decision.** **Status:** accepted by user; closed 2026-10-19. **Evidence:** `frontend/src/spa/App.vue` lines 41–53 render one toolbar button whose label and icon switch between Menu and X; `frontend/tests/integration.test.js` lines 227–229 confirms there is no separate in-sidebar close button. This differs from Spec S008-01 and Plan T008-03. The user clarified on 2026-10-19: “R-01 não ficou registrado, mas pedi para ficar assim, da forma como tinha imaginado estava feio pra caralho, se não tiver mais nada pode concluir a review anotando isso ai”. **Impact:** the delivered interaction retains the single toolbar control; the separate in-sidebar control is intentionally omitted for visual design reasons. **Decision and disposition:** retain the current one-button interaction and close this finding with the user's explicit approval of the divergence. Feature and Spec remain unchanged; this decision is recorded here as Review disposition. **Acceptance and test:** the existing browser gate passed with the intended single-button behavior at desktop and narrow widths; no implementation changed during this re-audit, so checks were not rerun.
+
+## Conclusion
+
+The build, browser, PHP, coverage, static analysis, OpenAPI, and diff whitespace gates passed. The single-button sidebar behavior diverges from the Spec's separate in-sidebar close control, and the user explicitly approved retaining the delivered design; R-01 is closed on that basis. No other findings remain, so the Review is complete. Publication is not verified: the work remains uncommitted and no matching remote feature branch was found. No implementation or Plan changes were made during this re-audit.
