@@ -7,14 +7,19 @@ fail() {
     exit 1
 }
 
+[[ $# == 6 && "$1" == '--release' && "$3" == '--package' && "$5" == '--target' ]] \
+    || fail 'usage: tools/deploy-shared-hosting.sh --release TAG --package ARCHIVE --target DIRECTORY'
+release_tag=$2
+package_archive=$4
+deployment_target=$6
+
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P) \
     || fail 'could not resolve the application directory.'
-project_root=$(cd -- "$script_dir/.." && pwd -P) \
-    || fail 'could not resolve the application directory.'
+project_root=$(cd -- "$deployment_target" && pwd -P) \
+    || fail 'could not resolve the deployment target directory.'
+[[ -d "$project_root" ]] || fail 'deployment target must already exist.'
 environment_file="$project_root/.env"
 
-# Read only the three literal path assignments used by this installer. Never
-# evaluate the file as shell code. The documented values contain no expansion.
 read_dotenv_path() {
     local wanted_name=$1
     local line name value found='' found_set=0
@@ -53,20 +58,17 @@ configured_value() {
 
     configured_value_result=''
     configured_value_is_set=0
-
     if [[ -v $variable_name ]]; then
         configured_value_result=${!variable_name}
         configured_value_is_set=1
         return
     fi
-
     if configured_value_result=$(read_dotenv_path "$variable_name"); then
         configured_value_is_set=1
         return
     else
         read_status=$?
     fi
-
     [[ "$read_status" == 2 ]] || fail "could not read $variable_name from .env."
 }
 
@@ -74,7 +76,6 @@ validate_configured_path() {
     local variable_name=$1
     local value=$2
     local expected_kind=$3
-
     [[ -n "$value" ]] || fail "$variable_name is configured but empty."
     [[ "$value" == /* ]] || fail "$variable_name must be an absolute executable path."
     [[ "$value" != *'$'* && "$value" != *'`'* && "$value" != *';'* \
@@ -82,20 +83,15 @@ validate_configured_path() {
         && "$value" != *'>'* && "$value" != *$'\n'* ]] \
         || fail "$variable_name contains unsupported shell syntax."
     if [[ "$expected_kind" == 'file' ]]; then
-        [[ -f "$value" && -r "$value" ]] \
-            || fail "$variable_name does not point to a readable file."
+        [[ -f "$value" && -r "$value" ]] || fail "$variable_name does not point to a readable file."
     else
-        [[ -x "$value" && ! -d "$value" ]] \
-            || fail "$variable_name does not point to an executable file."
+        [[ -x "$value" && ! -d "$value" ]] || fail "$variable_name does not point to an executable file."
     fi
 }
 
 configured_value PHP_BIN
 php_setting=$configured_value_result
 php_setting_is_set=$configured_value_is_set
-configured_value GIT_BIN
-git_setting=$configured_value_result
-git_setting_is_set=$configured_value_is_set
 configured_value COMPOSER_BIN
 composer_setting=$configured_value_result
 composer_setting_is_set=$configured_value_is_set
@@ -114,55 +110,47 @@ else
     done < <(type -a -p php 2>/dev/null || true)
     [[ -n "$php_bin" ]] || fail 'PHP step: no PHP compatible with ^8.4 was found on PATH; set PHP_BIN to its absolute executable path.'
 fi
-
-if ! "$php_bin" -r 'exit(PHP_VERSION_ID >= 80400 && PHP_VERSION_ID < 90000 ? 0 : 1);' >/dev/null 2>&1; then
-    fail 'PHP step: PHP_BIN must run a version compatible with ^8.4.'
-fi
-
-if [[ "$git_setting_is_set" == 1 ]]; then
-    validate_configured_path GIT_BIN "$git_setting" executable
-    git_bin=$git_setting
-else
-    git_bin=$(command -v git) || fail 'Git step: git was not found on PATH.'
-fi
+"$php_bin" -r 'exit(PHP_VERSION_ID >= 80400 && PHP_VERSION_ID < 90000 ? 0 : 1);' >/dev/null 2>&1 \
+    || fail 'PHP step: PHP_BIN must run a version compatible with ^8.4.'
 
 if [[ "$composer_setting_is_set" == 1 ]]; then
     validate_configured_path COMPOSER_BIN "$composer_setting" file
     composer_bin=$composer_setting
 else
     composer_bin="$project_root/composer.phar"
-    [[ -f "$composer_bin" ]] || fail 'Composer step: the tracked composer.phar is missing.'
+    [[ -f "$composer_bin" ]] || fail 'Composer step: the tracked composer.phar is missing; set COMPOSER_BIN to a host-local Composer PHAR.'
 fi
-
-[[ -f "$composer_bin" ]] || fail 'Composer step: the selected Composer file does not exist.'
 composer_version=$("$php_bin" "$composer_bin" --version --no-ansi 2>/dev/null) \
     || fail 'Composer step: the selected Composer file cannot run with PHP_BIN.'
 [[ "$composer_version" =~ ^Composer\ version\ 2\. ]] \
     || fail 'Composer step: Composer 2 is required and must run with PHP_BIN.'
 
-git_run() {
-    GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=/bin/false SSH_ASKPASS=/bin/false \
-        GIT_SSH_COMMAND='ssh -oBatchMode=yes' "$git_bin" -C "$project_root" "$@"
+command -v tar >/dev/null 2>&1 || fail 'package step: tar is required on the host.'
+command -v rsync >/dev/null 2>&1 || fail 'package step: rsync is required on the host.'
+[[ -f "$package_archive" && -r "$package_archive" ]] || fail 'package step: release archive is not readable.'
+
+PHP_BIN="$php_bin" "$script_dir/verify-deploy-package.sh" "$package_archive" "$release_tag" "$(
+    tar -xOzf "$package_archive" .deploy-release 2>/dev/null | tail -n 1
+)" >/dev/null 2>&1 || fail 'package step: release archive validation failed; the application has not been changed.'
+
+temporary_directory=$(mktemp -d "${TMPDIR:-/tmp}/sandbox-php-release.XXXXXX") \
+    || fail 'package step: could not create a temporary directory.'
+cleanup() {
+    rm -rf -- "$temporary_directory"
 }
+trap cleanup EXIT
 
-branch=$(git_run branch --show-current 2>/dev/null) \
-    || fail 'Git step: could not inspect the current branch.'
-[[ "$branch" == 'main' ]] || fail 'Git step: the checkout must be on local main.'
-
-if [[ -n "$(git_run status --porcelain --untracked-files=normal 2>/dev/null)" ]]; then
-    fail 'Git step: the working tree must be clean.'
+if ! tar -xzf "$package_archive" -C "$temporary_directory"; then
+    fail 'package step: could not extract the validated release archive.'
 fi
 
-upstream=$(git_run rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null) \
-    || fail 'Git step: local main must track a remote main branch.'
-[[ "$upstream" == */main ]] || fail 'Git step: local main must track a remote main branch.'
-remote=${upstream%/main}
-[[ -n "$remote" ]] || fail 'Git step: local main must track a remote main branch.'
-git_run remote get-url "$remote" >/dev/null 2>&1 \
-    || fail 'Git step: the configured upstream remote is unavailable.'
-
-if ! git_run -c core.askPass=/bin/false pull --ff-only "$remote" main >/dev/null 2>&1; then
-    fail 'Git fast-forward pull failed; check remote access and that local main can fast-forward.'
+if ! rsync -a \
+    --exclude='/.env' \
+    --exclude='/vendor/' \
+    --exclude='/public/.htaccess' \
+    --exclude='/.deploy-release' \
+    "$temporary_directory/" "$project_root/"; then
+    fail 'release file transfer failed; the application may contain a partial update, so rerun after resolving the rsync error.'
 fi
 
 if ! (
@@ -180,4 +168,4 @@ if ! (
     fail 'Production migration step failed; check DB_USERNAME privileges and migration status, then rerun.'
 fi
 
-printf 'Shared-hosting deployment completed: remote main updated, production dependencies installed, and pending migrations applied.\n'
+printf 'Shared-hosting deployment completed: %s installed, production dependencies installed, and pending migrations applied.\n' "$release_tag"

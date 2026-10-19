@@ -1,0 +1,250 @@
+name: Quality and release
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Published release tag to deploy
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  php-tests:
+    name: PHP tests
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist
+      - run: composer test
+
+  frontend-tests:
+    name: Frontend tests
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Configure disposable Compose database credentials
+        run: |
+          printf 'DB_DATABASE=sandbox_ci\n' >> "$GITHUB_ENV"
+          printf 'DB_USERNAME=sandbox_ci\n' >> "$GITHUB_ENV"
+          printf 'DB_PASSWORD=ci-only-password\n' >> "$GITHUB_ENV"
+          printf 'DB_ROOT_PASSWORD=ci-only-root-password\n' >> "$GITHUB_ENV"
+          printf 'APP_URL=http://localhost:8080\n' >> "$GITHUB_ENV"
+      - name: Start application and database for browser checks
+        run: docker compose up -d --build app mysql
+      - run: npm ci --prefix frontend
+      - name: Run browser tests with Vite development server
+        shell: bash
+        run: |
+          set -euo pipefail
+          node frontend/node_modules/vite/bin/vite.js --host 0.0.0.0 > "$RUNNER_TEMP/vite.log" 2>&1 &
+          vite_pid=$!
+          cleanup() {
+            kill "$vite_pid" 2>/dev/null || true
+            wait "$vite_pid" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://localhost:5173/@vite/client >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl --fail --silent http://localhost:5173/@vite/client >/dev/null
+          curl --fail --silent http://localhost:8080/ >/dev/null
+          npm --prefix frontend run test
+      - name: Stop application and database
+        if: always()
+        run: docker compose down
+
+  production-build:
+    name: Production build
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --prefix frontend
+      - run: npm --prefix frontend run build
+
+  deploy-merge:
+    name: Deploy merged main
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [php-tests, frontend-tests, production-build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: production-release
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - run: npm ci --prefix frontend
+      - run: npm --prefix frontend run build
+      - name: Package the exact merged source and frontend build
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          short_sha="${GITHUB_SHA:0:12}"
+          tag="release-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${short_sha}"
+          package_dir="$RUNNER_TEMP/release-package"
+          archive="$RUNNER_TEMP/sandbox-php-${tag}.tar.gz"
+          mkdir -p "$package_dir"
+          git archive "$GITHUB_SHA" | tar -x -C "$package_dir"
+          rm -rf -- "$package_dir/.specs" "$package_dir/.github" "$package_dir/tests"
+          rm -f -- "$package_dir/AGENTS.md"
+          mkdir -p "$package_dir/public/assets/build"
+          cp -a public/assets/build/. "$package_dir/public/assets/build/"
+          printf '%s\n%s\n' "$tag" "$GITHUB_SHA" > "$package_dir/.deploy-release"
+          shopt -s dotglob nullglob
+          package_entries=("$package_dir"/*)
+          for index in "${!package_entries[@]}"; do
+            package_entries[$index]="${package_entries[$index]##*/}"
+          done
+          tar -czf "$archive" -C "$package_dir" -- "${package_entries[@]}"
+          chmod +x tools/verify-deploy-package.sh
+          tools/verify-deploy-package.sh "$archive" "$tag" "$GITHUB_SHA"
+          git tag -a "$tag" "$GITHUB_SHA" -m "$tag"
+          git push origin "$tag"
+          gh release create "$tag" "$archive" --target "$GITHUB_SHA" --title "$tag" --notes "Automated production release for $GITHUB_SHA."
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Install SSH credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts"
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+      - name: Transfer and deploy the tagged release
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="${{ steps.package.outputs.archive }}"
+          tag="${{ steps.package.outputs.tag }}"
+          remote_package="/tmp/sandbox-php-${tag}.tar.gz"
+          scp -P "$DEPLOY_PORT" -i "$HOME/.ssh/id_ed25519" "$archive" "${DEPLOY_USER}@${DEPLOY_HOST}:${remote_package}"
+          ssh -p "$DEPLOY_PORT" -i "$HOME/.ssh/id_ed25519" "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "bash -s -- '${tag}' '${remote_package}'" <<'REMOTE'
+          set -euo pipefail
+          tag=$1
+          package=$2
+          work=$(mktemp -d /tmp/sandbox-php-deploy.XXXXXX)
+          trap 'rm -rf -- "$work"; rm -f -- "$package"' EXIT
+          tar -xOzf "$package" tools/deploy-shared-hosting.sh > "$work/deploy-shared-hosting.sh"
+          tar -xOzf "$package" tools/verify-deploy-package.sh > "$work/verify-deploy-package.sh"
+          chmod 700 "$work"/*.sh
+          "$work/deploy-shared-hosting.sh" --release "$tag" --package "$package" --target "$HOME/sites/sandbox-php"
+          REMOTE
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+
+  deploy-selected-tag:
+    name: Deploy selected tag
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    concurrency:
+      group: production-release
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Download and validate the published package
+        id: package
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^release-[0-9]+-[0-9]+-[0-9a-f]{12}$ ]]
+          git fetch --force origin "refs/tags/${RELEASE_TAG}:refs/tags/${RELEASE_TAG}"
+          commit="$(git rev-parse "refs/tags/${RELEASE_TAG}^{commit}")"
+          archive="$RUNNER_TEMP/sandbox-php-${RELEASE_TAG}.tar.gz"
+          gh release download "$RELEASE_TAG" --pattern "sandbox-php-${RELEASE_TAG}.tar.gz" --dir "$RUNNER_TEMP"
+          tools/verify-deploy-package.sh "$archive" "$RELEASE_TAG" "$commit"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
+      - name: Install SSH credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts"
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+      - name: Transfer and deploy the selected release
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="${{ steps.package.outputs.archive }}"
+          tag="${{ inputs.release_tag }}"
+          remote_package="/tmp/sandbox-php-${tag}.tar.gz"
+          scp -P "$DEPLOY_PORT" -i "$HOME/.ssh/id_ed25519" "$archive" "${DEPLOY_USER}@${DEPLOY_HOST}:${remote_package}"
+          ssh -p "$DEPLOY_PORT" -i "$HOME/.ssh/id_ed25519" "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "bash -s -- '${tag}' '${remote_package}'" <<'REMOTE'
+          set -euo pipefail
+          tag=$1
+          package=$2
+          work=$(mktemp -d /tmp/sandbox-php-deploy.XXXXXX)
+          trap 'rm -rf -- "$work"; rm -f -- "$package"' EXIT
+          tar -xOzf "$package" tools/deploy-shared-hosting.sh > "$work/deploy-shared-hosting.sh"
+          tar -xOzf "$package" tools/verify-deploy-package.sh > "$work/verify-deploy-package.sh"
+          chmod 700 "$work"/*.sh
+          "$work/deploy-shared-hosting.sh" --release "$tag" --package "$package" --target "$HOME/sites/sandbox-php"
+          REMOTE
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}

@@ -93,6 +93,8 @@ composer migrate:status
 
 For SPA changes, browser checks can validate ES module loading and Vue mounting. With the `app` service active, `./tools/test-all.sh` on the host opens the main routes in headless Chrome/Chromium, then runs PHPUnit in the container. Chrome/Chromium is required on the host; do not add Node.js or a build step for this check.
 
+When a check requires a local long-running service such as Vite, start only the service needed, track its process or session, and stop every service started for the check in cleanup whether the check passes or fails. Verify it stopped before finishing. Do not terminate a service that was already running before the check, and do not leave agent-started services running after the task.
+
 Do not assume Compose, MySQL, or SMTP is active. Do not run `migrate:rollback`, reset a database, `docker compose down -v`, clear volumes, or delete files without authorization.
 
 ### Docker Compose access for agents
