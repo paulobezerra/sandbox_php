@@ -103,7 +103,7 @@ afterAll(async () => {
     await browser?.close();
 });
 
-describe('PHP and SPA integration', () => {
+describe('SPA browser integration with mocked API', () => {
     it('serves the Vue shell and selects Vite development modules or built production assets', async () => {
         const response = await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded' });
         expect(response?.ok()).toBe(true);

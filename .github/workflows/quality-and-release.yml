@@ -65,23 +65,18 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - name: Configure disposable Compose database credentials
-        run: |
-          printf 'DB_DATABASE=sandbox_ci\n' >> "$GITHUB_ENV"
-          printf 'DB_USERNAME=sandbox_ci\n' >> "$GITHUB_ENV"
-          printf 'DB_PASSWORD=ci-only-password\n' >> "$GITHUB_ENV"
-          printf 'DB_ROOT_PASSWORD=ci-only-root-password\n' >> "$GITHUB_ENV"
-          printf 'APP_URL=http://localhost:8080\n' >> "$GITHUB_ENV"
-      - name: Start application and database for browser checks
-        run: docker compose up -d --build app mysql
       - run: npm ci --prefix frontend
-      - name: Run browser tests with Vite development server
+      - name: Run browser tests with mock shell and Vite development server
         shell: bash
         run: |
           set -euo pipefail
+          APP_URL=http://localhost:8080 node frontend/tests/mock-app-server.mjs > "$RUNNER_TEMP/mock-app.log" 2>&1 &
+          app_pid=$!
           node frontend/node_modules/vite/bin/vite.js --host 0.0.0.0 > "$RUNNER_TEMP/vite.log" 2>&1 &
           vite_pid=$!
           cleanup() {
+            kill "$app_pid" 2>/dev/null || true
+            wait "$app_pid" 2>/dev/null || true
             kill "$vite_pid" 2>/dev/null || true
             wait "$vite_pid" 2>/dev/null || true
           }
@@ -92,12 +87,9 @@ jobs:
             fi
             sleep 1
           done
-          curl --fail --silent http://localhost:5173/@vite/client >/dev/null
           curl --fail --silent http://localhost:8080/ >/dev/null
+          curl --fail --silent http://localhost:5173/@vite/client >/dev/null
           npm --prefix frontend run test
-      - name: Stop application and database
-        if: always()
-        run: docker compose down
 
   production-build:
     name: Production build
