@@ -6,35 +6,15 @@
     <meta name="description" content="<?= $e($translations['shell.description']) ?>">
     <title><?= $e($translations['shell.title']) ?></title>
 
-    <link rel="stylesheet" href="/assets/css/app.css">
 </head>
 <body>
 
 <div id="app" v-cloak data-locale="<?= $e($locale) ?>" aria-busy="true">
     <p id="boot-message" role="status"><?= $e($translations['shell.loading']) ?></p>
-    <aside class="sidebar">
-        <div class="brand">Sandbox PHP</div>
-
-        <nav>
-            <router-link to="/">{{ $t('shell.home') }}</router-link>
-            <router-link to="/blog">{{ $t('shell.blog') }}</router-link>
-            <router-link v-if="!user" to="/login">{{ $t('shell.login') }}</router-link>
-            <router-link v-if="user" to="/my-posts">{{ $t('shell.myPosts') }}</router-link>
-            <button v-if="user" class="nav-button" type="button" @click="logout">{{ $t('shell.logout') }}</button>
-        </nav>
-    </aside>
-
-    <main class="content">
-        <router-view></router-view>
-        <footer class="site-footer"><span>Sandbox PHP · PHP 8.4 + Slim 4 + Vue 3</span><a href="/docs">{{ $t('shell.footer') }}</a></footer>
-    </main>
 </div>
 
 <script type="application/json" id="initial-translations"><?= json_encode($translations, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?></script>
 
-<script src="/assets/vendor/vue.global.prod.js"></script>
-<script src="/assets/vendor/vue-router.global.prod.js"></script>
-
-<script type="module" src="/assets/js/app.js"></script>
+<?= $frontendAssetTags ?>
 </body>
 </html>

@@ -1,6 +1,6 @@
 # PHP + Slim + Vue Skeleton
 
-A reusable base for PHP 8.4 applications with Slim 4, MySQL/PDO, Phinx, and Vue 3. The backend and frontend are served by the same PHP/Apache deployment. JavaScript uses native ES modules and local files: there is no Node.js or build step.
+A reusable base for PHP 8.4 applications with Slim 4, MySQL/PDO, Phinx, and Vue 3. PHP serves the application shell and API; Vite serves the frontend during development and builds production assets into `public/assets/build/`.
 
 ## Create a project
 
@@ -25,7 +25,32 @@ Create an account using the registration link on the login page. Each authentica
 ## Requirements
 
 - Docker Engine with Docker Compose v2 (recommended), or PHP 8.4, Composer 2, the `pdo_mysql` and `mbstring` extensions, MySQL 8.4, and Apache with `mod_rewrite`.
-- Chrome or Chromium on the host only for `tools/test-all.sh`.
+- Chrome or Chromium on the host for the frontend browser tests and `tools/test-all.sh`.
+- Node.js and npm for frontend development, builds, and browser tests.
+
+## Frontend development and production build
+
+Run the PHP app as well as Vite during development. PHP continues to serve the page and API, and frontend API requests use that same PHP origin.
+
+```sh
+npm --prefix frontend ci
+npm --prefix frontend run dev
+```
+
+Build before building or deploying the production PHP image. The Vite build writes compiled JavaScript, CSS, and its manifest under `public/assets/build/`; PHP/Apache serves those files in production, so the production container does not need Node.js.
+
+```sh
+npm --prefix frontend run build
+docker compose --env-file .env -f compose.prod.yaml up -d --build
+```
+
+With the PHP app running and Playwright's Chromium available, run the frontend browser suite with:
+
+```sh
+npm --prefix frontend run test
+```
+
+The suite covers the PHP-served app and its same-origin API. `./tools/test-all.sh` runs this frontend suite before PHPUnit.
 
 ## Checks
 
@@ -38,7 +63,7 @@ docker compose exec -T app composer migrate:status
 ./tools/test-all.sh
 ```
 
-`composer format` applies PSR-12 to project PHP files; `composer lint` checks style and syntax without writing files. `composer test` runs PHPUnit in the container, and `composer quality` also runs lint, tests with coverage, the minimum coverage check, PHPStan, and the OpenAPI check. `./tools/test-all.sh` also opens the main routes with headless Chrome/Chromium on the host. To run only the browser checks, use `./tools/test-frontend.sh`; set `CHROME_BIN` if the executable is not on `PATH`. `composer migrate:status` lists migration status. `composer openapi:generate` regenerates `docs/openapi.json` from PHP attributes.
+`composer format` applies PSR-12 to project PHP files; `composer lint` checks style and syntax without writing files. `composer test` runs PHPUnit in the container, and `composer quality` also runs lint, tests with coverage, the minimum coverage check, PHPStan, and the OpenAPI check. `./tools/test-all.sh` runs the frontend browser suite with headless Chrome/Chromium on the host, then PHPUnit in the app container. `composer migrate:status` lists migration status. `composer openapi:generate` regenerates `docs/openapi.json` from PHP attributes.
 
 ## Docker production
 
@@ -107,9 +132,9 @@ The repository pins Composer 2.10.3 as `composer.phar`; its SHA-256 is `7a2d379d
 
 ## What this skeleton includes
 
-The default application provides registration and login with server-side PHP sessions, a public Posts blog, and authenticated Post creation, editing, publishing, and deletion scoped to each Post's owner. It also includes a JSON API, an OpenAPI contract, CSRF checks for authenticated mutations, a Vue 3 interface served with native ES modules, and English and Brazilian Portuguese catalogs. Phinx migrations are run explicitly. The demo has no user profiles, password recovery, or login attempt limiting; derived projects should decide how to provide profiles, account recovery, and abuse controls before public use.
+The default application provides registration and login with server-side PHP sessions, a public Posts blog, and authenticated Post creation, editing, publishing, and deletion scoped to each Post's owner. It also includes a JSON API, an OpenAPI contract, CSRF checks for authenticated mutations, a Vue 3 frontend built with Vite, and English and Brazilian Portuguese catalogs. Phinx migrations are run explicitly. The demo has no user profiles, password recovery, or login attempt limiting; derived projects should decide how to provide profiles, account recovery, and abuse controls before public use.
 
-The main application dependencies are [PHP](https://www.php.net/docs.php), [Slim](https://www.slimframework.com/), [Slim PSR-7](https://github.com/slimphp/Slim-Psr7), [PHP-DI](https://php-di.org/), [Slim Routing](https://github.com/juliangut/slim-routing), [Phinx](https://phinx.org/), [MySQL](https://dev.mysql.com/doc/), [Vue](https://vuejs.org/), [Vue Router](https://router.vuejs.org/), [CommonMark](https://commonmark.thephpleague.com/), and [PHP dotenv](https://github.com/phpdotenv/phpdotenv). Local development and deployment use [Docker Compose](https://docs.docker.com/compose/) and [Apache](https://httpd.apache.org/docs/). Development checks use [PHPUnit](https://docs.phpunit.de/), [PHP-CS-Fixer](https://cs.symfony.com/), [PHPStan](https://phpstan.org/user-guide/getting-started), [swagger-php](https://zircote.com/swagger-php/), and [Swagger UI](https://swagger.io/open-source/swagger-ui/).
+The frontend uses [Vue](https://vuejs.org/), [Vue Router](https://router.vuejs.org/), [Vite](https://vite.dev/), [Tailwind CSS](https://tailwindcss.com/), [shadcn-vue](https://www.shadcn-vue.com/), and [Lucide](https://lucide.dev/). The main application dependencies are [PHP](https://www.php.net/docs.php), [Slim](https://www.slimframework.com/), [Slim PSR-7](https://github.com/slimphp/Slim-Psr7), [PHP-DI](https://php-di.org/), [Slim Routing](https://github.com/juliangut/slim-routing), [Phinx](https://phinx.org/), [MySQL](https://dev.mysql.com/doc/), [CommonMark](https://commonmark.thephpleague.com/), and [PHP dotenv](https://github.com/phpdotenv/phpdotenv). Local development and deployment use [Docker Compose](https://docs.docker.com/compose/) and [Apache](https://httpd.apache.org/docs/). Development checks use [PHPUnit](https://docs.phpunit.de/), [PHP-CS-Fixer](https://cs.symfony.com/), [PHPStan](https://phpstan.org/user-guide/getting-started), [swagger-php](https://zircote.com/swagger-php/), and [Swagger UI](https://swagger.io/open-source/swagger-ui/).
 
 ## Structure and extension
 
@@ -119,7 +144,8 @@ src/Application/        Application operations
 src/Infrastructure/     HTTP, PDO, session, and view adapters
 src/Bootstrap/          Dependency composition and routes
 database/migrations/    Initial schema and explicit migrations
-public/assets/          Vue, Vue Router, CSS, and local libraries
+frontend/               Vue SPA and API source, Vite configuration, and npm scripts
+public/assets/build/    Compiled frontend assets and Vite manifest served by PHP/Apache
 tests/                  Unit, integration, and architecture tests
 docs/                   OpenAPI and skeleton guides
 ```
@@ -136,7 +162,7 @@ The browser checks exercise both supported locales. With the app running and Chr
 
 - Passwords are stored with `password_hash` and checked with `password_verify`. Sessions are server-side, regenerated at login, and use HttpOnly cookies; authenticated mutations require CSRF, and the backend checks ownership of every Post.
 - Registration is open. This demo has no password recovery or authentication attempt limit; before exposing it publicly, define abuse controls and a recovery procedure suited to the project.
-- Posts store Markdown and escape raw HTML during rendering. Views use `v-html` only with HTML produced by `MarkdownRenderer`, which rejects raw HTML and unsafe links; preview and publishing share this renderer. Vue templates use ES modules without a build step and are compiled in the browser, so the CSP retains `unsafe-eval`; do not provide Vue templates or user-renderable HTML.
+- Posts store Markdown and escape raw HTML during rendering. Views use `v-html` only with HTML produced by `MarkdownRenderer`, which rejects raw HTML and unsafe links; preview and publishing share this renderer. Vue templates are compiled by Vite; do not provide Vue templates or user-renderable HTML.
 - To change the schema of an existing installation, create a new migration; do not edit a migration that has already been applied.
 - Never put real credentials, tokens, or database dumps in the repository.
 

@@ -19,7 +19,8 @@ class SpaRoutesTest extends TestCase
 
         $body = (string) $response->getBody();
         $this->assertStringContainsString('<div id="app"', $body);
-        $this->assertStringContainsString('app.js', $body);
+        $this->assertStringContainsString('http://localhost:5173/@vite/client', $body);
+        $this->assertStringContainsString('http://localhost:5173/src/spa/main.js', $body);
     }
 
     public function testSpaRoutesFallbackReturnsHtmlShell(): void

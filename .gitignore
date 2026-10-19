@@ -7,8 +7,11 @@
 /.idea/
 /.ide-libs/
 /node_modules/
+/frontend/.vitest/
 /error_log
 /public/.htaccess
 /public/.user.ini
 /public/php.ini
+/public/assets/build/
 *.log
+/frontend/node_modules/
