@@ -52,6 +52,10 @@ jobs:
           coverage: none
       - run: composer install --no-interaction --prefer-dist
       - run: composer migrate -- --environment=development
+      - name: Provide a placeholder Vite manifest for production-mode route coverage
+        run: |
+          mkdir -p public/assets/build/.vite
+          printf '%s\n' '{"src/spa/main.js":{"file":"assets/php-test.js","css":["assets/php-test.css"]}}' > public/assets/build/.vite/manifest.json
       - run: composer test
 
   frontend-tests:
