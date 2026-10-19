@@ -109,6 +109,7 @@ jobs:
           mkdir -p "$package_dir"
           git archive "$GITHUB_SHA" | tar -x -C "$package_dir"
           rm -rf -- "$package_dir/.specs" "$package_dir/.github" "$package_dir/tests"
+          rm -rf -- "$package_dir/public/assets/vendor"
           rm -f -- "$package_dir/AGENTS.md"
           mkdir -p "$package_dir/public/assets/build"
           cp -a public/assets/build/. "$package_dir/public/assets/build/"
