@@ -32,7 +32,7 @@
   "home.install": "Instalação e primeiro uso",
   "home.installText": "Crie um projeto com Composer em um destino vazio, inicialize um repositório Git novo e inicie a aplicação de desenvolvimento com Docker Compose. Troque as credenciais de exemplo antes. Depois da configuração, acesse http://localhost:8080.",
   "home.installMigration": "As migrations usam Phinx e nunca são aplicadas na inicialização. Execute composer migrate explicitamente e depois composer migrate:status para conferir o resultado.",
-  "home.installEnvironment": "Mantenha o .env real fora do controle de versão. Execute comandos Composer no container app ativo. Este comando create-project busca o pacote diretamente no GitHub, sem exigir cadastro no Packagist; a revisão escolhida do repositório precisa conter os metadados do pacote.",
+  "home.installEnvironment": "Mantenha o .env real fora do controle de versão. O projeto está publicado no Packagist; sua versão atual é dev-main, então inclua --stability=dev ao criá-lo. Execute os comandos Composer seguintes no container app ativo quando as instruções indicarem.",
   "home.auth": "Cadastro, login e ciclo de Posts",
   "home.authList": "Abra Login e use o link de cadastro para criar uma conta.|Entre; o menu mostra Meus Posts e Sair.|Em Meus Posts, crie um rascunho com título e Markdown.|Confira a prévia, salve e publique. O Post publicado aparece no Blog.|Edite, despublique ou exclua somente os Posts da sua conta.",
   "home.authSecurity": "As senhas são armazenadas como hash. A sessão é regenerada no login, mutações autenticadas exigem CSRF e o backend confere a autoria em cada operação. Este demonstrador não inclui recuperação de senha nem limite de tentativas; defina recuperação e controles contra abuso antes de expor uma aplicação derivada.",
@@ -132,6 +132,6 @@
   "home.sddLink": "Acesse o projeto canônico do SDD Lite e as instruções atuais de instalação",
   "home.composerDocs": "Leia a documentação oficial do comando create-project do Composer",
   "home.openApiRoute": "Abra a referência da API em /docs quando estiver habilitada",
-  "home.installCommands": "composer create-project \\\n  --repository='{\"type\":\"vcs\",\"url\":\"https://github.com/paulobezerra/sandbox_php.git\"}' \\\n  --stability=dev paulobezerra/sandbox-php meu-projeto --remove-vcs\ncd meu-projeto\ngit init\ncp .env.example .env\n# Edite .env e troque as senhas de exemplo.\ndocker compose up -d --build\ndocker compose exec -T app composer migrate\ndocker compose exec -T app composer migrate:status",
+  "home.installCommands": "composer create-project --stability=dev paulobezerra/sandbox-php meu-projeto --remove-vcs\ncd meu-projeto\ngit init\ncp .env.example .env\n# Edite .env e troque as senhas de exemplo.\ndocker compose up -d --build\ndocker compose exec -T app composer migrate\ndocker compose exec -T app composer migrate:status",
   "home.swaggerDocs": "Documentação do Swagger"
 }

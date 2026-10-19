@@ -32,7 +32,7 @@
   "home.install": "Installation and first use",
   "home.installText": "Create a new project with Composer in an empty destination, initialize a fresh Git repository, then start the development app with Docker Compose. Replace the example credentials first. Open http://localhost:8080 after setup.",
   "home.installMigration": "Migrations use Phinx and are never applied at startup. Run composer migrate explicitly, then composer migrate:status to inspect the result.",
-  "home.installEnvironment": "Keep the real .env out of version control. Composer commands run in the active app container. This create-project command reads directly from GitHub, so Packagist registration is not required; the selected repository revision must contain the package metadata.",
+  "home.installEnvironment": "Keep the real .env out of version control. The project is published on Packagist; its current version is dev-main, so include --stability=dev when creating it. Run later Composer commands in the active app container when the setup instructions call for them.",
   "home.auth": "Registration, login, and the Posts workflow",
   "home.authList": "Open Login and follow the registration link to create an account.|Sign in; the menu shows My Posts and Log out.|In My Posts, create a draft with a title and Markdown.|Review the preview, save, and publish. The published Post appears in the Blog.|Edit, unpublish, or delete only Posts owned by your account.",
   "home.authSecurity": "Passwords are stored as hashes. The session is regenerated at login, authenticated mutations require CSRF, and the backend checks ownership for each operation. This demo has no password recovery or attempt limit; define recovery and abuse controls before exposing a derived application publicly.",
@@ -132,6 +132,6 @@
   "home.sddLink": "Visit the canonical SDD Lite project and current installation instructions",
   "home.composerDocs": "Read the official Composer create-project documentation",
   "home.openApiRoute": "Open the API reference at /docs when enabled",
-  "home.installCommands": "composer create-project \\\n  --repository='{\"type\":\"vcs\",\"url\":\"https://github.com/paulobezerra/sandbox_php.git\"}' \\\n  --stability=dev paulobezerra/sandbox-php my-project --remove-vcs\ncd my-project\ngit init\ncp .env.example .env\n# Edit .env and replace the example passwords.\ndocker compose up -d --build\ndocker compose exec -T app composer migrate\ndocker compose exec -T app composer migrate:status",
+  "home.installCommands": "composer create-project --stability=dev paulobezerra/sandbox-php my-project --remove-vcs\ncd my-project\ngit init\ncp .env.example .env\n# Edit .env and replace the example passwords.\ndocker compose up -d --build\ndocker compose exec -T app composer migrate\ndocker compose exec -T app composer migrate:status",
   "home.swaggerDocs": "Swagger documentation"
 }

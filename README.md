@@ -4,12 +4,10 @@ A reusable base for PHP 8.4 applications with Slim 4, MySQL/PDO, Phinx, and Vue 
 
 ## Create a project
 
-Use [Composer 2](https://getcomposer.org/doc/03-cli.md#create-project) to create a project in a new or empty destination directory. This command reads the package directly from the GitHub repository, so it does not require the skeleton to be registered on Packagist. The selected repository revision must contain the package metadata. `--stability=dev` allows Composer to select a branch before a stable release exists; `--remove-vcs` removes the skeleton's source Git metadata:
+Use [Composer 2](https://getcomposer.org/doc/03-cli.md#create-project) to create a project from Packagist in a new or empty destination directory. The package currently has a `dev-main` version, so include `--stability=dev`; `--remove-vcs` removes the skeleton's source Git metadata:
 
 ```sh
-composer create-project \
-  --repository='{"type":"vcs","url":"https://github.com/paulobezerra/sandbox_php.git"}' \
-  --stability=dev paulobezerra/sandbox-php my-project --remove-vcs
+composer create-project --stability=dev paulobezerra/sandbox-php my-project --remove-vcs
 cd my-project
 git init
 cp .env.example .env
