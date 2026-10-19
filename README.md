@@ -2,29 +2,32 @@
 
 A reusable base for PHP 8.4 applications with Slim 4, MySQL/PDO, Phinx, and Vue 3. The backend and frontend are served by the same PHP/Apache deployment. JavaScript uses native ES modules and local files: there is no Node.js or build step.
 
-## Repository
+## Create a project
 
-This project is published as [`paulobezerra/sandbox_php`](https://github.com/paulobezerra/sandbox_php).
-
-## Requirements
-
-- Docker Engine with Docker Compose v2 (recommended), or PHP 8.4, Composer 2, the `pdo_mysql` and `mbstring` extensions, MySQL 8.4, and Apache with `mod_rewrite`.
-- Chrome or Chromium on the host only for `tools/test-all.sh`.
-
-## Local setup
+Use [Composer 2](https://getcomposer.org/doc/03-cli.md#create-project) to create a project in a new or empty destination directory. This command reads the package directly from the GitHub repository, so it does not require the skeleton to be registered on Packagist. The selected repository revision must contain the package metadata. `--stability=dev` allows Composer to select a branch before a stable release exists; `--remove-vcs` removes the skeleton's source Git metadata:
 
 ```sh
-git clone https://github.com/paulobezerra/sandbox_php.git my-project
+composer create-project \
+  --repository='{"type":"vcs","url":"https://github.com/paulobezerra/sandbox_php.git"}' \
+  --stability=dev paulobezerra/sandbox-php my-project --remove-vcs
 cd my-project
+git init
 cp .env.example .env
 # Replace all example passwords before starting.
 docker compose up -d --build
 docker compose exec -T app composer migrate
 ```
 
-Open `http://localhost:8080`. The migration is explicit and does not run at startup. The documentation Home is at `/`, the blog at `/blog`, login at `/login`, registration at `/register`, the personal Posts area at `/my-posts`, the API at `/api`, and the OpenAPI documentation at `/docs` in the local environment. The development MySQL service publishes port `127.0.0.1:3306`.
+The command creates a missing destination and Composer refuses a destination that already contains files. After `git init`, the project has a new history with no upstream remote.
 
-Create an account using the registration link on the login page. Each authenticated account can create, edit, publish, and remove only its own Posts. The demo has no password recovery; define an operational recovery procedure before using important accounts.
+Open `http://localhost:8080`. The migration is explicit and does not run at startup. The Home page is at `/`, the blog at `/blog`, login at `/login`, registration at `/register`, the personal Posts area at `/my-posts`, the API at `/api`, and the OpenAPI documentation at `/docs` in the local environment. The development MySQL service publishes port `127.0.0.1:3306` on the loopback interface.
+
+Create an account using the registration link on the login page. Each authenticated account can create, edit, publish, and remove only its own Posts. The demo has no password recovery or authentication attempt limit; define a recovery procedure and abuse controls before using important accounts or exposing it publicly.
+
+## Requirements
+
+- Docker Engine with Docker Compose v2 (recommended), or PHP 8.4, Composer 2, the `pdo_mysql` and `mbstring` extensions, MySQL 8.4, and Apache with `mod_rewrite`.
+- Chrome or Chromium on the host only for `tools/test-all.sh`.
 
 ## Checks
 
@@ -104,6 +107,12 @@ The command does not prompt. It verifies the branch and working tree, fast-forwa
 
 The repository pins Composer 2.10.3 as `composer.phar`; its SHA-256 is `7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6`, published on the [official Composer download page](https://getcomposer.org/download/). Update it only through a reviewed repository change: obtain a pinned PHAR from the official Composer site, verify the official digest or signature, then commit that verified file. `.dockerignore` keeps this host tool out of Docker builds; Docker continues to install Composer through its existing image setup.
 
+## What this skeleton includes
+
+The default application provides registration and login with server-side PHP sessions, a public Posts blog, and authenticated Post creation, editing, publishing, and deletion scoped to each Post's owner. It also includes a JSON API, an OpenAPI contract, CSRF checks for authenticated mutations, a Vue 3 interface served with native ES modules, and English and Brazilian Portuguese catalogs. Phinx migrations are run explicitly. The demo has no user profiles, password recovery, or login attempt limiting; derived projects should decide how to provide profiles, account recovery, and abuse controls before public use.
+
+The main application dependencies are [PHP](https://www.php.net/docs.php), [Slim](https://www.slimframework.com/), [Slim PSR-7](https://github.com/slimphp/Slim-Psr7), [PHP-DI](https://php-di.org/), [Slim Routing](https://github.com/juliangut/slim-routing), [Phinx](https://phinx.org/), [MySQL](https://dev.mysql.com/doc/), [Vue](https://vuejs.org/), [Vue Router](https://router.vuejs.org/), [CommonMark](https://commonmark.thephpleague.com/), and [PHP dotenv](https://github.com/phpdotenv/phpdotenv). Local development and deployment use [Docker Compose](https://docs.docker.com/compose/) and [Apache](https://httpd.apache.org/docs/). Development checks use [PHPUnit](https://docs.phpunit.de/), [PHP-CS-Fixer](https://cs.symfony.com/), [PHPStan](https://phpstan.org/user-guide/getting-started), [swagger-php](https://zircote.com/swagger-php/), and [Swagger UI](https://swagger.io/open-source/swagger-ui/).
+
 ## Structure and extension
 
 ```text
@@ -138,5 +147,4 @@ The browser checks exercise both supported locales. With the app running and Chr
 - [Customize User/Auth and add domains](docs/customization.md)
 - [OpenAPI contract](docs/openapi.json)
 - [AGENTS.md](AGENTS.md): project engineering and operations guidance
-- SDD Lite: use the standalone `$sdd-lite` skill for the workflow; project context is in `.specs/project-context.md` and `.specs/implementation.md`.
-- [Skeleton specification](.specs/features/001-skeleton/spec.md): requirements and phase history
+- [SDD Lite](https://github.com/paulobezerra/sdd-lite) is an optional, separately maintained workflow. Follow that repository's current installation instructions if you want to use it; it is not required to install or run this application.

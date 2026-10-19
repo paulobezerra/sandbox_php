@@ -1,0 +1,5 @@
+.env export-ignore
+.specs/** export-ignore
+vendor/** export-ignore
+docs/swagger-ui.html export-ignore
+public/assets/vendor/swagger-ui/** export-ignore
