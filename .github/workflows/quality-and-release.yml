@@ -122,6 +122,8 @@ jobs:
           tar -czf "$archive" -C "$package_dir" -- "${package_entries[@]}"
           chmod +x tools/verify-deploy-package.sh
           tools/verify-deploy-package.sh "$archive" "$tag" "$GITHUB_SHA"
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
           git tag -a "$tag" "$GITHUB_SHA" -m "$tag"
           git push origin "$tag"
           gh release create "$tag" "$archive" --target "$GITHUB_SHA" --title "$tag" --notes "Automated production release for $GITHUB_SHA."
