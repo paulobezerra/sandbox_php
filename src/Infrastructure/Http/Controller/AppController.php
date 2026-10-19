@@ -34,7 +34,7 @@ class AppController
             'locale' => $locale,
             'translations' => $translations,
             'frontendAssetTags' => $this->viteAssets->renderTags(
-                $this->config->appEnv === 'development',
+                in_array($this->config->appEnv, ['development', 'testing'], true),
                 'src/spa/main.js'
             ),
         ]);

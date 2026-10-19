@@ -102,7 +102,7 @@ If startup reports `DB_DATABASE is required` or `DB_USERNAME is required`, check
 
 ### Shared-hosting deployment
 
-The installer expects the repository checkout to be on a clean local `main` branch that tracks a remote `main`, with Git authentication already configured for non-interactive use. It resolves the checkout from its own location, so it can be run from any working directory. Back up the database first and confirm that the existing database and its database-scoped user are ready. The user configured by `DB_USERNAME` needs DDL and DML privileges on that database, including permission to create/alter tables, indexes, foreign keys, and Phinx's `phinxlog` table. MySQL root and `DB_ROOT_PASSWORD` are not used by the installer.
+The installer receives a published release package and installs its source and production frontend build into the existing checkout. Back up the database first and confirm that the existing database and its database-scoped user are ready. The user configured by `DB_USERNAME` needs DDL and DML privileges on that database, including permission to create/alter tables, indexes, foreign keys, and Phinx's `phinxlog` table. MySQL root and `DB_ROOT_PASSWORD` are not used by the installer.
 
 On Apache shared hosting, keep the provider's existing directives in `public/.htaccess` and add the following rewrite block so page routes, `/api/*`, and `/docs` reach `public/index.php`:
 
@@ -117,18 +117,24 @@ On Apache shared hosting, keep the provider's existing directives in `public/.ht
 
 The local `public/.htaccess` remains ignored because cPanel may write account-specific PHP handler directives into it. Configure the domain's PHP version through the hosting control panel and do not delete those generated directives when adding the rewrite block. In production, `/docs` is available only when `OPENAPI_ENABLED=true`; keep it disabled unless the API reference is intended to be public.
 
-Optional `PHP_BIN` and `GIT_BIN` settings select absolute executable paths; `COMPOSER_BIN` selects an absolute path to a Composer file. The installer checks process environment values first, then literal assignments in the project-root `.env`, then defaults: a PHP version compatible with the project's `^8.4` requirement and Git from `PATH`, plus the Composer PHAR tracked in this repository. For example, set `PHP_BIN=/opt/cpanel/ea-php84/root/usr/bin/php` in `.env` when the host's default PHP is older. These values are paths only; do not use shell syntax, interpolation, or relative paths. The installer never sources `.env` as a shell script.
+Optional `PHP_BIN` selects an absolute PHP executable path and `COMPOSER_BIN` selects an absolute path to a Composer PHAR. The installer checks process environment values first, then literal assignments in the target's `.env`, then defaults to PHP compatible with `^8.4` and the Composer PHAR in the release. For example, set `PHP_BIN=/opt/cpanel/ea-php84/root/usr/bin/php` in `.env` when the host's default PHP is older. These values are paths only; do not use shell syntax, interpolation, or relative paths. The installer never sources `.env` as a shell script.
 
-After the backup and access checks, run:
+For a manual redeploy, select a published tag in **Actions → Quality and release → Run workflow**. The workflow downloads and verifies the release package, then invokes the installer included with that tag. For a host-side installation from an already transferred package, run:
 
 ```sh
-cd /path/to/application
-./tools/deploy-shared-hosting.sh
+cd ~/sites/sandbox-php
+./tools/deploy-shared-hosting.sh --release release-123456789-1-012345abcdef --package /path/to/sandbox-php-release.tar.gz --target "$PWD"
 ```
 
-The command does not prompt. It verifies the branch and working tree, fast-forward pulls remote `main`, installs production dependencies with an optimized autoloader, then applies only pending migrations in the `production` Phinx environment using the same PHP and database settings. A zero exit status means all three deployment steps completed. Repeating it when there are no new commits or migrations is safe. A nonzero status names the failed step; fix the reported Git, PHP/Composer, or database privilege problem and run the command again. The installer does not switch branches or roll back a partial update. If the pull succeeded but dependency installation or migration failed, the checkout may already contain the new code: keep the backup, correct the cause, and rerun. Restore code or database from backup only through the operator's normal recovery process.
+The installer validates the selected tag, commit metadata, Vite manifest, and referenced assets before changing application files. It preserves `.env`, `vendor/`, and the host's `public/.htaccess`, transfers the release files, installs production Composer dependencies with an optimized autoloader, then applies only pending migrations in the `production` Phinx environment. A zero exit status means these steps completed. A failure after file transfer can leave a partial code update; resolve the reported cause and rerun the same release, keeping the database backup. The installer never rolls back migrations. Older code may not support the current schema, so check compatibility before selecting an earlier release.
 
 The repository pins Composer 2.10.3 as `composer.phar`; its SHA-256 is `7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6`, published on the [official Composer download page](https://getcomposer.org/download/). Update it only through a reviewed repository change: obtain a pinned PHAR from the official Composer site, verify the official digest or signature, then commit that verified file. `.dockerignore` keeps this host tool out of Docker builds; Docker continues to install Composer through its existing image setup.
+
+## Pull request checks and production releases
+
+The `Quality and release` workflow runs PHP tests and the production Vite build for pull requests to `main`. Frontend browser tests are temporarily disabled in this workflow. A passing merge creates a unique `release-*` tag for that commit, publishes the matching source and `public/assets/build/` as a GitHub release package, then deploys it with the installer from that package. The host runs Composer install and forward-only Phinx migrations; it does not run Node.js.
+
+Configure Actions secrets `DEPLOY_HOST`, `DEPLOY_PORT`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, and `DEPLOY_KNOWN_HOSTS`. The host needs `rsync`, `tar`, PHP 8.4, Composer 2, and database access for Phinx. The target `~/sites/sandbox-php` must already exist and contain the production `.env`; the account needs write access to it. While browser tests are disabled, repository administrators should require only `PHP tests` and `Production build` in the `main` branch rules, and protect the `release-*` tag pattern from changes. These repository rules cannot be configured by workflow YAML. Tag redeploys never reverse migrations; check schema compatibility before selecting an earlier release.
 
 ## What this skeleton includes
 
