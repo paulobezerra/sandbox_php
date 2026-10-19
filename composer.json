@@ -1,7 +1,16 @@
 {
-  "name": "app/slim-vue",
-  "description": "Slim 4 application with Vue 3 and MySQL",
+  "name": "paulobezerra/sandbox-php",
+  "description": "Reusable PHP application skeleton with Slim 4, Vue 3, and MySQL",
   "type": "project",
+  "archive": {
+    "exclude": [
+      "/.env",
+      "/.specs/",
+      "/vendor/",
+      "/docs/swagger-ui.html",
+      "/public/assets/vendor/swagger-ui/"
+    ]
+  },
   "require": {
     "php": "^8.4",
     "ext-pdo_mysql": "*",

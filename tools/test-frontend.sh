@@ -101,6 +101,10 @@ check_home_details() {
     local guide_label="$4"
     local foundation_text="$5"
     local examples_text="$6"
+    local expected_create_project="$7"
+    local expected_openapi_command="$8"
+    local expected_hosting_text="$9"
+    local expected_project_directory="${10}"
     local home_file="$work_dir/home-$expected_locale.html"
     local error_file="$work_dir/home-$expected_locale-chrome.log"
 
@@ -139,6 +143,30 @@ check_home_details() {
         echo "FAILED: missing operational guidance in $expected_locale." >&2
         return 1
     fi
+    for expected in "$expected_create_project" "cd $expected_project_directory" 'git init' "$expected_openapi_command" "$expected_hosting_text" '/docs' 'CSRF' 'OpenAPI' 'PHPUnit' 'Vue Router' 'composer migrate' 'composer migrate:status'; do
+        if ! grep -Fq "$expected" "$home_file"; then
+            echo "FAILED: missing Composer, API, hosting, or capability guidance in $expected_locale: $expected." >&2
+            return 1
+        fi
+    done
+    if ! grep -Fq 'href="https://www.php.net/"' "$home_file" \
+        || ! grep -Fq 'href="https://www.slimframework.com/"' "$home_file" \
+        || ! grep -Fq 'href="https://vuejs.org/"' "$home_file" \
+        || ! grep -Fq 'href="https://dev.mysql.com/doc/"' "$home_file" \
+        || ! grep -Fq 'href="https://getcomposer.org/doc/03-cli.md#create-project"' "$home_file" \
+        || ! grep -Fq 'href="https://docs.docker.com/compose/"' "$home_file" \
+        || ! grep -Fq 'href="https://phinx.org/"' "$home_file" \
+        || ! grep -Fq 'href="https://swagger.io/docs/"' "$home_file" \
+        || ! grep -Fq 'href="/docs"' "$home_file"; then
+        echo "FAILED: missing official technology references in $expected_locale." >&2
+        return 1
+    fi
+    if ! grep -Fq 'alt="PHP"' "$home_file" || ! grep -Fq 'alt="Slim"' "$home_file" \
+        || ! grep -Fq 'alt="Vue"' "$home_file" || ! grep -Fq 'alt="MySQL"' "$home_file" \
+        || ! grep -Fq 'alt="Docker Compose"' "$home_file" || ! grep -Fq 'alt="Phinx"' "$home_file"; then
+        echo "FAILED: missing locally served accessible technology marks in $expected_locale." >&2
+        return 1
+    fi
     local foundation_position
     local examples_position
     foundation_position="$(grep -boF "$foundation_text" "$home_file" | head -n 1 | cut -d: -f1)"
@@ -154,8 +182,32 @@ check_home_details() {
     printf 'OK: Home anchors, links, and operational guidance (%s)\n' "$expected_locale"
 }
 
-check_home_details en-US en 'View the sandbox_php repository on GitHub' 'Read the User/Auth customization and domain extension guide' 'A reusable PHP, Slim, and Vue foundation' 'Registration, login, and the Posts workflow'
-check_home_details pt-BR pt-BR 'Acesse o repositório sandbox_php no GitHub' 'Leia o guia para customizar User/Auth e adicionar domínios' 'Uma base reutilizável em PHP, Slim e Vue' 'Cadastro, login e ciclo de Posts'
+check_home_details en-US en 'View the sandbox_php repository on GitHub' 'Read the User/Auth customization and domain extension guide' 'A reusable PHP, Slim, and Vue foundation' 'Registration, login, and the Posts workflow' 'composer create-project paulobezerra/sandbox-php my-project --remove-vcs' 'composer openapi:generate' 'Shared hosting' my-project
+check_home_details pt-BR pt-BR 'Acesse o repositório sandbox_php no GitHub' 'Leia o guia para customizar User/Auth e adicionar domínios' 'Uma base reutilizável em PHP, Slim e Vue' 'Cadastro, login e ciclo de Posts' 'composer create-project paulobezerra/sandbox-php meu-projeto --remove-vcs' 'composer openapi:generate' 'hospedagem compartilhada' meu-projeto
+for technology_mark in php slim vue mysql docker phinx; do
+    if ! curl --fail --silent --show-error "$base_url/assets/technology/$technology_mark.svg" -o /dev/null; then
+        echo "FAILED: local technology mark is unavailable: $technology_mark.svg." >&2
+        exit 1
+    fi
+    for locale in en pt-BR; do
+        if ! grep -Fq "src=\"/assets/technology/$technology_mark.svg\"" "$work_dir/home-$locale.html"; then
+            echo "FAILED: $technology_mark.svg is not loaded locally in $locale." >&2
+            exit 1
+        fi
+    done
+done
+for label in PHP Slim Vue MySQL 'Docker Compose' Phinx; do
+    if ! grep -Fq "><span>$label</span></a>" "$work_dir/home-en.html" \
+        || ! grep -Fq "><span>$label</span></a>" "$work_dir/home-pt-BR.html"; then
+        echo "FAILED: missing visible technology label: $label." >&2
+        exit 1
+    fi
+done
+if ! grep -Fq 'grid-template-columns: repeat(auto-fit' public/assets/css/app.css; then
+    echo 'FAILED: technology marks have no responsive grid layout.' >&2
+    exit 1
+fi
+printf 'OK: all technology marks are served locally\n'
 check_page /blog 'Blog' 'English public blog'
 check_page /blog 'Blog' 'Portuguese public blog' pt-BR pt-BR
 check_page /uma-pagina-antiga 'Page not found' 'removed dynamic Pages route'
