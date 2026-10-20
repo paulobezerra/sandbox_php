@@ -154,14 +154,11 @@ if ! rsync -a \
     fail 'release file transfer failed; the application may contain a partial update, so rerun after resolving the rsync error.'
 fi
 
-if ! chmod 750 "$project_root"; then
+if ! chmod 711 "$project_root"; then
     fail 'permission step: could not allow the web server to traverse the application directory.'
 fi
 if ! chmod 755 "$project_root/public"; then
     fail 'permission step: could not make the public directory traversable by the web server.'
-fi
-if [[ -f "$project_root/public/.htaccess" ]] && ! chmod 644 "$project_root/public/.htaccess"; then
-    fail 'permission step: could not make the host .htaccess readable by the web server.'
 fi
 
 if ! (
