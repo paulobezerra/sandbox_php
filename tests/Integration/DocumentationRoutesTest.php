@@ -57,16 +57,29 @@ class DocumentationRoutesTest extends TestCase
 
     public function testDocumentationIsHiddenInProductionByDefault(): void
     {
-        $config = Config::fromArray([
+        $productionConfig = Config::fromArray([
             'APP_ENV' => 'production',
             'APP_DEBUG' => 'false',
             'APP_URL' => 'https://example.test',
             'DB_DATABASE' => 'test',
             'DB_USERNAME' => 'test',
         ]);
-        $response = $this->createApp($config)->handle($this->createRequest('GET', '/docs/openapi.json'));
+        self::assertFalse($productionConfig->openApiEnabled);
 
-        self::assertFalse($config->openApiEnabled);
+        $spaConfig = Config::fromArray([
+            'APP_ENV' => 'testing',
+            'APP_DEBUG' => 'false',
+            'OPENAPI_ENABLED' => 'false',
+            'DB_DATABASE' => 'test',
+            'DB_USERNAME' => 'test',
+        ]);
+        $response = $this->createApp($spaConfig)->handle($this->createRequest(
+            'GET',
+            '/docs/openapi.json',
+            ['Accept' => 'text/html']
+        ));
+
+        self::assertSame(200, $response->getStatusCode());
         self::assertStringContainsString('text/html', $response->getHeaderLine('Content-Type'));
         self::assertStringNotContainsString('application/json', $response->getHeaderLine('Content-Type'));
     }
