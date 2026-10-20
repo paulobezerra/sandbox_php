@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
-    "test": "node tests/build-check.mjs && vitest run"
+    "test": "vitest run"
   },
   "dependencies": {
     "@lucide/vue": "1.59.0",
@@ -24,7 +24,8 @@
   "devDependencies": {
     "@tailwindcss/vite": "4.1.14",
     "@vitejs/plugin-vue": "6.0.1",
-    "playwright": "1.64.1",
+    "@vue/test-utils": "^2.5.1",
+    "happy-dom": "^21.0.3",
     "tailwindcss": "4.1.14",
     "vite": "7.3.7",
     "vitest": "5.0.5"

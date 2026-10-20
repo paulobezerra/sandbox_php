@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Architecture;
 
-use App\Bootstrap\App;
 use App\Tests\TestCase;
 use JsonException;
 
@@ -38,7 +37,7 @@ class OpenApiRoutesTest extends TestCase
         }
 
         $registeredRoutes = [];
-        foreach (App::create()->getRouteCollector()->getRoutes() as $route) {
+        foreach ($this->createApp()->getRouteCollector()->getRoutes() as $route) {
             $path = preg_replace('/\{([^}:]+):[^}]+\}/', '{$1}', $route->getPattern());
             if (!str_starts_with((string) $path, '/api/')) {
                 continue;

@@ -6,6 +6,7 @@ namespace App\Tests;
 
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Psr\Http\Message\ServerRequestInterface;
+use PDO;
 use Slim\App;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Factory\StreamFactory;
@@ -15,7 +16,23 @@ abstract class TestCase extends BaseTestCase
 {
     protected function getApp(): App
     {
-        return \App\Bootstrap\App::create();
+        return $this->createApp();
+    }
+
+    protected function createApp(?\App\Bootstrap\Config $config = null): App
+    {
+        $pdo = new class () extends PDO {
+            public function __construct()
+            {
+            }
+        };
+        $config ??= \App\Bootstrap\Config::fromArray([
+            'APP_ENV' => 'testing',
+            'DB_DATABASE' => 'test',
+            'DB_USERNAME' => 'test',
+        ]);
+
+        return \App\Bootstrap\App::create($pdo, $config);
     }
 
     protected function createRequest(

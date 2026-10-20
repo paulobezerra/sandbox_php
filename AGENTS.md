@@ -15,7 +15,7 @@ This repository provides a reusable PHP/Slim/Vue skeleton with registration, log
 ## Non-negotiable rules
 
 - PHP 8.4, Slim 4, Vue 3, Vue Router, PDO/MySQL, Phinx, and PHPUnit; maintain compatibility unless explicitly decided otherwise.
-- No Node.js, npm, Vite, Webpack, transpilers, compiled SFCs, bundling, or JavaScript build step.
+- Vue frontend dependencies, tests, and production assets use Node.js/npm and Vite; do not introduce Webpack or another build framework.
 - One PHP/Apache deployment for the web application; required external services may be configured separately.
 - Always use `declare(strict_types=1);` in new PHP; type properties, parameters, and return values.
 - Prefer small methods, explicit names, deterministic validation, and DTOs only when useful.
@@ -74,7 +74,7 @@ Do not create empty directories. A controller parses HTTP â†’ calls a service â†
 
 ## Frontend guidance
 
-- Vue 3 without a build; native ES modules and local vendors. Pages live under `public/assets/js/pages/`, HTTP calls in `services/`, and shared components should be reused.
+- Vue 3 with Vite. SPA source lives under `frontend/src/`; Vitest tests run without a browser or live service, and the production build writes assets under `public/assets/build/`.
 - Do not introduce a custom Vue template generator or complex state system without justification.
 - SPA fallback applies only to pages; unknown `/api/*` paths always return JSON 404.
 - Frontend routing and authentication improve UX; they are **not authorization**.
@@ -89,9 +89,11 @@ composer test
 composer migrate
 composer migrate:status
 # Docker: check README.md and compose.yaml before starting services
+npm --prefix frontend run test
+npm --prefix frontend run build
 ```
 
-For SPA changes, browser checks can validate ES module loading and Vue mounting. With the `app` service active, `./tools/test-all.sh` on the host opens the main routes in headless Chrome/Chromium, then runs PHPUnit in the container. Chrome/Chromium is required on the host; do not add Node.js or a build step for this check.
+The frontend Vitest suite and PHPUnit suite run independently without a browser, live application, or database and each has a 20-second CI limit. Run `npm --prefix frontend run test` and `composer test` directly; use `npm --prefix frontend run build` to validate production assets. PHP application and migration commands still use the configured app environment described in the README.
 
 When a check requires a local long-running service such as Vite, start only the service needed, track its process or session, and stop every service started for the check in cleanup whether the check passes or fails. Verify it stopped before finishing. Do not terminate a service that was already running before the check, and do not leave agent-started services running after the task.
 
@@ -113,8 +115,7 @@ Do not assume Compose, MySQL, or SMTP is active. Do not run `migrate:rollback`, 
 ## Operations and distribution
 
 - For development, follow the README quick start; migrations are run explicitly, not at startup.
-- Run focused checks for the changed behavior and layer. Broader suites, aggregate quality gates, and browser/end-to-end checks are not automatic in Code or Review; run them only when the changed behavior and concrete risk justify them, once at the appropriate stage (normally Review). Reuse valid evidence and avoid duplicate checks. For SPA changes, use `./tools/test-all.sh` when browser coverage is justified.
-- If `./tools/test-all.sh` cannot start Chromium because of `setsockopt: Operation not permitted` or a Crashpad error, retry the same command on the host with elevated execution (`require_escalated`), explaining that headless browser checks need browser resources blocked by the sandbox. Do not remove `--no-sandbox` or disable other Chromium protections to work around the block.
+- Run focused checks for the changed behavior and layer. Broader suites and aggregate quality gates are not automatic in Code or Review; run them only when the changed behavior and concrete risk justify them, once at the appropriate stage (normally Review). Reuse valid evidence and avoid duplicate checks. Frontend behavior is covered by the browserless Vitest suite; validate production asset changes with the separate Vite build.
 - For production, use `compose.prod.yaml` and an `.env` outside version control with project-specific secrets and an HTTPS `APP_URL`. Terminate TLS at the reverse proxy and do not expose MySQL.
 - Read `docs/customization.md` before adapting User/Auth or adding domains. Keep contracts in Domain and adapters in Infrastructure; do not change HTTP/PDO internals to accommodate one entity.
 - Keep `docs/` exclusive to application documentation.

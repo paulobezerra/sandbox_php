@@ -25,8 +25,7 @@ Create an account using the registration link on the login page. Each authentica
 ## Requirements
 
 - Docker Engine with Docker Compose v2 (recommended), or PHP 8.4, Composer 2, the `pdo_mysql` and `mbstring` extensions, MySQL 8.4, and Apache with `mod_rewrite`.
-- Chrome or Chromium on the host for the frontend browser tests and `tools/test-all.sh`.
-- Node.js and npm for frontend development, builds, and browser tests.
+- Node.js 22 and npm for frontend development, tests, and production builds.
 
 ## Frontend development and production build
 
@@ -44,26 +43,27 @@ npm --prefix frontend run build
 docker compose --env-file .env -f compose.prod.yaml up -d --build
 ```
 
-With the PHP app running and Playwright's Chromium available, run the frontend browser suite with:
+Run the frontend behavior suite without starting a browser or PHP application:
 
 ```sh
 npm --prefix frontend run test
 ```
 
-The suite covers the PHP-served app and its same-origin API. `./tools/test-all.sh` runs this frontend suite before PHPUnit.
+Vitest checks selected authentication and API-client behavior with mocked dependencies. The suite does not make network requests and is limited to 20 seconds in CI.
 
 ## Checks
 
 ```sh
 docker compose exec -T app composer format
 docker compose exec -T app composer lint
-docker compose exec -T app composer test
+composer test
 docker compose exec -T app composer quality
 docker compose exec -T app composer migrate:status
-./tools/test-all.sh
+npm --prefix frontend run test
+npm --prefix frontend run build
 ```
 
-`composer format` applies PSR-12 to project PHP files; `composer lint` checks style and syntax without writing files. `composer test` runs PHPUnit in the container, and `composer quality` also runs lint, tests with coverage, the minimum coverage check, PHPStan, and the OpenAPI check. `./tools/test-all.sh` runs the frontend browser suite with headless Chrome/Chromium on the host, then PHPUnit in the app container. `composer migrate:status` lists migration status. `composer openapi:generate` regenerates `docs/openapi.json` from PHP attributes.
+`composer format` applies PSR-12 to project PHP files; `composer lint` checks style and syntax without writing files. `composer test` runs the service-free PHPUnit suite; run it directly where PHP and Composer dependencies are installed. `composer quality` also runs lint, tests with coverage, the minimum coverage check, PHPStan, and the OpenAPI check. The frontend Vitest suite and production build run directly with the npm commands above. CI runs each test suite separately with a 20-second limit. `composer migrate:status` lists migration status. `composer openapi:generate` regenerates `docs/openapi.json` from PHP attributes.
 
 ## Docker production
 
@@ -132,9 +132,9 @@ The repository pins Composer 2.10.3 as `composer.phar`; its SHA-256 is `7a2d379d
 
 ## Pull request checks and production releases
 
-The `Quality and release` workflow runs PHP tests, the production Vite build, and release-label validation for pull requests to `main`. Frontend browser tests are temporarily disabled in this workflow. Create the `patch`, `minor`, and `major` labels once in the repository's **Settings → Labels**, then add exactly one to each PR in the GitHub PR sidebar: use `patch` for compatible fixes, `minor` for backward-compatible features, and `major` for breaking changes. After a passing merge, the workflow finds that PR, calculates the next `vMAJOR.MINOR.PATCH` from the latest SemVer tag, publishes the matching source and `public/assets/build/` as a GitHub release package, then deploys it with the installer from that package. If no SemVer tag exists yet, `v0.0.0` is used as the calculation baseline; the first published version is determined by the PR label. Existing `release-*` tags remain available for manual redeployment. The host runs Composer install and forward-only Phinx migrations; it does not run Node.js.
+The `Quality and release` workflow runs frontend and PHP tests as separate service-free jobs, builds the production Vite assets, and validates the release label for pull requests to `main`. Create the `patch`, `minor`, and `major` labels once in the repository's **Settings → Labels**, then add exactly one to each PR in the GitHub PR sidebar: use `patch` for compatible fixes, `minor` for backward-compatible features, and `major` for breaking changes. After a passing merge, the workflow finds that PR, calculates the next `vMAJOR.MINOR.PATCH` from the latest SemVer tag, publishes the matching source and `public/assets/build/` as a GitHub release package, then deploys it with the installer from that package. If no SemVer tag exists yet, `v0.0.0` is used as the calculation baseline; the first published version is determined by the PR label. Existing `release-*` tags remain available for manual redeployment. The host runs Composer install and forward-only Phinx migrations; it does not run Node.js.
 
-Configure Actions secrets `DEPLOY_HOST`, `DEPLOY_PORT`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, and `DEPLOY_KNOWN_HOSTS`. `DEPLOY_KNOWN_HOSTS` must contain the server's verified OpenSSH `known_hosts` entry; for a nonstandard SSH port, its host field must be `[DEPLOY_HOST]:DEPLOY_PORT`. Verify the host-key fingerprint with the hosting provider before saving the entry. The workflow checks that the entry matches the configured host and port and keeps strict host-key checking enabled. The host needs `rsync`, `tar`, PHP 8.4, Composer 2, and database access for Phinx. The target `~/sites/sandbox-php` must already exist and contain the production `.env`; the account needs write access to it. While browser tests are disabled, repository administrators should require `PHP tests`, `Production build`, and `Release version label` in the `main` branch rules, and protect both `v*` and the legacy `release-*` tag patterns from changes. These repository rules cannot be configured by workflow YAML. Tag redeploys never reverse migrations; check schema compatibility before selecting an earlier release.
+Configure Actions secrets `DEPLOY_HOST`, `DEPLOY_PORT`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, and `DEPLOY_KNOWN_HOSTS`. `DEPLOY_KNOWN_HOSTS` must contain the server's verified OpenSSH `known_hosts` entry; for a nonstandard SSH port, its host field must be `[DEPLOY_HOST]:DEPLOY_PORT`. Verify the host-key fingerprint with the hosting provider before saving the entry. The workflow checks that the entry matches the configured host and port and keeps strict host-key checking enabled. The host needs `rsync`, `tar`, PHP 8.4, Composer 2, and database access for Phinx. The target `~/sites/sandbox-php` must already exist and contain the production `.env`; the account needs write access to it. Repository administrators should require `Frontend tests`, `PHP tests`, `Production build`, and `Release version label` in the `main` branch rules, and protect both `v*` and the legacy `release-*` tag patterns from changes. These repository rules cannot be configured by workflow YAML. Tag redeploys never reverse migrations; check schema compatibility before selecting an earlier release.
 
 ## What this skeleton includes
 
@@ -162,7 +162,7 @@ Dependencies flow from `Infrastructure → Application → Domain`; Bootstrap co
 
 The application negotiates English (`en`) and Brazilian Portuguese (`pt-BR`) from the browser's `Accept-Language` header. Set `SUPPORTED_LOCALES` to a comma-separated list of canonical locale tags and `FALLBACK_LOCALE` to one of them. Each supported locale needs a complete JSON catalog under `public/assets/i18n/`; the catalogs must contain matching keys. Add a language by copying `public/assets/i18n/en.json`, translating every value, and setting both configuration variables. Startup rejects duplicate, malformed, unsupported, missing, or incomplete locale configuration. Localized HTML and JSON responses set `Content-Language` and vary shared caches by `Accept-Language`.
 
-The browser checks exercise both supported locales. With the app running and Chrome or Chromium installed on the host, run `./tools/test-all.sh` for the browser and PHP checks.
+Vitest checks the API client's locale and CSRF headers with mocked requests. Run the frontend suite with `npm --prefix frontend run test`; no browser or running PHP application is required.
 
 ## Security and maintenance
 
