@@ -131,7 +131,7 @@ command -v rsync >/dev/null 2>&1 || fail 'package step: rsync is required on the
 
 PHP_BIN="$php_bin" bash "$script_dir/verify-deploy-package.sh" "$package_archive" "$release_tag" "$(
     tar -xOzf "$package_archive" .deploy-release 2>/dev/null | tail -n 1
-)" >/dev/null 2>&1 || fail 'package step: release archive validation failed; the application has not been changed.'
+)" || fail 'package step: release archive validation failed; the application has not been changed.'
 
 temporary_directory=$(mktemp -d "${TMPDIR:-/tmp}/sandbox-php-release.XXXXXX") \
     || fail 'package step: could not create a temporary directory.'

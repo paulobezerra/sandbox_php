@@ -39,7 +39,7 @@ manifest=$(tar -xOzf "$archive" public/assets/build/.vite/manifest.json 2>/dev/n
     || fail 'archive is missing the Vite production manifest.'
 
 php_bin=${PHP_BIN:-php}
-printf '%s' "$manifest" | "$php_bin" -r '
+assets=$(printf '%s' "$manifest" | "$php_bin" -r '
 $manifest = json_decode(stream_get_contents(STDIN), true);
 $entry = is_array($manifest) ? ($manifest["src/spa/main.js"] ?? null) : null;
 if (!is_array($entry) || !is_string($entry["file"] ?? null) || !is_array($entry["css"] ?? null) || $entry["css"] === []) {
@@ -51,12 +51,15 @@ foreach (array_merge([$entry["file"]], $entry["css"]) as $asset) {
         fwrite(STDERR, "Release package validation failed: manifest contains an unsafe asset path.\n");
         exit(1);
     }
-    passthru("tar -tzf " . escapeshellarg($argv[1]) . " -- public/assets/build/" . escapeshellarg($asset), $status);
-    if ($status !== 0) {
-        fwrite(STDERR, "Release package validation failed: manifest references a missing asset.\n");
-        exit(1);
-    }
+    echo $asset, "\n";
 }
-' "$archive" || fail 'Vite manifest or referenced asset validation failed.'
+') || fail 'Vite manifest validation failed.'
+while IFS= read -r asset; do
+    [[ -n "$asset" ]] || continue
+    if ! grep -Fxq "public/assets/build/$asset" <<< "$entries" \
+        && ! grep -Fxq "./public/assets/build/$asset" <<< "$entries"; then
+        fail 'Vite manifest references a missing asset.'
+    fi
+done <<< "$assets"
 
 printf 'OK: release package matches %s (%s) and contains its production SPA assets.\n' "$tag" "$commit"
