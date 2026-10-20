@@ -8,9 +8,9 @@ A reusable skeleton for PHP applications, with registration, login, and a Posts 
 
 ## Stack and constraints
 
-- **Languages/frameworks/runtime:** PHP `^8.4` (container verified: 8.4.26); Slim 4; Vue 3 and Vue Router through local browser assets; Composer 2 (container verified: 2.10.3); PHPUnit 11.
+- **Languages/frameworks/runtime:** PHP `^8.4` (container verified: 8.4.26); Slim 4; Vue 3, Vue Router, and Vite; Node/npm and Vitest for frontend tests; Composer 2 (container verified: 2.10.3); PHPUnit 11.
 - **Data/infrastructure:** PDO/MySQL, MySQL 8.4 in Docker Compose, Phinx migrations, Apache. The web application is served by one PHP/Apache service; MySQL is a separate service.
-- **Hard constraints:** no Node.js, npm, bundler, transpilation, or JavaScript build step; browser code uses native ES modules. Deploy with `public/` as document root. Keep secrets and `.env` outside version control/public web root. (README.md; compose.yaml; Dockerfile)
+- **Frontend tooling:** Vue 3 source is built with Vite and tested with Vitest. Production assets are generated under `public/assets/build/`; the deployed PHP/Apache application serves them. Frontend tests require no browser or live service. Deploy with `public/` as document root. Keep secrets and `.env` outside version control/public web root. (README.md; frontend/package.json; frontend/vite.config.js)
 
 ## Structure and boundaries
 
@@ -20,14 +20,14 @@ A reusable skeleton for PHP applications, with registration, login, and a Posts 
 
 ## Commands
 
-PHP and Composer commands run in the active `app` container using `docker compose exec -T app ...`; Docker Compose also starts the MySQL service. PHP/Composer versions and Compose service state were checked on 2026-10-18. Project scripts below are defined in `composer.json` and documented in `README.md`; they were not run as part of init.
+Application and database commands run in the active `app` container using `docker compose exec -T app ...`; Docker Compose also starts the MySQL service. The default PHPUnit suite is service-free and can run directly on a host with PHP/Composer dependencies installed. PHP/Composer versions and Compose service state were checked on 2026-10-18. Project scripts below are defined in `composer.json` and documented in `README.md`; they were not run as part of init.
 
 - Install: `docker compose up -d --build` (starts services; Composer install runs in the app service startup command).
 - Run: open `http://localhost:8080` after services are active.
-- Test: `docker compose exec -T app composer test` · focused: `docker compose exec -T app composer test -- --filter <TestName>` (defined; not run).
+- Test: `composer test` (service-free PHPUnit suite; defined; not run) · frontend: `npm --prefix frontend run test` (Vitest; defined; not run).
 - Lint/format/static analysis: `docker compose exec -T app composer format` (writes formatting changes); `docker compose exec -T app composer lint` (read-only checks); static analysis is included in `composer quality`.
 - Full quality gate: `docker compose exec -T app composer quality` (defined; not run).
-- Browser checks for frontend changes: `./tools/test-all.sh` on the host with the app active and Chrome/Chromium installed; it also runs PHPUnit in the container (defined; not run).
+- Production frontend build: `npm --prefix frontend run build` (defined; not run). CI runs each test suite directly with a 20-second limit.
 - Migration commands: `docker compose exec -T app composer migrate` applies migrations; `... composer migrate:status` reports status. Neither was run during init.
 
 ## Conventions
@@ -42,5 +42,5 @@ Do not reset or roll back databases, remove Docker volumes, delete project data,
 
 - Registration/login use PHP sessions; Posts support public listing and authenticated ownership-managed authoring; routes and API documentation are present. (src/Infrastructure/Http/Controller/; tests/Integration/)
 - The SPA includes localized English and Brazilian Portuguese assets and a Markdown preview/rendering path. (public/assets/; src/Infrastructure/View/MarkdownRenderer.php)
-- Test suites include Unit, Integration, and Architecture tests. Browser checks require host Chrome/Chromium. (tests/; README.md)
+- Test suites include Unit, Integration, and Architecture tests; PHPUnit and Vitest default suites require no browser, live app, or database. (tests/; frontend/tests/; README.md)
 - Feature records 001–004 intentionally retain their original historical shapes and references. Their embedded workflow references are not current guidance, and these records must not be normalized; new work follows the standalone SDD Lite artifact layout. After Feature 005, change this file or `implementation.md` only at the user's explicit request or through a new canonical `$sdd-lite init` run.

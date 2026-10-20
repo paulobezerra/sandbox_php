@@ -24,9 +24,9 @@ Starting point for Spec, Code, Bug and Review; the feature Spec defines the cont
 
 ## Client and interface
 
-- Frontend code uses Vue with native ES modules and local assets; there is no JavaScript build step. API access is organized in `public/assets/js/services/`. — `observed`, `README.md`, `public/assets/js/app.js`, `public/assets/js/services/api.js`
+- Frontend source uses Vue and Vite; production assets are generated under `public/assets/build/`, and Vitest tests run without a browser or live service. — `observed`, `frontend/package.json`, `frontend/vite.config.js`, `frontend/vitest.config.js`
 - Third-party frontend libraries should be delivered from version-pinned CDNs by default. If a CDN integration fails, correct that integration rather than adding a local copy, unless the user makes a later decision. — `decided`, Paulo Bezerra, 2026-10-19
-- SPA browser checks are provided by host-side `tools/test-all.sh` and `tools/test-frontend.sh`; Chrome/Chromium and a running app are required. — `observed`, `README.md`, `tools/test-all.sh`, `tools/test-frontend.sh`
+- Frontend behavior checks use `npm --prefix frontend run test`; production assets are checked separately with `npm --prefix frontend run build`. — `observed`, `frontend/package.json`, `.github/workflows/quality-and-release.yml`
 
 ## Testing and quality gates
 

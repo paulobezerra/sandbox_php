@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Architecture;
 
-use App\Bootstrap\App;
-use PHPUnit\Framework\TestCase;
+use App\Tests\TestCase;
 
 final class AppCompositionTest extends TestCase
 {
     public function testDefaultCompositionKeepsPostRoutesAndDropsRemovedRoutes(): void
     {
         $routes = [];
-        foreach (App::create()->getRouteCollector()->getRoutes() as $route) {
+        foreach ($this->createApp()->getRouteCollector()->getRoutes() as $route) {
             foreach ($route->getMethods() as $method) {
                 $routes[] = $method . ' ' . $route->getPattern();
             }

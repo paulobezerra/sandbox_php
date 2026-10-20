@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration;
 
-use App\Bootstrap\App;
 use App\Bootstrap\Config;
 use App\Tests\TestCase;
 
@@ -24,7 +23,7 @@ class DocumentationRoutesTest extends TestCase
 
     public function testOpenApiDocumentIsServedAsJson(): void
     {
-        $response = App::create()->handle($this->createRequest('GET', '/docs/openapi.json'));
+        $response = $this->createApp()->handle($this->createRequest('GET', '/docs/openapi.json'));
 
         self::assertSame(200, $response->getStatusCode());
         self::assertStringContainsString('application/json', $response->getHeaderLine('Content-Type'));
@@ -36,26 +35,21 @@ class DocumentationRoutesTest extends TestCase
         self::assertArrayNotHasKey('/api/auth/recovery-codes', $document['paths']);
         self::assertArrayNotHasKey('/api/auth/reset-password', $document['paths']);
         self::assertArrayNotHasKey('429', $document['paths']['/api/auth/login']['post']['responses']);
-        self::assertSame(Config::fromEnvironment()->sessionCookie, $document['components']['securitySchemes']['cookieAuth']['name']);
+        self::assertSame('sandbox_session', $document['components']['securitySchemes']['cookieAuth']['name']);
     }
 
     public function testOpenApiCookieNameFollowsConfiguredSessionCookie(): void
     {
-        $environment = Config::fromEnvironment();
         $config = Config::fromArray([
-            'APP_ENV' => $environment->appEnv,
+            'APP_ENV' => 'testing',
             'APP_DEBUG' => 'false',
             'OPENAPI_ENABLED' => 'true',
-            'APP_URL' => $environment->appUrl,
+            'APP_URL' => 'http://localhost:8080',
             'SESSION_COOKIE' => 'project_auth_cookie',
-            'DB_HOST' => $environment->databaseHost,
-            'DB_PORT' => (string) $environment->databasePort,
-            'DB_DATABASE' => $environment->databaseName,
-            'DB_USERNAME' => $environment->databaseUser,
-            'DB_PASSWORD' => $environment->databasePassword,
-            'DB_CHARSET' => $environment->databaseCharset,
+            'DB_DATABASE' => 'test',
+            'DB_USERNAME' => 'test',
         ]);
-        $response = App::create(config: $config)->handle($this->createRequest('GET', '/docs/openapi.json'));
+        $response = $this->createApp($config)->handle($this->createRequest('GET', '/docs/openapi.json'));
         $document = json_decode((string) $response->getBody(), true, flags: JSON_THROW_ON_ERROR);
 
         self::assertSame('project_auth_cookie', $document['components']['securitySchemes']['cookieAuth']['name']);
@@ -63,21 +57,29 @@ class DocumentationRoutesTest extends TestCase
 
     public function testDocumentationIsHiddenInProductionByDefault(): void
     {
-        $environment = Config::fromEnvironment();
-        $config = Config::fromArray([
+        $productionConfig = Config::fromArray([
             'APP_ENV' => 'production',
             'APP_DEBUG' => 'false',
             'APP_URL' => 'https://example.test',
-            'DB_HOST' => $environment->databaseHost,
-            'DB_PORT' => (string) $environment->databasePort,
-            'DB_DATABASE' => $environment->databaseName,
-            'DB_USERNAME' => $environment->databaseUser,
-            'DB_PASSWORD' => $environment->databasePassword,
-            'DB_CHARSET' => $environment->databaseCharset,
+            'DB_DATABASE' => 'test',
+            'DB_USERNAME' => 'test',
         ]);
-        $response = App::create(config: $config)->handle($this->createRequest('GET', '/docs/openapi.json'));
+        self::assertFalse($productionConfig->openApiEnabled);
 
-        self::assertFalse($config->openApiEnabled);
+        $spaConfig = Config::fromArray([
+            'APP_ENV' => 'testing',
+            'APP_DEBUG' => 'false',
+            'OPENAPI_ENABLED' => 'false',
+            'DB_DATABASE' => 'test',
+            'DB_USERNAME' => 'test',
+        ]);
+        $response = $this->createApp($spaConfig)->handle($this->createRequest(
+            'GET',
+            '/docs/openapi.json',
+            ['Accept' => 'text/html']
+        ));
+
+        self::assertSame(200, $response->getStatusCode());
         self::assertStringContainsString('text/html', $response->getHeaderLine('Content-Type'));
         self::assertStringNotContainsString('application/json', $response->getHeaderLine('Content-Type'));
     }
