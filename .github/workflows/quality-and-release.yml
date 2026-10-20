@@ -135,13 +135,23 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          known_hosts_target="$DEPLOY_HOST"
+          if [[ "$DEPLOY_PORT" != 22 ]]; then
+            known_hosts_target="[$DEPLOY_HOST]:$DEPLOY_PORT"
+          fi
           install -m 700 -d "$HOME/.ssh"
           printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/id_ed25519"
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts"
+          if ! ssh-keygen -F "$known_hosts_target" -f "$HOME/.ssh/known_hosts" >/dev/null; then
+            printf 'DEPLOY_KNOWN_HOSTS has no host-key entry for %s. Configure the verified host key using this exact host and port.\n' "$known_hosts_target" >&2
+            exit 1
+          fi
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
       - name: Transfer and deploy the tagged release
         shell: bash
         run: |
@@ -149,8 +159,8 @@ jobs:
           archive="${{ steps.package.outputs.archive }}"
           tag="${{ steps.package.outputs.tag }}"
           remote_package="/tmp/sandbox-php-${tag}.tar.gz"
-          scp -P "$DEPLOY_PORT" -i "$HOME/.ssh/id_ed25519" "$archive" "${DEPLOY_USER}@${DEPLOY_HOST}:${remote_package}"
-          ssh -p "$DEPLOY_PORT" -i "$HOME/.ssh/id_ed25519" "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          scp -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -P "$DEPLOY_PORT" -i "$HOME/.ssh/id_ed25519" "$archive" "${DEPLOY_USER}@${DEPLOY_HOST}:${remote_package}"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -p "$DEPLOY_PORT" -i "$HOME/.ssh/id_ed25519" "${DEPLOY_USER}@${DEPLOY_HOST}" \
             "bash -s -- '${tag}' '${remote_package}'" <<'REMOTE'
           set -euo pipefail
           tag=$1
@@ -159,8 +169,7 @@ jobs:
           trap 'rm -rf -- "$work"; rm -f -- "$package"' EXIT
           tar -xOzf "$package" tools/deploy-shared-hosting.sh > "$work/deploy-shared-hosting.sh"
           tar -xOzf "$package" tools/verify-deploy-package.sh > "$work/verify-deploy-package.sh"
-          chmod 700 "$work"/*.sh
-          "$work/deploy-shared-hosting.sh" --release "$tag" --package "$package" --target "$HOME/sites/sandbox-php"
+          bash "$work/deploy-shared-hosting.sh" --release "$tag" --package "$package" --target "$HOME/sites/sandbox-php"
           REMOTE
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
@@ -203,13 +212,23 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          known_hosts_target="$DEPLOY_HOST"
+          if [[ "$DEPLOY_PORT" != 22 ]]; then
+            known_hosts_target="[$DEPLOY_HOST]:$DEPLOY_PORT"
+          fi
           install -m 700 -d "$HOME/.ssh"
           printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/id_ed25519"
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts"
+          if ! ssh-keygen -F "$known_hosts_target" -f "$HOME/.ssh/known_hosts" >/dev/null; then
+            printf 'DEPLOY_KNOWN_HOSTS has no host-key entry for %s. Configure the verified host key using this exact host and port.\n' "$known_hosts_target" >&2
+            exit 1
+          fi
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
       - name: Transfer and deploy the selected release
         shell: bash
         run: |
@@ -217,8 +236,8 @@ jobs:
           archive="${{ steps.package.outputs.archive }}"
           tag="${{ inputs.release_tag }}"
           remote_package="/tmp/sandbox-php-${tag}.tar.gz"
-          scp -P "$DEPLOY_PORT" -i "$HOME/.ssh/id_ed25519" "$archive" "${DEPLOY_USER}@${DEPLOY_HOST}:${remote_package}"
-          ssh -p "$DEPLOY_PORT" -i "$HOME/.ssh/id_ed25519" "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          scp -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -P "$DEPLOY_PORT" -i "$HOME/.ssh/id_ed25519" "$archive" "${DEPLOY_USER}@${DEPLOY_HOST}:${remote_package}"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -p "$DEPLOY_PORT" -i "$HOME/.ssh/id_ed25519" "${DEPLOY_USER}@${DEPLOY_HOST}" \
             "bash -s -- '${tag}' '${remote_package}'" <<'REMOTE'
           set -euo pipefail
           tag=$1
@@ -227,8 +246,7 @@ jobs:
           trap 'rm -rf -- "$work"; rm -f -- "$package"' EXIT
           tar -xOzf "$package" tools/deploy-shared-hosting.sh > "$work/deploy-shared-hosting.sh"
           tar -xOzf "$package" tools/verify-deploy-package.sh > "$work/verify-deploy-package.sh"
-          chmod 700 "$work"/*.sh
-          "$work/deploy-shared-hosting.sh" --release "$tag" --package "$package" --target "$HOME/sites/sandbox-php"
+          bash "$work/deploy-shared-hosting.sh" --release "$tag" --package "$package" --target "$HOME/sites/sandbox-php"
           REMOTE
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
