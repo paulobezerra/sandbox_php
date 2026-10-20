@@ -12,7 +12,8 @@ archive=$1
 tag=$2
 commit=$3
 
-[[ "$tag" =~ ^release-[0-9]+-[0-9]+-[0-9a-f]{12}$ ]] || fail 'tag has an unsupported format.'
+[[ "$tag" =~ ^(release-[0-9]+-[0-9]+-[0-9a-f]{12}|v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))$ ]] \
+    || fail 'tag has an unsupported format.'
 [[ "$commit" =~ ^[0-9a-f]{40}$ ]] || fail 'commit must be a full lowercase Git SHA.'
 [[ -f "$archive" && -r "$archive" ]] || fail 'archive is not a readable file.'
 

@@ -18,6 +18,8 @@ Implement the release and deployment workflow as one integrated task: pull reque
 
 **Workflow decision:** Paulo requested temporarily removing frontend browser tests from the GitHub workflow. The production build check remains enabled. Keep S009-01 open until frontend browser checks are restored and validated.
 
+**Code-stage decision:** On 2026-10-20, Paulo Bezerra approved semantic release tags selected by one `patch`, `minor`, or `major` PR label. After merge to `main`, the workflow computes the next `vMAJOR.MINOR.PATCH`, creates the tag and GitHub release, and deploys the matching package. The first release uses `v0.0.0` as a calculation baseline when no SemVer tag exists; existing `release-*` tags remain available for redeployment. The version is derived from Git tags rather than hard-coded in `composer.json`.
+
 - The task intentionally spans CI, packaging, installer, and operator guidance because the requested result is one usable workflow. Keep the changes bounded to those pieces and verify their integration as a unit.
 - Workflow YAML cannot configure repository branch protection. The required status checks must be enabled in repository settings before claiming merges are blocked.
 - Redeploying older code does not reverse database migrations; confirm code/schema compatibility for any selected tag.
