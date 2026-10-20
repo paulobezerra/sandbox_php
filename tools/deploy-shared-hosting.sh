@@ -119,6 +119,8 @@ if [[ "$composer_setting_is_set" == 1 ]]; then
 else
     composer_bin="$project_root/composer.phar"
     [[ -f "$composer_bin" ]] || fail 'Composer step: the tracked composer.phar is missing; set COMPOSER_BIN to a host-local Composer PHAR.'
+    chmod u+r "$composer_bin" \
+        || fail 'Composer step: could not restore read access to the tracked composer.phar.'
 fi
 composer_version=$("$php_bin" "$composer_bin" --version --no-ansi 2>/dev/null) \
     || fail 'Composer step: the selected Composer file cannot run with PHP_BIN.'
