@@ -3,6 +3,7 @@ name: Quality and release
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
   push:
     branches: [main]
   workflow_dispatch:
@@ -72,6 +73,21 @@ jobs:
       - run: npm ci --prefix frontend
       - run: npm --prefix frontend run build
 
+  release-label:
+    name: Release version label
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require one release version label
+        shell: bash
+        run: |
+          set -euo pipefail
+          count="$(jq '[.pull_request.labels[].name | select(. == "patch" or . == "minor" or . == "major")] | length' "$GITHUB_EVENT_PATH")"
+          if [[ "$count" != 1 ]]; then
+            printf 'Add exactly one release label to this PR: patch, minor, or major.\n' >&2
+            exit 1
+          fi
+
   deploy-merge:
     name: Deploy merged main
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -79,6 +95,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: read
     concurrency:
       group: production-release
       cancel-in-progress: false
@@ -102,8 +119,35 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          short_sha="${GITHUB_SHA:0:12}"
-          tag="release-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${short_sha}"
+          associated_pull_requests="$RUNNER_TEMP/associated-pull-requests.json"
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls?per_page=100" > "$associated_pull_requests"
+          merged_pr="$(jq -ce --arg sha "$GITHUB_SHA" '[.[] | select(.base.ref == "main" and .merged_at != null and .merge_commit_sha == $sha)] | if length == 1 then .[0] else error("expected exactly one merged PR for this commit") end' "$associated_pull_requests")"
+          release_type="$(jq -er '[.labels[].name | select(. == "patch" or . == "minor" or . == "major")] | if length == 1 then .[0] else error("merged PR must have exactly one release label") end' <<< "$merged_pr")"
+
+          semver_pattern='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'
+          existing_tags=()
+          while IFS= read -r existing_tag; do
+            [[ "$existing_tag" =~ $semver_pattern ]] && existing_tags+=("$existing_tag")
+          done < <(git tag --points-at "$GITHUB_SHA")
+          if (( ${#existing_tags[@]} > 1 )); then
+            printf 'More than one SemVer tag already points to this commit.\n' >&2
+            exit 1
+          elif (( ${#existing_tags[@]} == 1 )); then
+            tag=${existing_tags[0]}
+          else
+            latest_tag='v0.0.0'
+            while IFS= read -r candidate; do
+              [[ "$candidate" =~ $semver_pattern ]] && latest_tag=$candidate
+            done < <(git tag --list | grep -E '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' | sort -V || true)
+            IFS=. read -r major minor patch <<< "${latest_tag#v}"
+            case "$release_type" in
+              major) major=$((major + 1)); minor=0; patch=0 ;;
+              minor) minor=$((minor + 1)); patch=0 ;;
+              patch) patch=$((patch + 1)) ;;
+            esac
+            tag="v${major}.${minor}.${patch}"
+          fi
+
           package_dir="$RUNNER_TEMP/release-package"
           archive="$RUNNER_TEMP/sandbox-php-${tag}.tar.gz"
           mkdir -p "$package_dir"
@@ -124,9 +168,20 @@ jobs:
           tools/verify-deploy-package.sh "$archive" "$tag" "$GITHUB_SHA"
           git config user.name "$GITHUB_ACTOR"
           git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
-          git tag -a "$tag" "$GITHUB_SHA" -m "$tag"
-          git push origin "$tag"
-          gh release create "$tag" "$archive" --target "$GITHUB_SHA" --title "$tag" --notes "Automated production release for $GITHUB_SHA."
+          if git show-ref --verify --quiet "refs/tags/$tag"; then
+            [[ "$(git rev-parse "refs/tags/$tag^{commit}")" == "$GITHUB_SHA" ]] || {
+              printf 'The calculated release tag already points to a different commit.\n' >&2
+              exit 1
+            }
+          else
+            git tag -a "$tag" "$GITHUB_SHA" -m "$tag"
+            git push origin "refs/tags/$tag"
+          fi
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "$archive" --clobber
+          else
+            gh release create "$tag" "$archive" --target "$GITHUB_SHA" --title "$tag" --notes "Automated production release for $GITHUB_SHA."
+          fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "archive=$archive" >> "$GITHUB_OUTPUT"
         env:
@@ -200,7 +255,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          [[ "$RELEASE_TAG" =~ ^release-[0-9]+-[0-9]+-[0-9a-f]{12}$ ]]
+          [[ "$RELEASE_TAG" =~ ^(release-[0-9]+-[0-9]+-[0-9a-f]{12}|v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))$ ]]
           git fetch --force origin "refs/tags/${RELEASE_TAG}:refs/tags/${RELEASE_TAG}"
           commit="$(git rev-parse "refs/tags/${RELEASE_TAG}^{commit}")"
           archive="$RUNNER_TEMP/sandbox-php-${RELEASE_TAG}.tar.gz"
