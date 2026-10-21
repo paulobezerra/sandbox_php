@@ -48,8 +48,15 @@
       "@php tools/lint-php.php"
     ],
     "test": "vendor/bin/phpunit",
-    "test:coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-clover=/tmp/sandbox-php-coverage.xml",
-    "coverage:check": "php tools/check-coverage.php /tmp/sandbox-php-coverage.xml 80",
+    "test:coverage": [
+      "@php -r \"if (is_file('/tmp/sandbox-php-coverage.xml')) { unlink('/tmp/sandbox-php-coverage.xml'); }\"",
+      "XDEBUG_MODE=coverage php -d memory_limit=512M vendor/bin/phpunit --coverage-clover=/tmp/sandbox-php-coverage.xml"
+    ],
+    "test:branch-coverage": [
+      "@test:coverage",
+      "@coverage:check"
+    ],
+    "coverage:check": "php tools/check-php-coverage.php /tmp/sandbox-php-coverage.xml 95 85",
     "openapi:generate": "vendor/bin/openapi src/Infrastructure/Http -o docs/openapi.json",
     "openapi:check": "vendor/bin/phpunit --filter OpenApiRoutesTest",
     "quality": [

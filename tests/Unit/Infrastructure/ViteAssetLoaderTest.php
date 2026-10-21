@@ -10,6 +10,7 @@ use App\Infrastructure\I18n\Localization;
 use App\Infrastructure\View\ViewRenderer;
 use App\Infrastructure\View\ViteAssetLoader;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Response;
@@ -45,6 +46,7 @@ final class ViteAssetLoaderTest extends TestCase
         self::assertStringContainsString('http://localhost:5173/@vite/client', $tags);
         self::assertStringContainsString('http://localhost:5173/assets/js/app.js', $tags);
         self::assertStringNotContainsString('/assets/build/', $tags);
+
     }
 
     public function testPhpTemplateSelectsDevelopmentAssetsFromApplicationEnvironment(): void
@@ -67,6 +69,10 @@ final class ViteAssetLoaderTest extends TestCase
 
         self::assertStringContainsString('http://localhost:5173/@vite/client', $body);
         self::assertStringContainsString('http://localhost:5173/src/spa/main.js', $body);
+
+        $fallbackRequest = (new ServerRequestFactory())->createServerRequest('GET', '/');
+        $fallbackBody = $controller->index($fallbackRequest, new Response())->getBody();
+        self::assertStringContainsString('<html lang="en">', (string) $fallbackBody);
     }
 
     public function testPhpTemplateSelectsManifestAssetsOutsideDevelopment(): void
@@ -143,5 +149,67 @@ final class ViteAssetLoaderTest extends TestCase
     {
         $this->expectException(RuntimeException::class);
         new ViteAssetLoader($this->publicDirectory, 'https://attacker.example:5173');
+    }
+
+    #[DataProvider('invalidDevelopmentOrigins')]
+    public function testDevelopmentServerRejectsUnsafeOrigins(string $url): void
+    {
+        $this->expectException(RuntimeException::class);
+        new ViteAssetLoader($this->publicDirectory, $url);
+    }
+
+    public static function invalidDevelopmentOrigins(): iterable
+    {
+        yield 'wrong port' => ['http://localhost:8080'];
+        yield 'credentials' => ['http://user:pass@localhost:5173'];
+        yield 'query' => ['http://localhost:5173?x=1'];
+        yield 'fragment' => ['http://localhost:5173#x'];
+        yield 'path' => ['http://localhost:5173/vite'];
+    }
+
+    public function testDevelopmentRejectsUnsafeEntryPaths(): void
+    {
+        $loader = new ViteAssetLoader($this->publicDirectory, 'http://localhost:5173');
+
+        foreach (['', '/absolute.js', '../secret.js', 'bad name.js'] as $entry) {
+            try {
+                $loader->renderTags(true, $entry);
+                self::fail('Unsafe entry must be rejected.');
+            } catch (RuntimeException $exception) {
+                self::assertSame('Vite entry must be a safe relative path.', $exception->getMessage());
+            }
+        }
+    }
+
+    public function testProductionRejectsInvalidManifestDataAndAssetPaths(): void
+    {
+        $loader = new ViteAssetLoader($this->publicDirectory, 'http://localhost:5173');
+        $manifestPath = $this->publicDirectory . '/assets/build/.vite/manifest.json';
+        file_put_contents($manifestPath, '{broken');
+        try {
+            $loader->renderTags(false, 'src/main.js');
+            self::fail('Malformed JSON must be rejected.');
+        } catch (RuntimeException $exception) {
+            self::assertStringContainsString('invalid JSON', $exception->getMessage());
+        }
+
+        foreach ([
+            ['src/main.js' => []],
+            ['src/main.js' => ['file' => 5]],
+            ['src/main.js' => ['file' => '']],
+            ['src/main.js' => ['file' => '/absolute.js']],
+            ['src/main.js' => ['file' => 'bad name.js']],
+            ['src/main.js' => ['file' => 'assets/main.js', 'css' => [5]]],
+            ['src/main.js' => ['file' => '../secret.js']],
+            ['src/main.js' => ['file' => 'assets\\secret.js']],
+        ] as $manifest) {
+            file_put_contents($manifestPath, json_encode($manifest, JSON_THROW_ON_ERROR));
+            try {
+                $loader->renderTags(false, 'src/main.js');
+                self::fail('Invalid manifest data must be rejected.');
+            } catch (RuntimeException) {
+                self::assertTrue(true);
+            }
+        }
     }
 }

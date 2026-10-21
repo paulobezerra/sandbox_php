@@ -12,8 +12,14 @@
     <source>
         <include>
             <directory>src</directory>
+            <directory>tools</directory>
+            <directory>database/migrations</directory>
+            <file>public/index.php</file>
+            <file>phinx.php</file>
+            <file>.php-cs-fixer.dist.php</file>
         </include>
     </source>
+    <coverage pathCoverage="true" includeUncoveredFiles="true"/>
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_DEBUG" value="false"/>

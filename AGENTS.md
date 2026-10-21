@@ -79,6 +79,13 @@ Do not create empty directories. A controller parses HTTP â†’ calls a service â†
 - SPA fallback applies only to pages; unknown `/api/*` paths always return JSON 404.
 - Frontend routing and authentication improve UX; they are **not authorization**.
 
+## Testing guidance
+
+- Choose a test level that proves the behavior at the affected boundary. Plan tasks state the test purpose, level, affected boundary, and why that level proves acceptance; add another level only when it proves a distinct risk. A **unit test** may target any application layer; execute the target code and replace dependencies outside that unit with controlled mocks, stubs, or fakes. An **integration test** verifies interactions among this repository's components, while databases, external APIs, and other outside services remain controlled doubles. Run backend tests with PHPUnit and frontend tests with Vitest without starting the full application or external services.
+- For new behavior, ordinarily write a test first that fails for the expected reason, then implement the smallest change that makes it pass. Cover relevant success, invalid input, denied access, failure, and state-preservation outcomes. If test-first work is impractical, explain why and still verify the resulting contract.
+- Before a behavior-preserving refactor with uncertain or incomplete contracts, add **characterization tests** for the current externally observable results. Run the same test and unchanged assertions on the base (`main`, or historical `master`) and feature branches before and after the refactor; all runs must pass. Characterization describes the purpose of a test, not its level, so it may be unit or integration scope. If the captured behavior conflicts with the requested behavior, resolve the scope before changing it.
+- Aim for 100% line coverage on authored code. This is a recommendation; there is no 100% branch-coverage target. CI independently requires at least 95% line and 85% branch coverage for PHP and frontend code. Coverage numbers do not replace assertions about relevant behavior and failure paths.
+
 ## Current project commands (check the environment before running)
 
 ```bash
@@ -93,7 +100,7 @@ npm --prefix frontend run test
 npm --prefix frontend run build
 ```
 
-The frontend Vitest suite and PHPUnit suite run independently without a browser, live application, or database and each has a 20-second CI limit. Run `npm --prefix frontend run test` and `composer test` directly; use `npm --prefix frontend run build` to validate production assets. PHP application and migration commands still use the configured app environment described in the README.
+The frontend Vitest suite and PHPUnit suite run independently without a browser, live application, or database and each has a 20-second CI limit. CI collects coverage with `npm --prefix frontend run test:coverage` and `composer test:branch-coverage`; the reports enforce 95% lines and 85% branches independently for each stack. Use `npm --prefix frontend run build` to validate production assets. PHP application and migration commands still use the configured app environment described in the README.
 
 When a check requires a local long-running service such as Vite, start only the service needed, track its process or session, and stop every service started for the check in cleanup whether the check passes or fails. Verify it stopped before finishing. Do not terminate a service that was already running before the check, and do not leave agent-started services running after the task.
 
@@ -110,6 +117,7 @@ Do not assume Compose, MySQL, or SMTP is active. Do not run `migrate:rollback`, 
 ## Change policy
 
 - Do not create a PR, commit, publish, send email, change a remote environment, or deploy without an explicit request.
+- When the user explicitly requests a push without naming its destination, use the configured `origin` remote and the current branch. Before pushing, verify and state the remote URL, branch, and exact commit range. Do not ask again for confirmation when the user's explicit request already authorizes that push.
 - The current installation uses an initial migration for `users` and `posts`; schema changes for existing installations require analysis and a separate migration that preserves data when necessary.
 
 ## Operations and distribution

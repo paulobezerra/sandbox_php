@@ -72,4 +72,16 @@ describe('authentication form behavior', () => {
         expect(wrapper.get('[role="status"]').text()).toContain('Account created. Sign in.');
         expect(router.push).not.toHaveBeenCalled();
     });
+
+    it('shows failed login and falls back to the private posts route', async () => {
+        post.mockRejectedValueOnce(new Error('invalid credentials')).mockResolvedValueOnce({});
+        const failed = mountAuth('login');
+        await failed.wrapper.vm.submit();
+        expect(failed.wrapper.get('[role="alert"]').text()).toBe('invalid credentials');
+
+        const fallback = mountAuth('login');
+        fallback.wrapper.vm.$route.query.redirect = '';
+        await fallback.wrapper.vm.submit();
+        expect(fallback.router.push).toHaveBeenCalledWith('/my-posts');
+    });
 });
