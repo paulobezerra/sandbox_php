@@ -8,6 +8,7 @@ use App\Application\Auth\{AuthException, AuthService};
 use App\Domain\User\{User, UserRepository};
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class AuthServiceTest extends TestCase
 {
@@ -92,6 +93,34 @@ final class AuthServiceTest extends TestCase
         } catch (AuthException $error) {
             self::assertSame('email_exists', $error->reason);
         }
+    }
+
+    #[DataProvider('invalidRegistrationValues')]
+    public function testRegistrationRejectsEveryInvalidBoundaryBeforePersistence(array $values, string $reason): void
+    {
+        $repository = $this->createMock(UserRepository::class);
+        $repository->expects(self::never())->method('findByEmail');
+        $repository->expects(self::never())->method('create');
+
+        try {
+            (new AuthService($repository))->register(
+                $values['name'] ?? 'Alice',
+                $values['email'] ?? 'alice@example.com',
+                $values['password'] ?? 'a sufficiently long password'
+            );
+            self::fail('Invalid registration data should be rejected.');
+        } catch (AuthException $exception) {
+            self::assertSame($reason, $exception->reason);
+        }
+    }
+
+    public static function invalidRegistrationValues(): iterable
+    {
+        yield 'blank name' => [['name' => '  '], 'invalid_name'];
+        yield 'long name' => [['name' => str_repeat('a', 121)], 'invalid_name'];
+        yield 'invalid email' => [['email' => 'not-an-email'], 'invalid_email'];
+        yield 'long email' => [['email' => str_repeat('a', 245) . '@example.com'], 'invalid_email'];
+        yield 'long password' => [['password' => str_repeat('x', 4097)], 'invalid_password'];
     }
 
     private function user(int $id, string $password): User

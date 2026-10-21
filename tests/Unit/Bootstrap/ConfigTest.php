@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Bootstrap;
 use App\Bootstrap\Config;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class ConfigTest extends TestCase
 {
@@ -56,6 +57,32 @@ class ConfigTest extends TestCase
 
         self::assertSame('process_database', $config->databaseName);
         self::assertSame('process_user', $config->databaseUser);
+    }
+
+    public function testNullEnvironmentReadsPresentVariablesAndIgnoresAbsentOnes(): void
+    {
+        $names = ['APP_ENV', 'APP_DEBUG', 'OPENAPI_ENABLED', 'DB_DATABASE', 'DB_USERNAME', 'DB_PASSWORD'];
+        $previous = [];
+        foreach ($names as $name) {
+            $value = getenv($name);
+            $previous[$name] = $value;
+            putenv($name);
+        }
+        putenv('APP_ENV=testing');
+        putenv('DB_DATABASE=process_database');
+        putenv('DB_USERNAME=process_user');
+        putenv('APP_DEBUG=true');
+
+        try {
+            $config = Config::fromEnvironment(null, sys_get_temp_dir() . '/missing-' . bin2hex(random_bytes(6)) . '.env');
+            self::assertSame('process_database', $config->databaseName);
+            self::assertSame('process_user', $config->databaseUser);
+            self::assertTrue($config->appDebug);
+        } finally {
+            foreach ($previous as $name => $value) {
+                putenv($value === false ? $name : $name . '=' . $value);
+            }
+        }
     }
 
     public function testEmptyProcessDatabaseNameOverridesFileAndUsesExistingValidation(): void
@@ -223,6 +250,35 @@ class ConfigTest extends TestCase
             'SUPPORTED_LOCALES' => 'en,pt-BR',
             'FALLBACK_LOCALE' => 'fr',
         ]);
+    }
+
+    #[DataProvider('invalidConfigurations')]
+    public function testRejectsInvalidConfigurationValues(array $values, string $message): void
+    {
+        $values += ['DB_DATABASE' => 'app', 'DB_USERNAME' => 'app-user', 'APP_ENV' => 'testing'];
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage($message);
+        Config::fromArray($values);
+    }
+
+    public static function invalidConfigurations(): iterable
+    {
+        yield 'invalid environment' => [['APP_ENV' => 'staging'], 'APP_ENV must be'];
+        yield 'invalid OpenAPI boolean' => [['OPENAPI_ENABLED' => 'sometimes'], 'OPENAPI_ENABLED must be'];
+        yield 'empty database name' => [['DB_DATABASE' => ''], 'DB_DATABASE is required'];
+        yield 'empty database user' => [['DB_USERNAME' => ' '], 'DB_USERNAME is required'];
+        yield 'non-numeric port' => [['DB_PORT' => 'mysql'], 'DB_PORT must be'];
+        yield 'zero port' => [['DB_PORT' => '0'], 'DB_PORT must be'];
+        yield 'invalid charset' => [['DB_CHARSET' => 'utf8mb4;DROP'], 'DB_CHARSET contains'];
+        yield 'invalid URL' => [['APP_URL' => 'not a url'], 'APP_URL must be a valid'];
+        yield 'unsupported URL scheme' => [['APP_URL' => 'ftp://example.test'], 'APP_URL must be a valid'];
+        yield 'URL with line break' => [['APP_URL' => "http://example.test\r\nX-Injected: yes"], 'APP_URL must be a valid'];
+        yield 'production HTTP URL' => [['APP_ENV' => 'production', 'APP_URL' => 'http://example.test'], 'APP_URL must use HTTPS'];
+        yield 'invalid session cookie' => [['SESSION_COOKIE' => 'bad cookie'], 'SESSION_COOKIE contains'];
+        yield 'malformed supported locale' => [['SUPPORTED_LOCALES' => 'english_US'], 'malformed locale identifier'];
+        yield 'duplicate supported locale' => [['SUPPORTED_LOCALES' => 'en,EN'], 'unique locale identifiers'];
+        yield 'missing locale fallback' => [['SUPPORTED_LOCALES' => 'en,pt-BR', 'FALLBACK_LOCALE' => 'fr'], 'FALLBACK_LOCALE must be'];
     }
 
     public function testRejectsCataloguesWithDifferentKeys(): void
