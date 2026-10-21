@@ -117,6 +117,7 @@ Do not assume Compose, MySQL, or SMTP is active. Do not run `migrate:rollback`, 
 ## Change policy
 
 - Do not create a PR, commit, publish, send email, change a remote environment, or deploy without an explicit request.
+- When the user explicitly requests a push without naming its destination, use the configured `origin` remote and the current branch. Before pushing, verify and state the remote URL, branch, and exact commit range. Do not ask again for confirmation when the user's explicit request already authorizes that push.
 - The current installation uses an initial migration for `users` and `posts`; schema changes for existing installations require analysis and a separate migration that preserves data when necessary.
 
 ## Operations and distribution
