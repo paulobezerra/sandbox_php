@@ -1,35 +1,37 @@
 # REVIEW — Behavioral coverage for PHP and frontend code
 
-**Source:** [feature.md](feature.md) · [spec.md](spec.md) · [plan.md](plan.md) · **Date:** 2026-10-25 · **Status:** complete
+**Source:** [feature.md](feature.md) · [spec.md](spec.md) · [plan.md](plan.md) · **Date:** 2026-10-21 · **Status:** complete
 
 ## Baseline and limits
 
-This is a re-audit of the completed review dated 2026-10-21. The current checkout is `feature/012-nginx-php-fpm` at `4fcda934eb33a7db00228a773b1fa8d9e73a9b6b`, matching `origin/main`. The remote refs were checked read-only: `origin/main` is `4fcda934`, and `origin/feature/011-cobertura-testes` is `92f24eb`. The feature branch is an ancestor of `origin/main`; its implementation is merged. There is no diff between those refs. The feature branch has no `execution.md`, so there are no per-task Code records to independently reconcile; task checkboxes and the earlier review are not substitutes for such a record.
+The audit examined branch `feature/011-cobertura-testes` at `2723c54`. All feature implementation and planning changes are uncommitted in the workspace; the working tree also contains other pre-existing uncommitted project changes, so no clean commit-to-commit feature diff can be established. The audited files and the complete current source/test state were inspected directly. `origin/main` is the branch's upstream. A host-side read-only `git ls-remote --heads origin feature/011-cobertura-testes` succeeded with no matching ref, so publication of this feature branch is not proven.
 
-Current `git status --short` contains only pre-existing untracked `.specs/features/012-nginx-php-fpm/` and `frontend/coverage/`; these were left untouched. No tracked implementation changes since the earlier review invalidate its checks. The Docker app and MySQL services were active when checked; neither was started or stopped for this re-audit.
+Checks run on 2026-10-21:
 
-Checks run on 2026-10-25:
+- `docker compose exec -T app composer test` — passed, 211 tests and 704 assertions, PHP 8.4.26 / PHPUnit 11.5.57.
+- `docker compose exec -T app composer test:branch-coverage` — passed, 211 tests and 704 assertions with Xdebug 3.5.3; line coverage 96.93% (822/848), branch coverage 91.03% (751/825).
+- `npm --prefix frontend run test:coverage` — passed, 6 test files and 32 tests; line coverage 96.66% (348/360), branch coverage 95.32% (204/214).
+- The generated frontend coverage summary contains all 42 authored `.js` and `.vue` files under `frontend/src/`, with no missing or extra files.
+- `docker compose exec -T app composer lint` — passed; PHP-CS-Fixer found no changes and PHP syntax checks passed.
+- `npm --prefix frontend run build` — passed; Vite built the production assets.
+- `git diff --check` — passed.
 
-- `git ls-remote origin refs/heads/main refs/heads/feature/011-cobertura-testes` — passed; remote refs recorded above.
-- `git merge-base --is-ancestor 92f24eb origin/main` — passed; the feature branch is included in main.
-- `git diff --stat 92f24eb..origin/main` — empty; no changes after the feature branch tip. The feature's coverage implementation is in earlier commits merged into main.
-
-The following checks are inherited from the 2026-10-21 review, not rerun: PHP suite and PHP coverage gate; Vitest suite and coverage gate; source-to-coverage file comparison; PHP lint; frontend production build; and `git diff --check`. The prior review records their results and environment. They remain applicable because the reviewed implementation has not changed. The current untracked frontend coverage output was not overwritten. CI execution itself remains unobserved; workflow wiring was inspected in the earlier review.
+The app and MySQL containers were already active before the audit and were left running. No database or application behavior was changed by this feature. The container printed a Git dubious-ownership warning before Composer commands, but each command completed successfully. CI execution itself was not observed; its workflow configuration was inspected directly.
 
 ## Verified requirements
 
-- **S011-01 / S011-02 — PHP line and branch gates (T011-01):** The earlier review directly inspected the gate implementation and tests and recorded passing CI-equivalent PHP coverage results above both thresholds. No subsequent tracked change affects this evidence. Current requirements remain verified based on that evidence.
-- **S011-03 — Frontend coverage (T011-02):** The earlier review recorded separate Vitest thresholds, all 42 authored source files in the report, and a passing production build. No subsequent tracked change affects this evidence.
-- **S011-04 — Test practice guidance (T011-03):** `AGENTS.md` still documents test-first practice, unit and integration test boundaries, characterization tests, and the line-coverage recommendation. No subsequent tracked change affects this requirement.
-- **S011-05 — Independent CI enforcement (T011-03):** The earlier review inspected the separate PHP and frontend jobs and their downstream dependencies. The workflow has no changes after the feature branch tip.
-- **S011-06 — Market tooling preference (T011-01/02/03):** The Plan records the PHPUnit capability gap and the rationale for minimal project-owned glue; the frontend provider remains development-only. No subsequent tracked change affects these decisions.
+- **S011-01 / S011-02 — PHP line and branch gates (T011-01):** `phpunit.xml` scopes coverage to repository PHP and enables path coverage; the report gate consumes Clover statement and conditional counts, enforces both thresholds independently, includes uncovered files, and rejects absent or invalid data. The focused gate tests cover threshold boundaries, independent failures, uncovered files, and malformed or missing metrics. The CI-equivalent coverage command passed above both thresholds.
+- **S011-03 — Frontend coverage (T011-02):** Vitest uses the pinned development-only V8 provider, includes all `frontend/src/**/*.{js,vue}` files, and enforces separate line and branch thresholds. The coverage run and explicit source-to-report comparison confirmed all 42 files, including unimported modules. The suite passed both thresholds. The production build passed with the provider kept in `devDependencies`.
+- **S011-04 — Test practice guidance (T011-03):** `AGENTS.md` records test-first practice, unit and integration boundaries with controlled doubles, characterization checks across base and feature branches, meaningful outcome coverage, and the 100% line recommendation without a branch target. Its guidance matches the validated Spec.
+- **S011-05 — Independent CI enforcement (T011-03):** The workflow runs PHP/Xdebug coverage and Vitest coverage in separate jobs. The production build depends on both jobs, and merged deployment depends on both coverage jobs and the production build. Thus a failed metric prevents those downstream checks from passing. Pull-request and main-push triggers remain configured.
+- **S011-06 — Market tooling preference (T011-01/02/03):** The Plan records the PHPUnit CLI capability gap and the reason for small project-owned PHP report glue. Vitest's compatible coverage provider is pinned as a development dependency. No second runner or platform was introduced.
 
-All three Plan tasks remain checked and their implementation remains merged. The missing `execution.md` limits traceability of task-by-task status and checks, but the prior review supplies direct implementation and check evidence; it does not by itself disprove acceptance.
+All Plan tasks are checked, and their implementations, focused gate tests, and acceptance evidence were verified in the repository and by the commands above.
 
 ## Findings
 
-No open findings. No finding IDs existed in the previous review to preserve.
+No findings.
 
 ## Conclusion
 
-Feature 011 remains accepted based on the earlier first-review checks and the current confirmation that its code is merged unchanged into `origin/main`. The full suites, coverage gates, lint, and build were not rerun during this re-audit; those results are inherited from 2026-10-21. Per-task execution evidence remains unavailable because `execution.md` is absent. Publication is proven by the remote feature ref and its ancestry in `origin/main`. The review changed only this `review.md` artifact; it made no commit or push.
+The Feature 011 acceptance criteria are met by the inspected implementation and all applicable first-review gates passed. Review is complete. The local branch has no feature commit and no matching remote branch was found, so this audit does not claim commit or publication evidence. No implementation or earlier SDD artifact was changed during Review.
