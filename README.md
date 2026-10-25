@@ -4,6 +4,14 @@ A reusable base for PHP 8.4 applications with Slim 4, MySQL/PDO, Phinx, and Vue 
 
 ## Create a project
 
+For host-based installation, Composer must run with PHP `^8.4` and the `PDO` and `pdo_mysql` extensions enabled. The application also requires `mbstring` when running on the host. Docker-based setup provides the application runtime and its PHP extensions.
+
+On Debian or Ubuntu, install the required PHP extensions before creating the project:
+
+```sh
+sudo apt install php8.4-mysql php8.4-mbstring
+```
+
 Use [Composer 2](https://getcomposer.org/doc/03-cli.md#create-project) to create a project from Packagist in a new or empty destination directory. The package currently has a `dev-main` version, so include `--stability=dev`; `--remove-vcs` removes the skeleton's source Git metadata:
 
 ```sh

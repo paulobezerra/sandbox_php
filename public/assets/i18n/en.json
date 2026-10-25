@@ -36,7 +36,7 @@
   "home.architecturePaths": "src/Domain/User and src/Domain/Post: rules, invariants, and contracts.|src/Application: application operations without Slim or PDO.|src/Infrastructure: controllers, sessions, Markdown, and MySQL repositories.|src/Bootstrap: configuration, composition, and routes.|frontend/src: Vue SPA and API source; public/assets/build: compiled frontend output.|database/migrations and tests: versioned schema and checks.",
   "home.architectureExtension": "To add a domain, create its contracts and implementations in their respective layers and connect them in Bootstrap.",
   "home.install": "Installation and first use",
-  "home.installText": "Create a new project with Composer in an empty destination, initialize a fresh Git repository, then start the development app with Docker Compose. Replace the example credentials first. Open http://localhost:8080 after setup.",
+  "home.installText": "For host-based installation, Composer requires PHP ^8.4 with PDO and pdo_mysql enabled; the app also requires mbstring when running on the host. On Debian or Ubuntu, run the package command below before creating the project. Create a new project with Composer in an empty destination, initialize a fresh Git repository, then start the development app with Docker Compose. Replace the example credentials first. Open http://localhost:8080 after setup.",
   "home.installMigration": "Migrations use Phinx and are never applied at startup. Run composer migrate explicitly, then composer migrate:status to inspect the result.",
   "home.installEnvironment": "Keep the real .env out of version control. The project is published on Packagist; its current version is dev-main, so include --stability=dev when creating it. Run later Composer commands in the active app container when the setup instructions call for them.",
   "home.auth": "Registration, login, and the Posts workflow",
@@ -138,6 +138,6 @@
   "home.sddLink": "Visit the canonical SDD Lite project and current installation instructions",
   "home.composerDocs": "Read the official Composer create-project documentation",
   "home.openApiRoute": "Open the API reference at /docs when enabled",
-  "home.installCommands": "composer create-project --stability=dev paulobezerra/sandbox-php my-project --remove-vcs\ncd my-project\ngit init\ncp .env.example .env\n# Edit .env and replace the example passwords.\ndocker compose up -d --build\ndocker compose exec -T app composer migrate\ndocker compose exec -T app composer migrate:status",
+  "home.installCommands": "sudo apt install php8.4-mysql php8.4-mbstring\ncomposer create-project --stability=dev paulobezerra/sandbox-php my-project --remove-vcs\ncd my-project\ngit init\ncp .env.example .env\n# Edit .env and replace the example passwords.\ndocker compose up -d --build\ndocker compose exec -T app composer migrate\ndocker compose exec -T app composer migrate:status",
   "home.swaggerDocs": "Swagger documentation"
 }
