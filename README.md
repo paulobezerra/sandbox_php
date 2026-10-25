@@ -29,14 +29,14 @@ Create an account using the registration link on the login page. Each authentica
 
 ## Frontend development and production build
 
-Run the PHP app as well as Vite during development. PHP continues to serve the page and API, and frontend API requests use that same PHP origin.
+Run the PHP app as well as Vite during development. Nginx serves the page and forwards application requests to PHP-FPM; frontend API requests use that same origin.
 
 ```sh
 npm --prefix frontend ci
 npm --prefix frontend run dev
 ```
 
-Build before building or deploying the production PHP image. The Vite build writes compiled JavaScript, CSS, and its manifest under `public/assets/build/`; PHP/Apache serves those files in production, so the production container does not need Node.js.
+Build before building or deploying the production images. The Vite build writes compiled JavaScript, CSS, and its manifest under `public/assets/build/`; the PHP-FPM image contains the application and the Nginx image serves the matching `public/` tree, so runtime images do not need Node.js.
 
 ```sh
 npm --prefix frontend run build
@@ -65,9 +65,11 @@ npm --prefix frontend run build
 
 `composer format` applies PSR-12 to project PHP files; `composer lint` checks style and syntax without writing files. `composer test` runs the service-free PHPUnit suite; run it directly where PHP and Composer dependencies are installed. `composer quality` also runs lint, tests with coverage, the minimum coverage check, PHPStan, and the OpenAPI check. The frontend Vitest suite and production build run directly with the npm commands above. CI runs each test suite separately with a 20-second limit. `composer migrate:status` lists migration status. `composer openapi:generate` regenerates `docs/openapi.json` from PHP attributes.
 
-## Docker production
+## Optional Docker deployment for adopters
 
-`compose.prod.yaml` uses an optimized image without Xdebug, bind mounts, or enabled OpenAPI documentation. Use a production `.env` outside version control, with unique credentials and `APP_URL` set to the public HTTPS domain. The application sets the `Secure` cookie flag based on this URL. Compose serves HTTP; terminate TLS at a reverse proxy or load balancer.
+`compose.prod.yaml` is a reusable example for adopters who choose to host the skeleton on a VPS or other infrastructure they control. It runs Nginx in front of a private PHP-FPM service, using PHP 8.4.27 or a later 8.4 patch, and keeps MySQL on the internal Compose network. Only Nginx publishes `${APP_PORT:-8080}`. The optimized PHP image has no Xdebug, bind mounts, or enabled OpenAPI documentation. This example has not been fully validated in a real target environment; adopters must validate it for their own proxy/TLS, secrets, firewall, persistence, and backup setup before relying on it. It does not describe this repository's active production deployment, which remains Apache shared hosting through the release workflow below.
+
+Use a production `.env` outside version control with unique credentials and `APP_URL` set to the public HTTPS domain. The application sets the `Secure` cookie flag based on this URL. Compose serves HTTP; terminate TLS at a reverse proxy or load balancer. Set `APP_PORT` if the published Nginx port should differ from 8080.
 
 ```sh
 cp .env.example .env
@@ -77,7 +79,7 @@ docker compose --env-file .env -f compose.prod.yaml up -d --build
 docker compose --env-file .env -f compose.prod.yaml exec -T app composer migrate --no-interaction
 ```
 
-Back up the database before upgrading the application and apply migrations as a controlled deployment step. Do not expose the MySQL port to the internet. Keep `.env` and backups outside the public directory; Apache uses `public/` as its DocumentRoot. The image contains the application code and production dependencies. For shared hosting, publish only `public/` as the web root and keep `src/`, `vendor/`, and `.env` outside it.
+Back up the database before upgrading the application and apply migrations as a controlled deployment step. Do not expose the MySQL port to the internet. Keep `.env` and backups outside the public directory. For shared hosting, publish only `public/` as the web root and keep `src/`, `vendor/`, and `.env` outside it.
 
 ## Shared-hosting configuration
 
