@@ -1,6 +1,6 @@
 # PROJECT CONTEXT — PHP + Slim + Vue Skeleton
 
-**Updated:** 2026-10-18 · **Origin:** existing project (analyzed) · **Artifact language:** English (decided by Paulo Bezerra on 2026-10-18, to maximize the project's reach and make it accessible to as many potential contributors as possible)
+**Updated:** 2026-10-25 · **Origin:** existing project (analyzed) · **Origin integration branch:** `main` · **Artifact language:** English (decided by Paulo Bezerra on 2026-10-18, to maximize the project's reach and make it accessible to as many potential contributors as possible)
 
 ## Purpose
 
